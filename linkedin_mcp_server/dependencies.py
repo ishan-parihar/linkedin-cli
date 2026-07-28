@@ -45,7 +45,8 @@ def _is_browser_binary_missing_error(error: Exception) -> bool:
     message = str(error).lower()
     markers = (
         "executable doesn't exist at",
-        "looks like playwright was just installed or updated",
+        "obscura binary not found",
+        "no such file or directory",
     )
     return any(marker in message for marker in markers)
 
@@ -92,14 +93,14 @@ async def get_ready_extractor(
             invalidate_browser_setup()
             raise_tool_error(
                 BrowserBinaryMissingError(
-                    "Patchright Chromium browser is missing. Run 'uv run patchright install chromium', or restart the server to auto-install."
+                    "Obscura binary is missing. Restart the server to auto-download the latest version."
                 ),
                 tool_name,
             )
         if isinstance(e, NetworkError) and _is_linux_browser_dependency_error(e):
             raise_tool_error(
                 LinuxBrowserDependencyError(
-                    "Chromium could not start because required system libraries are missing on this Linux host. Install the needed browser dependencies or use the Docker setup instead."
+                    "Obscura could not start because required system libraries are missing on this Linux host. Install the needed dependencies or use the Docker setup instead."
                 ),
                 tool_name,
             )

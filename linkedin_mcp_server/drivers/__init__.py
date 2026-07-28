@@ -1,13 +1,13 @@
 """
 Browser management package for LinkedIn scraping.
 
-This package provides Patchright browser management using linkedin_scraper v3's
-BrowserManager with persistent context. It implements a singleton pattern for
-browser instances to ensure profile persistence across multiple tool calls
-while handling authentication and proper resource cleanup.
+This package provides Obscura browser management using ObscuraBrowserManager with
+persistent context. It implements a singleton pattern for browser instances to ensure
+profile persistence across multiple tool calls while handling authentication and proper
+resource cleanup.
 
 Key Components:
-- Patchright browser initialization via BrowserManager with persistent profile
+- Obscura browser initialization via ObscuraBrowserManager with persistent profile
 - LinkedIn authentication with automatic profile persistence
 - Singleton pattern for browser reuse across tools
 - Automatic cleanup and resource management

@@ -1,11 +1,12 @@
 [project]
 name = "mcp-server-linkedin"
-version = "4.20.0"
-description = "MCP server that gives AI assistants like Claude access to LinkedIn profiles, companies, and job postings through the user's own browser session."
+version = "5.0.0"
+description = "MCP server with AXI-compliant CLI that gives AI assistants like Claude access to LinkedIn profiles, companies, and job postings through the user's own browser session. Fork of stickerdaniel/linkedin-mcp-server with enhanced agent integration."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
 authors = [
-    { name = "Daniel Sticker", email = "daniel@sticker.name" }
+    { name = "Daniel Sticker", email = "daniel@sticker.name" },
+    { name = "Ishan", email = "ishan@example.com" }
 ]
 license = "Apache-2.0"
 keywords = [
@@ -15,6 +16,9 @@ keywords = [
     "llm",
     "anthropic",
     "claude",
+    "axi",
+    "linkedin",
+    "obscura",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -30,23 +34,26 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "aiohttp>=3.12.13",
     "cryptography>=48.0.1",
     "fastmcp>=3.4.4",
+    "httpx>=0.27.0",
     "inquirer>=3.4.0",
     "packaging>=26.2",
-    "patchright>=1.40.0",
     "python-dotenv>=1.1.1",
 ]
 
 [project.urls]
-Homepage = "https://github.com/stickerdaniel/linkedin-mcp-server"
-Documentation = "https://github.com/stickerdaniel/linkedin-mcp-server#readme"
-Repository = "https://github.com/stickerdaniel/linkedin-mcp-server"
-Issues = "https://github.com/stickerdaniel/linkedin-mcp-server/issues"
-Changelog = "https://github.com/stickerdaniel/linkedin-mcp-server/releases"
+Homepage = "https://github.com/ishan-parihar/linkedin-cli"
+Documentation = "https://github.com/ishan-parihar/linkedin-cli#readme"
+Repository = "https://github.com/ishan-parihar/linkedin-cli"
+Issues = "https://github.com/ishan-parihar/linkedin-cli/issues"
+Changelog = "https://github.com/ishan-parihar/linkedin-cli/releases"
+Original-Project = "https://github.com/stickerdaniel/linkedin-mcp-server"
 
 [project.scripts]
 mcp-server-linkedin = "linkedin_mcp_server.cli_main:main"
+linkedin-cli = "linkedin_mcp_server.linkedin_cli_full:main"
 
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
@@ -61,7 +68,6 @@ linkedin_mcp_server = ["py.typed"]
 
 [dependency-groups]
 dev = [
-    "aiohttp>=3.12.13",
     "pre-commit>=4.2.0",
     "pytest>=8.3.5",
     "pytest-asyncio>=1.0.0",

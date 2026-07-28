@@ -46,27 +46,9 @@ from linkedin_mcp_server.setup import interactive_login
 
 logger = logging.getLogger(__name__)
 
-_BROWSER_DIR = "patchright-browsers"
-_BROWSER_INSTALL_METADATA = "browser-install.json"
-_INVALID_STATE_PREFIX = "invalid-state-"
-_INSTALL_METADATA_SCHEMA = 3
-
-# Registry browser names mapped to on-disk dir prefixes for the binaries this
-# server actually launches. ffmpeg/firefox/webkit are excluded — ffmpeg is only
-# used for video recording (we don't), and chromium / chromium-headless-shell
-# entries have no revisionOverrides, so we avoid patchright's per-platform
-# special-prefix logic entirely.
-_REGISTRY_NAME_TO_DIR_PREFIX = {
-    "chromium": "chromium-",
-    "chromium-headless-shell": "chromium_headless_shell-",
-}
-
-# On-disk dir prefix of the headless shell — the only binary the default
-# headless scrape + auto-import path launches.
-_SHELL_DIR_PREFIX = "chromium_headless_shell-"
-# On-disk dir prefix of full Chrome for Testing — needed only for the headed
-# interactive-login fallback or an operator-configured --no-headless run.
-_FULL_DIR_PREFIX = "chromium-"
+# Obscura binary directory
+_OBSCURA_DIR = "obscura"
+_OBSCURA_BINARY_PATH = Path("/tmp/obscura")
 
 
 class RuntimePolicy(str, Enum):
