@@ -14,6 +14,7 @@ from linkedin_mcp_server.config.schema import DEFAULT_TOOL_TIMEOUT_SECONDS
 from linkedin_mcp_server.core.exceptions import AuthenticationError
 from linkedin_mcp_server.dependencies import get_ready_extractor, handle_auth_error
 from linkedin_mcp_server.error_handler import raise_tool_error
+from linkedin_mcp_server.output_utils import JOB_HINTS, add_next_step, apply_section_truncation
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,10 @@ def register_job_tools(
 
             await ctx.report_progress(progress=100, total=100, message="Complete")
 
+            # AXI §3: truncate long section text; §9: next-step hints
+            if "sections" in result:
+                result["sections"] = apply_section_truncation(result["sections"])
+            add_next_step(result, JOB_HINTS)
             return result
 
         except AuthenticationError as e:
@@ -140,6 +145,10 @@ def register_job_tools(
 
             await ctx.report_progress(progress=100, total=100, message="Complete")
 
+            # AXI §3: truncate long section text; §9: next-step hints
+            if "sections" in result:
+                result["sections"] = apply_section_truncation(result["sections"])
+            add_next_step(result, JOB_HINTS)
             return result
 
         except AuthenticationError as e:
@@ -189,6 +198,10 @@ def register_job_tools(
 
             await ctx.report_progress(progress=100, total=100, message="Complete")
 
+            # AXI §3: truncate long section text; §9: next-step hints
+            if "sections" in result:
+                result["sections"] = apply_section_truncation(result["sections"])
+            add_next_step(result, JOB_HINTS)
             return result
 
         except AuthenticationError as e:

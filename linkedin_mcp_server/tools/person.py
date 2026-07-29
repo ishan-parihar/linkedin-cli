@@ -17,6 +17,12 @@ from linkedin_mcp_server.config.schema import DEFAULT_TOOL_TIMEOUT_SECONDS
 from linkedin_mcp_server.core.exceptions import AuthenticationError
 from linkedin_mcp_server.dependencies import get_ready_extractor, handle_auth_error
 from linkedin_mcp_server.error_handler import raise_tool_error
+from linkedin_mcp_server.output_utils import (
+    PERSON_PROFILE_HINTS,
+    SEARCH_PEOPLE_HINTS,
+    add_next_step,
+    apply_section_truncation,
+)
 from linkedin_mcp_server.scraping import parse_person_sections
 from linkedin_mcp_server.scraping.extractor import FilterValidationError
 
@@ -91,6 +97,10 @@ def register_person_tools(
             if unknown:
                 result["unknown_sections"] = unknown
 
+            # AXI §3: truncate long section text; §9: next-step hints
+            if "sections" in result:
+                result["sections"] = apply_section_truncation(result["sections"])
+            add_next_step(result, PERSON_PROFILE_HINTS)
             return result
 
         except AuthenticationError as e:
@@ -170,6 +180,10 @@ def register_person_tools(
 
             await ctx.report_progress(progress=100, total=100, message="Complete")
 
+            # AXI §3: truncate long section text; §9: next-step hints
+            if "sections" in result:
+                result["sections"] = apply_section_truncation(result["sections"])
+            add_next_step(result, SEARCH_PEOPLE_HINTS)
             return result
 
         except ToolError:
@@ -357,6 +371,10 @@ def register_person_tools(
             if unknown:
                 result["unknown_sections"] = unknown
 
+            # AXI §3: truncate long section text; §9: next-step hints
+            if "sections" in result:
+                result["sections"] = apply_section_truncation(result["sections"])
+            add_next_step(result, PERSON_PROFILE_HINTS)
             return result
 
         except AuthenticationError as e:
