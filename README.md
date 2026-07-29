@@ -96,7 +96,19 @@ linkedin-cli setup-session       # Install session hooks for Claude Code, Codex
 
 ## 🔧 Installation
 
-### Using uvx (Recommended)
+### One-Line Install (Recommended)
+
+```bash
+curl -sSL https://raw.githubusercontent.com/ishan-parihar/linkedin-cli/main/install.sh | bash
+```
+
+This will:
+- Install/update the LinkedIn MCP Server
+- Set up the AXI-compliant CLI (`linkedin-cli`)
+- Configure the Obscura backend
+- Preserve existing cookies if updating
+
+### Using uvx
 
 ```json
 {
