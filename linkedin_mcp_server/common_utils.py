@@ -41,22 +41,22 @@ def secure_mkdir(path: Path, mode: int = 0o700) -> None:
 
 
 def harden_linkedin_tree(path: Path) -> None:
-    """Ensure dirs from *path* up to ``.linkedin-mcp`` are owner-only (``0o700``).
+    """Ensure dirs from *path* up to ``.linkedin`` are owner-only (``0o700``).
 
     Complements :func:`secure_mkdir` by hardening pre-existing directories that
     may have been created with default umask permissions. No-op on Windows or
-    when *path* is not inside a ``.linkedin-mcp`` directory.
+    when *path* is not inside a ``.linkedin`` directory.
     """
     if os.name == "nt":
         return
     d = path if path.is_dir() else path.parent
-    # Bail out early when the path is not inside a .linkedin-mcp tree.
-    if not any(p.name == ".linkedin-mcp" for p in (d, *d.parents)):
+    # Bail out early when the path is not inside a .linkedin tree.
+    if not any(p.name == ".linkedin" for p in (d, *d.parents)):
         return
     for p in (d, *d.parents):
         if p.is_dir() and stat.S_IMODE(p.stat().st_mode) != _PRIVATE_DIR_MODE:
             p.chmod(_PRIVATE_DIR_MODE)
-        if p.name == ".linkedin-mcp":
+        if p.name == ".linkedin":
             return
 
 

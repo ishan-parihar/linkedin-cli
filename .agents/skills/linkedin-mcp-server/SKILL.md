@@ -162,13 +162,13 @@ Once authenticated, the MCP server provides these tools:
 
 ### Environment Variables
 
-- `LINKEDIN_USER_DATA_DIR` - Browser profile directory (default: ~/.linkedin-mcp/profile)
+- `LINKEDIN_USER_DATA_DIR` - Browser profile directory (default: ~/.linkedin/profile)
 - `LINKEDIN_LOG_LEVEL` - Logging level (DEBUG/INFO/WARNING/ERROR)
 - `LINKEDIN_HEADLESS` - Run browser headless (true/false)
 
 ### Cookie Storage
 
-Cookies are stored in `~/.linkedin-mcp/cookies.json` in Obscura-compatible format.
+Cookies are stored in `~/.linkedin/cookies.json` in Obscura-compatible format.
 
 ## Troubleshooting
 

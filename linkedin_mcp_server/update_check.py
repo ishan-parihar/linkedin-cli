@@ -4,7 +4,7 @@ Most users install via ``uvx mcp-server-linkedin@latest``, which re-resolves PyP
 on every client launch, so they are already current. This is defense-in-depth for
 the minority that pin a fixed version, run a stale Docker tag, or are offline: it
 polls the PyPI JSON API at most once a day, caches the answer under
-``~/.linkedin-mcp``, and appends a single gentle notice to a tool result when the
+``~/.linkedin``, and appends a single gentle notice to a tool result when the
 installed version is meaningfully behind. Set ``LINKEDIN_MCP_CHECK_FOR_UPDATES=off``
 to disable; it is skipped automatically in CI and for source/dev installs.
 
@@ -37,7 +37,7 @@ _PYPI_URL = "https://pypi.org/pypi/mcp-server-linkedin/json"
 _LATEST_RELEASE_URL = (
     "https://github.com/stickerdaniel/linkedin-mcp-server/releases/latest"
 )
-_CACHE_PATH = Path.home() / ".linkedin-mcp" / "update-check.json"
+_CACHE_PATH = Path.home() / ".linkedin" / "update-check.json"
 _CACHE_TTL_SECONDS = 24 * 60 * 60
 _REQUEST_TIMEOUT_SECONDS = 2.0
 _DISABLED_VALUES = {"0", "false", "off", "no"}

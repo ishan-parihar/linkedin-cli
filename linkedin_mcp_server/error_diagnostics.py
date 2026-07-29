@@ -289,7 +289,7 @@ def _safe_source_profile_dir():
     try:
         return get_source_profile_dir()
     except Exception:
-        return (Path.home() / ".linkedin-mcp" / "profile").expanduser()
+        return (Path.home() / ".linkedin" / "profile").expanduser()
 
 
 def _suggest_issue_title(
@@ -366,7 +366,7 @@ def _installation_method_lines(runtime: dict[str, Any]) -> list[str]:
     docker_checked = "x" if "container" in current_runtime_id else " "
     managed_checked = " " if "container" in current_runtime_id else "x"
     return [
-        f"- [{docker_checked}] Docker (specify docker image version/tag): `stickerdaniel/linkedin-mcp-server:<version-or-latest>` with `~/.linkedin-mcp` mounted into `/home/pwuser/.linkedin-mcp`",
+        f"- [{docker_checked}] Docker (specify docker image version/tag): `stickerdaniel/linkedin-mcp-server:<version-or-latest>` with `~/.linkedin` mounted into `/home/pwuser/.linkedin`",
         f"- [{managed_checked}] Managed runtime (Claude Desktop MCP Bundle, `uvx`, or local `uv run` setup)",
     ]
 
@@ -376,7 +376,7 @@ def _installation_method_summary(runtime: dict[str, Any]) -> str:
     if "container" in current_runtime_id:
         return (
             "Docker using `stickerdaniel/linkedin-mcp-server:<version-or-latest>` with "
-            "`~/.linkedin-mcp` mounted into `/home/pwuser/.linkedin-mcp`"
+            "`~/.linkedin` mounted into `/home/pwuser/.linkedin`"
         )
     return "Managed runtime (Claude Desktop MCP Bundle, `uvx`, or local `uv run` setup)"
 

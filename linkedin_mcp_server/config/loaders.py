@@ -544,7 +544,7 @@ def load_from_args(config: AppConfig) -> AppConfig:
         type=str,
         default=None,
         metavar="PATH",
-        help="Path to persistent browser profile directory (default: ~/.linkedin-mcp/profile)",
+        help="Path to persistent browser profile directory (default: ~/.linkedin/profile)",
     )
 
     parser.add_argument(

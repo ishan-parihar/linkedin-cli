@@ -43,7 +43,7 @@ from linkedin_mcp_server.exceptions import (
 from linkedin_mcp_server.profile_lease import get_profile_lease
 
 # Default persistent profile directory
-DEFAULT_PROFILE_DIR = Path.home() / ".linkedin-mcp" / "profile"
+DEFAULT_PROFILE_DIR = Path.home() / ".linkedin" / "profile"
 # Global browser instance (singleton)
 _browser: ObscuraBrowserManager | None = None
 _browser_cookie_export_path: Path | None = None

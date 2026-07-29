@@ -172,7 +172,7 @@ If the MCP server can't find cookies:
 
 3. **Check cookie file location:**
    ```bash
-   ls -la ~/.linkedin-mcp/cookies.json
+   ls -la ~/.linkedin/cookies.json
    ```
 
 ### Permission Issues
@@ -181,12 +181,12 @@ If you get permission errors:
 
 1. **Check file permissions:**
    ```bash
-   ls -la ~/.linkedin-mcp/cookies.json
+   ls -la ~/.linkedin/cookies.json
    ```
 
 2. **Fix permissions:**
    ```bash
-   chmod 600 ~/.linkedin-mcp/cookies.json
+   chmod 600 ~/.linkedin/cookies.json
    ```
 
 ## Environment Variables
@@ -195,7 +195,7 @@ You can configure the MCP server using environment variables:
 
 ```bash
 # Browser profile directory
-LINKEDIN_USER_DATA_DIR=~/.linkedin-mcp/profile
+LINKEDIN_USER_DATA_DIR=~/.linkedin/profile
 
 # Logging level
 LINKEDIN_LOG_LEVEL=WARNING

@@ -49,7 +49,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--cookie-path",
         type=Path,
-        default=Path.home() / ".linkedin-mcp" / "cookies.json",
+        default=Path.home() / ".linkedin" / "cookies.json",
         help="Path to portable LinkedIn cookie JSON",
     )
     parser.add_argument(

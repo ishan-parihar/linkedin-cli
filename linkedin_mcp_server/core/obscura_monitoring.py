@@ -240,7 +240,7 @@ class ObscuraStructuredLogger:
     """Structured logger for Obscura operations with JSON output."""
     
     def __init__(self, log_file: Optional[Path] = None):
-        self.log_file = log_file or Path.home() / ".linkedin-mcp" / "obscura_logs" / f"obscura_{datetime.now().strftime('%Y%m%d')}.jsonl"
+        self.log_file = log_file or Path.home() / ".linkedin" / "obscura_logs" / f"obscura_{datetime.now().strftime('%Y%m%d')}.jsonl"
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
         
         logger.info("Obscura structured logger initialized with log file: %s", self.log_file)
@@ -345,7 +345,7 @@ class ObscuraHealthChecker:
             health_details["cookie_error"] = str(e)
         
         # Check storage status
-        storage_dir = Path.home() / ".linkedin-mcp" / "profile"
+        storage_dir = Path.home() / ".linkedin" / "profile"
         health_details["storage_status"] = "available" if storage_dir.exists() else "missing"
         
         # Determine overall health

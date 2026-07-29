@@ -29,9 +29,9 @@ error() {
 }
 
 # Set paths
-LINKEDIN_MCP_DIR="${HOME}/.linkedin-mcp"
-BACKUP_DIR="${HOME}/.linkedin-mcp-backup-$(date +%Y%m%d-%H%M%S)"
-NEW_INSTALL_DIR="${HOME}/.linkedin-mcp/linkedin-cli"
+LINKEDIN_MCP_DIR="${HOME}/.linkedin"
+BACKUP_DIR="${HOME}/.linkedin-backup-$(date +%Y%m%d-%H%M%S)"
+NEW_INSTALL_DIR="${HOME}/.linkedin/linkedin-cli"
 
 info "Starting LinkedIn MCP Server update..."
 info "Backup directory: $BACKUP_DIR"
@@ -139,9 +139,9 @@ if [ -n "$PROFILE_BACKUP" ] && [ -d "$PROFILE_BACKUP" ]; then
 fi
 
 # Clean up old venv if it exists
-if [ -d "${HOME}/.linkedin-mcp-venv" ]; then
+if [ -d "${HOME}/.linkedin-venv" ]; then
     info "Removing old virtual environment..."
-    rm -rf "${HOME}/.linkedin-mcp-venv"
+    rm -rf "${HOME}/.linkedin-venv"
     success "Old virtual environment removed"
 fi
 

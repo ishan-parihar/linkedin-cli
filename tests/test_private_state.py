@@ -61,7 +61,7 @@ class TestHardeningOnPosix:
     @posix_only
     def test_hardening_works_outside_a_linkedin_mcp_tree(self, tmp_path: Path):
         # USER_DATA_DIR can point anywhere, and the older tree-hardening helper
-        # deliberately does nothing outside a .linkedin-mcp directory. A token
+        # deliberately does nothing outside a .linkedin directory. A token
         # stored under a custom root has to be protected just the same.
         target = tmp_path / "somewhere-else" / "daemon"
         target.parent.mkdir(mode=0o755)

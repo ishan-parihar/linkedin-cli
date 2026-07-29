@@ -41,7 +41,7 @@ _OBSCURA_PATH = "/tmp/obscura"
 # Required LinkedIn cookies
 _REQUIRED_COOKIES = {"li_at", "bscookie"}
 # Default user data directory
-_DEFAULT_USER_DATA_DIR = Path.home() / ".linkedin-mcp" / "profile"
+_DEFAULT_USER_DATA_DIR = Path.home() / ".linkedin" / "profile"
 # Private file mode
 _PRIVATE_FILE_MODE = 0o600
 
@@ -328,7 +328,7 @@ class ObscuraBrowserManager:
 
     def _default_cookie_path(self) -> Path:
         """Get default cookie file path."""
-        return Path.home() / ".linkedin-mcp" / "cookies.json"
+        return Path.home() / ".linkedin" / "cookies.json"
 
     async def _load_cookies(self) -> None:
         """Load cookies from file or browser extraction."""

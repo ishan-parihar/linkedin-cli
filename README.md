@@ -52,7 +52,7 @@ linkedin-cli --import-from-browser chrome
 ✅ Successfully imported LinkedIn cookies
    Source: brave[Default](in-process)
    Cookies: 14
-   Path: /home/user/.linkedin-mcp/cookies.json
+   Path: /home/user/.linkedin/cookies.json
    ✅ Authentication cookie (li_at) found
 ```
 
@@ -66,7 +66,7 @@ linkedin-cli --status
 ```
 Session: active
 Cookies: 14
-Path: /home/user/.linkedin-mcp/cookies.json
+Path: /home/user/.linkedin/cookies.json
 ✅ Authentication cookie (li_at) found
 ```
 
@@ -204,7 +204,7 @@ linkedin-cli --transport streamable-http --host 127.0.0.1 --port 8080
 ### Environment Variables
 
 ```bash
-LINKEDIN_USER_DATA_DIR=~/.linkedin-mcp/profile    # Browser profile directory
+LINKEDIN_USER_DATA_DIR=~/.linkedin/profile    # Browser profile directory
 LINKEDIN_LOG_LEVEL=WARNING                         # Logging level
 LINKEDIN_HEADLESS=true                              # Run browser headless
 ```

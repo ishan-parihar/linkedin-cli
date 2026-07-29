@@ -55,7 +55,7 @@ def _isolate_daemon_state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
 def _config(**browser: object) -> AppConfig:
     config = AppConfig()
     config.browser.user_data_dir = str(
-        daemon_descriptor_module._account_home() / ".linkedin-mcp" / "profile"
+        daemon_descriptor_module._account_home() / ".linkedin" / "profile"
     )
     for name, value in browser.items():
         setattr(config.browser, name, value)

@@ -1,12 +1,12 @@
 ---
 name: 2-repro-issue
-description: Reproduce a single LinkedIn-MCP issue locally on the current branch against the real authenticated LinkedIn session at ~/.linkedin-mcp/profile/, using the MCP streamable-http server. Captures the exact failure mode (tool output, error, missing data) and maps it back to the scraper code path. Use when the user says "reproduce #N", "investigate #N", "try #N locally", "verify the bug in #N", or pastes an issue URL from stickerdaniel/linkedin-mcp-server. Does NOT check out a PR or attempt a fix — that's /3-verify-pr-fix.
+description: Reproduce a single LinkedIn-MCP issue locally on the current branch against the real authenticated LinkedIn session at ~/.linkedin/profile/, using the MCP streamable-http server. Captures the exact failure mode (tool output, error, missing data) and maps it back to the scraper code path. Use when the user says "reproduce #N", "investigate #N", "try #N locally", "verify the bug in #N", or pastes an issue URL from stickerdaniel/linkedin-mcp-server. Does NOT check out a PR or attempt a fix — that's /3-verify-pr-fix.
 argument-hint: '<issue-number-or-url>'
 ---
 
 # Reproduce a LinkedIn-MCP Issue Locally
 
-Goal: take an issue number, run the exact failing tool call against the real LinkedIn via the local MCP server, and produce concrete evidence — output JSON, error message, partial state — that confirms or refutes the bug on the current branch. Always use the authenticated profile already at `~/.linkedin-mcp/profile/`. Never mock.
+Goal: take an issue number, run the exact failing tool call against the real LinkedIn via the local MCP server, and produce concrete evidence — output JSON, error message, partial state — that confirms or refutes the bug on the current branch. Always use the authenticated profile already at `~/.linkedin/profile/`. Never mock.
 
 ## Phase 1 — Read and map
 
@@ -40,7 +40,7 @@ State out loud before running anything: "Reproducing tool `X` with args `Y` on b
 ```bash
 git status --porcelain | head -5         # workspace must be clean
 git log -1 --oneline                     # record the SHA we're testing
-ls ~/.linkedin-mcp/profile/ | head -3    # profile must exist
+ls ~/.linkedin/profile/ | head -3    # profile must exist
 ```
 
 If the workspace is dirty, ask the user before continuing — they may have local changes that affect the repro. If the profile is missing or stale, run `uv run -m linkedin_mcp_server --login` once and only once per skill invocation.

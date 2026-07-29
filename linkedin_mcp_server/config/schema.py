@@ -101,7 +101,7 @@ class BrowserConfig:
     viewport_height: int = 720
     default_timeout: int = 5000  # Milliseconds for page operations
     chrome_path: str | None = None  # Path to Chrome/Chromium executable
-    user_data_dir: str = "~/.linkedin-mcp/profile"  # Persistent browser profile
+    user_data_dir: str = "~/.linkedin/profile"  # Persistent browser profile
     # Proxy for the browser's own traffic. The server's MCP transport is not
     # routed through it. ``proxy_server`` accepts scheme://host:port and, from
     # the environment only, a provider string carrying credentials; validate()

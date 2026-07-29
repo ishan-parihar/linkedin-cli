@@ -32,9 +32,9 @@ Create a browser profile locally, then mount it into Docker. You still need [uv]
 uvx mcp-server-linkedin@latest --login
 ```
 
-This opens a browser window where you log in manually (5 minute timeout for 2FA, captcha, etc.). The browser profile and cookies are saved under `~/.linkedin-mcp/`. On startup, Docker derives a Linux browser profile from your host cookies and creates a fresh session each time. For better stability, consider the [uvx setup](https://github.com/stickerdaniel/linkedin-mcp-server#-uvx-setup-recommended---universal).
+This opens a browser window where you log in manually (5 minute timeout for 2FA, captcha, etc.). The browser profile and cookies are saved under `~/.linkedin/`. On startup, Docker derives a Linux browser profile from your host cookies and creates a fresh session each time. For better stability, consider the [uvx setup](https://github.com/stickerdaniel/linkedin-mcp-server#-uvx-setup-recommended---universal).
 
-> **Already signed into LinkedIn in a browser on the host?** Run `uvx mcp-server-linkedin@latest --import-from-browser` on the host to reuse that session instead of `--login`. It supports Chrome, Chromium, Brave, Edge, Arc, Vivaldi, Helium, Yandex, and Naver Whale, auto-picks the most recently used browser with a live LinkedIn session (pass a browser name to target one), writes the same `~/.linkedin-mcp/` profile Docker mounts, and the Docker bridge still narrows to the minimal auth cookie subset it uses for a normal session. Cookies under Chrome 127+ app-bound encryption cannot be imported; use `--login` in that case.
+> **Already signed into LinkedIn in a browser on the host?** Run `uvx mcp-server-linkedin@latest --import-from-browser` on the host to reuse that session instead of `--login`. It supports Chrome, Chromium, Brave, Edge, Arc, Vivaldi, Helium, Yandex, and Naver Whale, auto-picks the most recently used browser with a live LinkedIn session (pass a browser name to target one), writes the same `~/.linkedin/` profile Docker mounts, and the Docker bridge still narrows to the minimal auth cookie subset it uses for a normal session. Cookies under Chrome 127+ app-bound encryption cannot be imported; use `--login` in that case.
 
 **Step 2: Configure Claude Desktop with Docker**
 
@@ -45,7 +45,7 @@ This opens a browser window where you log in manually (5 minute timeout for 2FA,
       "command": "docker",
       "args": [
         "run", "--rm", "-i",
-        "-v", "~/.linkedin-mcp:/home/pwuser/.linkedin-mcp",
+        "-v", "~/.linkedin:/home/pwuser/.linkedin",
         "stickerdaniel/linkedin-mcp-server:latest"
       ]
     }
@@ -63,7 +63,7 @@ This opens a browser window where you log in manually (5 minute timeout for 2FA,
 > finishes a call. Use `LOG_LEVEL=DEBUG` to see the lock logs.
 >
 > **Note:** That coordination works between processes in the same runtime, but
-> not between the host and a container sharing the mounted `~/.linkedin-mcp`
+> not between the host and a container sharing the mounted `~/.linkedin`
 > directory. Do not run `--login` or `--logout` on the host while a container is
 > running.
 
@@ -71,7 +71,7 @@ This opens a browser window where you log in manually (5 minute timeout for 2FA,
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `USER_DATA_DIR` | `~/.linkedin-mcp/profile` | Path to persistent browser profile directory |
+| `USER_DATA_DIR` | `~/.linkedin/profile` | Path to persistent browser profile directory |
 | `LOG_LEVEL` | `WARNING` | Logging level: DEBUG, INFO, WARNING, ERROR |
 | `TIMEOUT` | `5000` | Browser timeout in milliseconds |
 | `TOOL_TIMEOUT` | `180` | Per-tool MCP execution timeout in seconds. Increase further for heavy scrapes (multi-section profiles, cold-start Chromium, slow networks/containers). |
@@ -105,7 +105,7 @@ This opens a browser window where you log in manually (5 minute timeout for 2FA,
       "command": "docker",
       "args": [
         "run", "-i", "--rm",
-        "-v", "~/.linkedin-mcp:/home/pwuser/.linkedin-mcp",
+        "-v", "~/.linkedin:/home/pwuser/.linkedin",
         "-e", "TIMEOUT=10000",
         "-e", "TOOL_TIMEOUT=300",
         "stickerdaniel/linkedin-mcp-server"

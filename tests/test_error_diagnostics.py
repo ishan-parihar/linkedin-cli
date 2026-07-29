@@ -222,7 +222,7 @@ def test_build_issue_diagnostics_marks_inferred_tool_and_container_runtime(
 
     issue_body = Path(diagnostics["issue_template_path"]).read_text()
     assert "- Installation method: Docker using" in issue_body
-    assert "`~/.linkedin-mcp` mounted into `/home/pwuser/.linkedin-mcp`" in issue_body
+    assert "`~/.linkedin` mounted into `/home/pwuser/.linkedin`" in issue_body
     assert "- [x] Docker" in issue_body
     assert "- Tool: search_jobs" in issue_body
 

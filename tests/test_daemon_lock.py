@@ -145,7 +145,7 @@ class TestScope:
         # Measured before the fix: the first wrapper cached a path-derived key,
         # then acquisition created the auth root and every later lookup used its
         # inode. The live lock appeared free and a second owner was elected.
-        auth_root = tmp_path / "fresh" / ".linkedin-mcp"
+        auth_root = tmp_path / "fresh" / ".linkedin"
         first = DaemonLock(auth_root)
 
         assert first.try_acquire()
@@ -163,7 +163,7 @@ class TestScope:
     def test_an_auth_root_symlink_cannot_split_the_election(self, tmp_path: Path):
         # Measured before the fix: the default auth root also held daemon state,
         # so retargeting its daemon link let another owner lock a second inode.
-        auth_root = tmp_path / ".linkedin-mcp"
+        auth_root = tmp_path / ".linkedin"
         first_target = tmp_path / "first-target"
         second_target = tmp_path / "second-target"
         auth_root.mkdir()

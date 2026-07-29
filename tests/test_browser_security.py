@@ -18,7 +18,7 @@ def _mode(path):
     os.name == "nt", reason="POSIX permission bits are not portable on Windows"
 )
 def test_harden_linkedin_tree_hardens_dirs(tmp_path):
-    root = tmp_path / ".linkedin-mcp"
+    root = tmp_path / ".linkedin"
     profile = root / "profile"
 
     root.mkdir(mode=0o755)
@@ -35,7 +35,7 @@ def test_harden_linkedin_tree_hardens_dirs(tmp_path):
 )
 def test_harden_linkedin_tree_does_not_harden_unrelated_parent(tmp_path):
     parent = tmp_path / "custom"
-    profile = parent / ".linkedin-mcp" / "profile"
+    profile = parent / ".linkedin" / "profile"
 
     parent.mkdir(mode=0o755)
     profile.mkdir(parents=True, mode=0o755)
@@ -51,7 +51,7 @@ def test_harden_linkedin_tree_does_not_harden_unrelated_parent(tmp_path):
     os.name == "nt", reason="POSIX permission bits are not portable on Windows"
 )
 def test_harden_linkedin_tree_noop_outside_linkedin(tmp_path):
-    """Dirs that are not inside .linkedin-mcp are left untouched."""
+    """Dirs that are not inside .linkedin are left untouched."""
     unrelated = tmp_path / "other" / "data"
     unrelated.mkdir(parents=True, mode=0o755)
 
@@ -66,7 +66,7 @@ def test_harden_linkedin_tree_noop_outside_linkedin(tmp_path):
     os.name == "nt", reason="POSIX permission bits are not portable on Windows"
 )
 async def test_export_cookies_writes_owner_only_file(tmp_path):
-    manager = BrowserManager(user_data_dir=tmp_path / ".linkedin-mcp" / "profile")
+    manager = BrowserManager(user_data_dir=tmp_path / ".linkedin" / "profile")
     manager._context = MagicMock()
     manager._context.cookies = AsyncMock(
         return_value=[
@@ -74,7 +74,7 @@ async def test_export_cookies_writes_owner_only_file(tmp_path):
         ]
     )
 
-    cookie_path = tmp_path / ".linkedin-mcp" / "cookies.json"
+    cookie_path = tmp_path / ".linkedin" / "cookies.json"
     ok = await manager.export_cookies(cookie_path)
 
     assert ok is True
@@ -88,10 +88,10 @@ async def test_export_cookies_writes_owner_only_file(tmp_path):
     os.name == "nt", reason="POSIX permission bits are not portable on Windows"
 )
 async def test_export_storage_state_hardens_file(tmp_path):
-    manager = BrowserManager(user_data_dir=tmp_path / ".linkedin-mcp" / "profile")
+    manager = BrowserManager(user_data_dir=tmp_path / ".linkedin" / "profile")
     manager._context = MagicMock()
 
-    storage_path = tmp_path / ".linkedin-mcp" / "storage.json"
+    storage_path = tmp_path / ".linkedin" / "storage.json"
 
     async def _fake_storage_state(*, path, indexed_db=True):
         path.write_text("{}")

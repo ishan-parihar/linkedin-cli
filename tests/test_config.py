@@ -22,7 +22,7 @@ class TestBrowserConfig:
         config = BrowserConfig()
         assert config.headless is True
         assert config.default_timeout == 5000
-        assert config.user_data_dir == "~/.linkedin-mcp/profile"
+        assert config.user_data_dir == "~/.linkedin/profile"
         assert config.login_timeout_seconds == 1800.0
         assert config.login_inline_wait_seconds == 25.0
         assert config.auto_import_from_browser is None

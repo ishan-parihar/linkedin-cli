@@ -76,7 +76,7 @@ else
 fi
 
 # Set installation directory
-INSTALL_DIR="${HOME}/.linkedin-mcp"
+INSTALL_DIR="${HOME}/.linkedin"
 REPO_DIR="${INSTALL_DIR}/linkedin-cli"
 
 info "Installation directory: $INSTALL_DIR"
@@ -145,7 +145,7 @@ if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
 fi
 
 # Setup LinkedIn MCP directory
-LINKEDIN_MCP_DIR="${HOME}/.linkedin-mcp"
+LINKEDIN_MCP_DIR="${HOME}/.linkedin"
 mkdir -p "$LINKEDIN_MCP_DIR"
 
 success "Installation directory prepared: $LINKEDIN_MCP_DIR"
