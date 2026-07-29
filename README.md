@@ -1,29 +1,62 @@
-# LinkedIn MCP Server with AXI-Compliant CLI
+# LinkedIn MCP Server
 
-<p align="left">
-  <a href="https://pypi.org/project/mcp-server-linkedin/" target="_blank"><img src="https://img.shields.io/pypi/v/mcp-server-linkedin?color=blue" alt="PyPI"></a>
-  <a href="https://github.com/stickerdaniel/linkedin-mcp-server/actions/workflows/ci.yml" target="_blank"><img src="https://github.com/stickerdaniel/linkedin-mcp-server/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI Status"></a>
-  <a href="https://github.com/stickerdaniel/linkedin-mcp-server/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/badge/License-Apache%202.0-%233fb950?labelColor=32383f" alt="License"></a>
-</p>
+**Give AI assistants like Claude access to LinkedIn profiles, companies, jobs, and messaging through your own browser session.**
+
+[![PyPI](https://img.shields.io/pypi/v/mcp-server-linkedin?color=blue)](https://pypi.org/project/mcp-server-linkedin/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 > **Disclaimer:** This is an independent, community project. It is not affiliated with, authorized by, endorsed by, or sponsored by LinkedIn Corporation or Microsoft. "LinkedIn" is a registered trademark of LinkedIn Corporation and is used here only descriptively to identify the third-party service this software interoperates with.
 
-**This is a fork of [stickerdaniel/linkedin-mcp-server](https://github.com/stickerdaniel/linkedin-mcp-server) upgraded with an AXI-compliant CLI, Playwright-free cookie import, and enhanced agent integration.**
+---
 
-An MCP server and AXI-compliant CLI that lets AI assistants like Claude read LinkedIn data through your own logged-in browser session. Access profiles, companies, jobs, and messaging with TOON output format for optimal agent interaction.
+## What It Does
 
-## ✨ Key Features
+This MCP server and CLI lets AI assistants read LinkedIn data through your own logged-in browser session. Import cookies from your browser, configure the MCP server, and give Claude access to:
 
-- **AXI-Compliant CLI**: Token-efficient TOON output format for optimal AI agent interaction
-- **Obscura Backend**: 99.85% faster startup, 99.6% less memory usage than traditional browsers
-- **Playwright-Free Cookie Import**: Direct browser cookie extraction without Playwright dependency
-- **Agent Integration**: Session hooks for Claude Code, Codex, and other AI agents
-- **Multi-Browser Support**: Import cookies from Chrome, Brave, Firefox, Edge, and more
-- **Performance**: 66.8% faster page fetches with 76.7% smaller binary footprint
+- **Profiles**: Get person profiles with sections like posts, experience, skills
+- **Companies**: Extract company information and search by keywords  
+- **Jobs**: Search job postings with filters and get detailed job information
+- **Messaging**: List conversations and send messages to LinkedIn users
+- **Feed**: Get recent posts from your home feed and search by keywords
 
-## 🚀 Quick Start
+## How It Works
 
-### Check Session Status
+1. **Import cookies** from your browser (Chrome, Brave, Firefox, Edge, and more)
+2. **Start the MCP server** using the `linkedin-cli` command
+3. **Configure Claude Desktop** to connect to the MCP server
+4. **Use LinkedIn data** through Claude with natural language queries
+
+**No browser automation required** — the system uses your existing browser session directly.
+
+## Quick Start
+
+### 1. Install
+
+```bash
+pip install mcp-server-linkedin
+```
+
+### 2. Import Your LinkedIn Session
+
+```bash
+# Auto-detect browser
+linkedin-cli --import-from-browser auto
+
+# Or specify a browser
+linkedin-cli --import-from-browser brave
+linkedin-cli --import-from-browser chrome
+```
+
+**Output:**
+```
+✅ Successfully imported LinkedIn cookies
+   Source: brave[Default](in-process)
+   Cookies: 14
+   Path: /home/user/.linkedin-mcp/cookies.json
+   ✅ Authentication cookie (li_at) found
+```
+
+### 3. Verify Session
 
 ```bash
 linkedin-cli --status
@@ -37,46 +70,92 @@ Path: /home/user/.linkedin-mcp/cookies.json
 ✅ Authentication cookie (li_at) found
 ```
 
-### Import LinkedIn Session
+### 4. Configure Claude Desktop
 
-```bash
-# Auto-detect browser
-linkedin-cli --import-from-browser auto
+Add to your Claude Desktop configuration file:
 
-# Specific browser
-linkedin-cli --import-from-browser brave
-linkedin-cli --import-from-browser chrome
-linkedin-cli --import-from-browser brave-origin
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`  
+**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
+**Linux**: `~/.config/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "linkedin": {
+      "command": "linkedin-cli",
+      "args": []
+    }
+  }
+}
 ```
 
-### Start MCP Server
+Restart Claude Desktop and you're ready to use LinkedIn data through Claude.
+
+---
+
+## What Makes It Different
+
+**Playwright-Free Cookie Import**
+- Direct browser cookie extraction without Playwright dependency
+- Supports Chrome, Brave, Firefox, Edge, Chromium, Opera, Vivaldi, Arc, and more
+- Handles encrypted cookies and multiple browser profiles
+
+**AXI-Compliant CLI**
+- Token-efficient TOON output format for optimal AI agent interaction
+- Structured errors with actionable suggestions
+- Content-first design — shows session status by default
+
+**Multi-Browser Support**
+- Auto-detection across all installed browsers
+- Support for 10+ browser types including Brave Origin Beta and Zen Browser
+- Reliable cookie extraction with proper error handling
+
+**Agent Integration**
+- Session hooks for Claude Code, Codex, and other AI agents
+- Ambient context injection for seamless agent startup
+- Installable agent skill for automatic discovery
+
+---
+
+## Installation Methods
+
+### Global Installation (Recommended)
 
 ```bash
-# Start with default settings
-linkedin-cli
-
-# Start with debug logging
-linkedin-cli --log-level DEBUG
+pip install mcp-server-linkedin
 ```
 
-## 📊 Obscura Performance
+This installs both `linkedin-cli` (CLI) and `mcp-server-linkedin` (MCP server).
 
-| Metric | Traditional Browsers | Obscura | Improvement |
-|--------|---------------------|---------|-------------|
-| **Startup Time** | 2.0s | 0.003s | **99.85% faster** |
-| **Memory (Single)** | 50 MB | 0.02 MB | **99.96% less** |
-| **Memory (Sequential)** | 150 MB | 0.61 MB | **99.6% less** |
-| **Single Page Fetch** | 2.5s | 0.829s | **66.8% faster** |
-| **Binary Size** | 300+ MB | 70 MB | **76.7% smaller** |
+### Using pipx
 
-## 🛠️ CLI Commands
+```bash
+pipx install mcp-server-linkedin
+```
+
+### Using uvx (No Installation)
+
+```bash
+uvx mcp-server-linkedin@latest --status
+uvx mcp-server-linkedin@latest --import-from-browser brave
+```
+
+### One-Line Install Script
+
+```bash
+curl -sSL https://raw.githubusercontent.com/ishan-parihar/linkedin-cli/main/install.sh | bash
+```
+
+---
+
+## CLI Commands
 
 ### Session Management
 
 ```bash
-linkedin-cli --status              # Show current session status
-linkedin-cli --import-from-browser [browser]  # Import cookies from browser
-linkedin-cli --logout              # Clear LinkedIn session
+linkedin-cli --status                           # Check session status
+linkedin-cli --import-from-browser [browser]   # Import cookies from browser
+linkedin-cli --logout                          # Clear LinkedIn session
 ```
 
 ### Browser Options
@@ -96,138 +175,13 @@ Supported browsers for cookie import:
 ### MCP Server
 
 ```bash
-linkedin-cli                # Start MCP server with defaults
+linkedin-cli                                    # Start MCP server with defaults
 linkedin-cli --transport streamable-http --host 127.0.0.1 --port 8080
 ```
 
-### Agent Integration
+---
 
-```bash
-linkedin-cli setup-session       # Install session hooks for Claude Code, Codex
-```
-
-## 🔧 Installation
-
-### Global CLI Installation (Recommended)
-
-```bash
-# Install globally with pip
-pip install mcp-server-linkedin
-
-# This installs both:
-# - linkedin-cli (AXI-compliant CLI)
-# - mcp-server-linkedin (MCP server entry point)
-```
-
-After installation, you can use `linkedin-cli` from anywhere:
-
-```bash
-linkedin-cli status
-linkedin-cli import brave
-linkedin-cli mcp
-```
-
-### One-Line Install with Cookie Import
-
-```bash
-curl -sSL https://raw.githubusercontent.com/ishan-parihar/linkedin-cli/main/install.sh | bash
-```
-
-This will:
-- Install/update the LinkedIn MCP Server globally
-- Set up the AXI-compliant CLI (`linkedin-cli`)
-- Configure the Obscura backend
-- Preserve existing cookies if updating
-
-### Using uvx (No Installation)
-
-```bash
-# Check session status
-uvx mcp-server-linkedin@latest --status
-
-# Import cookies from browser
-uvx mcp-server-linkedin@latest --import-from-browser brave
-
-# Start MCP server
-uvx mcp-server-linkedin@latest
-```
-
-### Using Docker
-
-```bash
-# Create profile on host first
-uvx mcp-server-linkedin@latest --login
-
-# Run with Docker
-docker run --rm -i \
-  -v ~/.linkedin-mcp:/home/pwuser/.linkedin-mcp \
-  stickerdaniel/linkedin-mcp-server:latest
-```
-
-## 🔌 MCP Configuration
-
-### Claude Desktop (Recommended)
-
-Add to your Claude Desktop configuration file:
-
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-**Linux**: `~/.config/Claude/claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "linkedin": {
-      "command": "linkedin-cli",
-      "args": []
-    }
-  }
-}
-```
-
-### Alternative: Using pipx
-
-```json
-{
-  "mcpServers": {
-    "linkedin": {
-      "command": "pipx",
-      "args": ["run", "mcp-server-linkedin"],
-      "env": { "UV_HTTP_TIMEOUT": "300" }
-    }
-  }
-}
-```
-
-### Alternative: Using uvx
-
-```json
-{
-  "mcpServers": {
-    "linkedin": {
-      "command": "uvx",
-      "args": ["mcp-server-linkedin@latest"],
-      "env": { "UV_HTTP_TIMEOUT": "300" }
-    }
-  }
-}
-```
-
-### Verifying MCP Connection
-
-After configuration, restart Claude Desktop and verify the connection:
-
-```bash
-# Check session status
-linkedin-cli status
-
-# The output should show:
-# Session: active
-# Cookies: 14
-# ✅ Authentication cookie (li_at) found
-```
-
-## 🤖 MCP Tools
+## MCP Tools Available
 
 | Tool | Description | Status |
 |------|-------------|--------|
@@ -243,50 +197,9 @@ linkedin-cli status
 | `send_message` | Send messages to LinkedIn users | limited |
 | `close_session` | Close browser session | working |
 
-## 🎯 AXI Compliance
+---
 
-This CLI follows Agent eXperience Interface (AXI) standards:
-
-- **TOON Output**: ~40% token savings over JSON for efficient agent communication
-- **Structured Errors**: Clear error messages with actionable suggestions
-- **Content-First**: Default invocation shows session status, not help text
-- **Contextual Help**: Dynamic suggestions based on current state
-- **Session Hooks**: Ambient context injection for agent startup
-
-## 🔒 Cookie Management
-
-### Playwright-Free Import
-
-The upgraded cookie import system works without Playwright dependency:
-
-- **Direct Browser Access**: Reads cookies from browser SQLite databases
-- **Multi-Browser Support**: Chrome, Brave, Firefox, Edge, Chromium, Opera, Vivaldi, Arc, and more
-- **Automatic Validation**: Tests cookies against LinkedIn feed before saving
-- **Encrypted Cookie Support**: Handles various browser encryption schemes
-
-### Cookie Storage
-
-Cookies are stored in `~/.linkedin-mcp/cookies.json` in Obscura-compatible format with proper file permissions (0600).
-
-## 🌐 Agent Integration
-
-### Session Hooks
-
-Install session hooks for automatic context injection:
-
-```bash
-linkedin-cli setup-session
-```
-
-This installs hooks for:
-- **Claude Code**: Session status at startup via `~/.claude/settings.json`
-- **Codex**: Session context via `~/.codex/hooks.json`
-
-### Agent Skill
-
-An installable agent skill provides automatic discovery and usage guidance for AI agents.
-
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -296,64 +209,39 @@ LINKEDIN_LOG_LEVEL=WARNING                         # Logging level
 LINKEDIN_HEADLESS=true                              # Run browser headless
 ```
 
-### Obscura Features
+### Advanced MCP Configuration
 
-```bash
-LINKEDIN_OBSURA_CONNECTION_POOLING=true              # Enable connection pooling
-LINKEDIN_OBSURA_CACHING=true                        # Enable request caching
-LINKEDIN_OBSURA_ADVANCED_PARSING=true              # Enable JavaScript parsing
+Alternative MCP server configurations:
+
+**Using pipx:**
+```json
+{
+  "mcpServers": {
+    "linkedin": {
+      "command": "pipx",
+      "args": ["run", "mcp-server-linkedin"],
+      "env": { "UV_HTTP_TIMEOUT": "300" }
+    }
+  }
+}
 ```
 
-## 🐛 Troubleshooting
-
-### Session Issues
-
-```bash
-# Check session status
-linkedin-cli status
-
-# Clear and re-import
-linkedin-cli logout
-linkedin-cli import brave
+**Using uvx:**
+```json
+{
+  "mcpServers": {
+    "linkedin": {
+      "command": "uvx",
+      "args": ["mcp-server-linkedin@latest"],
+      "env": { "UV_HTTP_TIMEOUT": "300" }
+    }
+  }
+}
 ```
 
-### Browser Detection
+---
 
-```bash
-# List supported browsers
-linkedin-cli browsers
-
-# Check which are installed
-linkedin-cli browsers | grep True
-```
-
-### MCP Server Issues
-
-```bash
-# Start with debug logging
-linkedin-cli mcp --log-level DEBUG
-
-# Check Obscura binary
-ls -la ~/.linkedin-mcp/obscura*
-```
-
-## 📝 Fork Changes
-
-This fork includes significant upgrades from the original project:
-
-- **AXI-Compliant CLI**: New `linkedin-cli` command with TOON output format
-- **Playwright-Free Cookie Import**: Removed Playwright dependency for cookie extraction
-- **Enhanced Agent Integration**: Session hooks and installable agent skill
-- **Obscura-Only Architecture**: Complete removal of Playwright fallback logic
-- **HTTPX Validation**: Cookie validation using httpx instead of browser automation
-- **Improved Error Handling**: Structured errors with actionable suggestions
-- **Session Context**: Ambient context injection for AI agents
-
-Original project: [stickerdaniel/linkedin-mcp-server](https://github.com/stickerdaniel/linkedin-mcp-server)
-
-**Fork**: [ishan-parihar/linkedin-cli](https://github.com/ishan-parihar/linkedin-cli)
-
-## ⚠️ Important Notes
+## Important Safety Notes
 
 ### Account Safety
 
@@ -367,12 +255,50 @@ Tool calls run sequentially through a queue. You are responsible for the volume 
 
 Most users should not use a proxy. LinkedIn's own guidance for reducing security challenges is to avoid VPNs or proxies, as they score the addresses a session signs in from. A home connection you have used for years is a trust signal; a commercial exit node is not.
 
-## 🏗️ Development
+---
+
+## Troubleshooting
+
+### Session Issues
+
+```bash
+# Check session status
+linkedin-cli --status
+
+# Clear and re-import
+linkedin-cli --logout
+linkedin-cli --import-from-browser brave
+```
+
+### MCP Connection Issues
+
+```bash
+# Start with debug logging
+linkedin-cli --log-level DEBUG
+
+# Check Claude Desktop configuration
+# Verify the path to linkedin-cli is correct
+```
+
+### Cookie Import Issues
+
+```bash
+# Try auto-detection
+linkedin-cli --import-from-browser auto
+
+# Check browser installation
+linkedin-cli --import-from-browser chrome
+linkedin-cli --import-from-browser firefox
+```
+
+---
+
+## Development
 
 ### Local Setup
 
 ```bash
-git clone https://github.com/your-username/linkedin-mcp-server
+git clone https://github.com/ishan-parihar/linkedin-cli
 cd linkedin-mcp-server
 uv sync
 uv sync --group dev
@@ -394,13 +320,15 @@ uv run ruff format .
 uv run ty check
 ```
 
-## 🙏 Acknowledgements
+---
 
-Built with [FastMCP](https://gofastmcp.com/) and [Obscura](https://github.com/johnusecase/obscura).
+## Acknowledgments
+
+Built with [FastMCP](https://gofastmcp.com/) and browser-cookie3.
 
 Original project by [Daniel Sticker](https://github.com/stickerdaniel).
 
-## 📄 License
+## License
 
 Apache License 2.0 - see [LICENSE](LICENSE) file for details.
 
