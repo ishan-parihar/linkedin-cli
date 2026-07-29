@@ -48,6 +48,27 @@ DEFAULT_PROFILE_DIR = Path.home() / ".linkedin-mcp" / "profile"
 _browser: ObscuraBrowserManager | None = None
 _browser_cookie_export_path: Path | None = None
 _headless: bool = True
+
+def get_profile_dir() -> Path:
+    """Get the current profile directory."""
+    return DEFAULT_PROFILE_DIR
+
+def current_headless() -> bool:
+    """Get the current headless setting."""
+    return _headless
+
+def profile_exists() -> bool:
+    """Check if the browser profile exists."""
+    return DEFAULT_PROFILE_DIR.exists()
+
+def experimental_persist_derived_runtime() -> bool:
+    """Check if experimental derived runtime persistence is enabled."""
+    return os.getenv("LINKEDIN_EXPERIMENTAL_PERSIST_DERIVED_RUNTIME", "").lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
 # Serializes singleton creation: tool calls are serialized by the tool-call
 # middleware, but the background login flow started at startup can resume into
 # this path and race the first tool call, and an unguarded check-then-create

@@ -21,7 +21,6 @@ from linkedin_mcp_server.bootstrap import (
 from linkedin_mcp_server.config.schema import DEFAULT_TOOL_TIMEOUT_SECONDS
 from linkedin_mcp_server.drivers.browser import (
     close_browser,
-    watch_for_handoff_requests,
 )
 from linkedin_mcp_server.error_handler import raise_tool_error
 from linkedin_mcp_server.sequential_tool_middleware import (
@@ -53,38 +52,16 @@ async def browser_lifespan(app: FastMCP) -> AsyncIterator[dict[str, Any]]:
     # Hands the browser to another process that asks for it, and closes it when
     # idle. Both need a timer: once tool calls stop arriving, nothing else would
     # ever notice a waiter.
-    handoff_watch = asyncio.create_task(
-        watch_for_handoff_requests(), name="linkedin-profile-handoff"
-    )
+    # Note: watch_for_handoff_requests is currently disabled in Obscura-only mode
+    # handoff_watch = asyncio.create_task(
+    #     watch_for_handoff_requests(), name="linkedin-profile-handoff"
+    # )
     try:
         yield {}
     finally:
         logger.info("LinkedIn MCP Server shutting down...")
-        handoff_watch.cancel()
-        try:
-            try:
-                await handoff_watch
-            except asyncio.CancelledError:
-                # Only the cancellation we just asked for is ours to absorb.
-                # While the watcher winds down, one aimed at this task arrives
-                # as the same exception, and a bare pass would swallow it,
-                # leaving whoever asked us to stop with a teardown that
-                # reported success. cancelling() counts the requests made
-                # against *this* task, which is what tells the two apart.
-                task = asyncio.current_task()
-                if task is not None and task.cancelling():
-                    raise
-            except Exception:
-                # A poller that already died re-raises here. Swallowing it keeps
-                # shutdown on course; leaving Chromium running on the shared
-                # profile is the corruption this whole mechanism exists to
-                # prevent, and it matters more than the reason the poll failed.
-                logger.warning("Profile handoff watcher failed", exc_info=True)
-        finally:
-            # In a finally, not after the except, so a BaseException the poller
-            # raised still closes the browser on its way out. Those are not ours
-            # to swallow, but they are also no reason to abandon the profile.
-            await close_browser()
+        # Note: Profile handoff watcher is disabled in Obscura-only mode
+        await close_browser()
 
 
 def create_mcp_server(

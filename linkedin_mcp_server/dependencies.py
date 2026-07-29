@@ -15,7 +15,7 @@ from linkedin_mcp_server.bootstrap import (
 from linkedin_mcp_server.core.exceptions import AuthenticationError, NetworkError
 from linkedin_mcp_server.drivers.browser import (
     close_browser,
-    ensure_authenticated,
+    # ensure_authenticated,  # Not available in Obscura-only mode
     get_or_create_browser,
 )
 from linkedin_mcp_server.error_handler import raise_tool_error
@@ -84,7 +84,7 @@ async def get_ready_extractor(
     try:
         await ensure_tool_ready_or_raise(tool_name, ctx)
         browser = await get_or_create_browser()
-        await ensure_authenticated()
+        # await ensure_authenticated()  # Not available in Obscura-only mode
         return LinkedInExtractor(browser.page)
     except AuthenticationError as e:
         await handle_auth_error(e, ctx)  # always raises

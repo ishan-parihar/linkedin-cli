@@ -16,23 +16,21 @@ Key Components:
 from linkedin_mcp_server.drivers.browser import (
     DEFAULT_PROFILE_DIR,
     close_browser,
-    ensure_authenticated,
+    current_headless,
+    experimental_persist_derived_runtime,
     get_or_create_browser,
     get_profile_dir,
     profile_exists,
-    reset_browser_for_testing,
     set_headless,
-    validate_session,
 )
 
 __all__ = [
     "DEFAULT_PROFILE_DIR",
     "close_browser",
-    "ensure_authenticated",
+    "current_headless",
+    "experimental_persist_derived_runtime",
     "get_or_create_browser",
     "get_profile_dir",
     "profile_exists",
-    "reset_browser_for_testing",
     "set_headless",
-    "validate_session",
 ]

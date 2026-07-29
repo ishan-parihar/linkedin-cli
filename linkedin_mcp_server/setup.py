@@ -13,11 +13,11 @@ from typing import Any
 
 from linkedin_mcp_server.config import get_config
 from linkedin_mcp_server.core import (
-    BrowserManager,
     goto_reporting_proxy_errors,
     resolve_remember_me_prompt,
     wait_for_manual_login,
 )
+from linkedin_mcp_server.core.obscura_browser import ObscuraBrowserManager
 from linkedin_mcp_server.exceptions import BrowserBusyError
 from linkedin_mcp_server.profile_lease import ProfileLease, get_profile_lease
 from linkedin_mcp_server.session_state import (
@@ -203,7 +203,7 @@ async def _login_into_fresh_profile(
         "height": config.browser.viewport_height,
     }
 
-    manager = BrowserManager(
+    manager = ObscuraBrowserManager(
         user_data_dir=user_data_dir,
         headless=False,
         slow_mo=config.browser.slow_mo,
@@ -223,7 +223,7 @@ async def _login_into_fresh_profile(
 
 
 async def _run_login(
-    manager: BrowserManager,
+    manager: ObscuraBrowserManager,
     user_data_dir: Path,
     config: Any,
     login_timeout_ms: int,

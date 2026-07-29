@@ -15,8 +15,8 @@ from linkedin_mcp_server.core import AuthenticationError
 from linkedin_mcp_server.authentication import clear_auth_state
 from linkedin_mcp_server.config import get_config
 from linkedin_mcp_server.drivers.browser import (
-    experimental_persist_derived_runtime,
     close_browser,
+    experimental_persist_derived_runtime,
     get_or_create_browser,
     get_profile_dir,
     profile_exists,
