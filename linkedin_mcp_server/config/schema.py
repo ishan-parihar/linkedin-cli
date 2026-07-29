@@ -367,6 +367,7 @@ class ServerConfig:
     login: bool = False
     status: bool = False  # Check session validity and exit
     logout: bool = False
+    yes: bool = False  # Auto-confirm destructive prompts (e.g. --logout)
     # Browser key or "auto"; triggers import-from-browser-and-exit.
     import_from_browser: str | None = None
     # HTTP transport configuration

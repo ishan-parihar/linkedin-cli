@@ -5,21 +5,15 @@ import json
 import logging
 import os
 import sys
-from typing import Literal
-
-import inquirer
 
 from linkedin_mcp_server.bootstrap import (
     configure_browser_environment,
     ensure_browser_installed,
 )
-from linkedin_mcp_server.core import AuthenticationError
 from linkedin_mcp_server.authentication import clear_auth_state
 from linkedin_mcp_server.config import get_config
 from linkedin_mcp_server.drivers.browser import (
     close_browser,
-    experimental_persist_derived_runtime,
-    get_or_create_browser,
     get_profile_dir,
     profile_exists,
     set_headless,
@@ -27,39 +21,13 @@ from linkedin_mcp_server.drivers.browser import (
 from linkedin_mcp_server.debug_trace import should_keep_traces
 from linkedin_mcp_server.logging_config import configure_logging, teardown_trace_logging
 from linkedin_mcp_server.session_state import (
-    get_runtime_id,
-    load_runtime_state,
-    load_source_state,
     portable_cookie_path,
-    runtime_profile_dir,
-    runtime_storage_state_path,
     source_state_path,
 )
 from linkedin_mcp_server.server import create_mcp_server
 from linkedin_mcp_server.setup import run_profile_creation
 
 logger = logging.getLogger(__name__)
-
-
-def choose_transport_interactive() -> Literal["stdio", "streamable-http"]:
-    """Prompt user for transport mode using inquirer."""
-    questions = [
-        inquirer.List(
-            "transport",
-            message="Choose mcp transport mode",
-            choices=[
-                ("stdio (Default CLI mode)", "stdio"),
-                ("streamable-http (HTTP server mode)", "streamable-http"),
-            ],
-            default="stdio",
-        )
-    ]
-    answers = inquirer.prompt(questions)
-
-    if not answers:
-        raise KeyboardInterrupt("Transport selection cancelled by user")
-
-    return answers["transport"]
 
 
 def clear_profile_and_exit() -> None:
@@ -85,17 +53,9 @@ def clear_profile_and_exit() -> None:
         print("Nothing to clear.")
         sys.exit(0)
 
-    print(f"🔑 Clear LinkedIn authentication state from {auth_root}?")
-
-    try:
-        confirmation = (
-            input("Are you sure you want to clear the profile? (y/N): ").strip().lower()
-        )
-        if confirmation not in ("y", "yes"):
-            print("❌ Operation cancelled")
-            sys.exit(0)
-    except KeyboardInterrupt:
-        print("\n❌ Operation cancelled")
+    if not config.server.yes:
+        print(f"🔑 Clear LinkedIn authentication state from {auth_root}?")
+        print("   Use --yes to confirm, or --logout --yes to clear without prompting.")
         sys.exit(0)
 
     if clear_auth_state(get_profile_dir()):
@@ -161,7 +121,7 @@ def import_from_browser_and_exit() -> None:
         # Extract cookies using browser_cookie3 (no browser environment setup needed)
         cookie_data = extract_linkedin_cookies(browser=browser)
         if not cookie_data:
-            print(f"❌ No LinkedIn cookies found")
+            print("❌ No LinkedIn cookies found")
             if browser:
                 print(f"   Tried browser: {browser}")
             else:
@@ -184,18 +144,18 @@ def import_from_browser_and_exit() -> None:
         # Verify li_at cookie is present
         li_at_found = any(c.get("name") == "li_at" for c in formatted_cookies)
         
-        print(f"✅ Successfully imported LinkedIn cookies")
+        print("✅ Successfully imported LinkedIn cookies")
         print(f"   Source: {cookie_data.get('source', 'unknown')}")
         print(f"   Cookies: {len(formatted_cookies)}")
         print(f"   Path: {output_path}")
         
         if li_at_found:
-            print(f"   ✅ Authentication cookie (li_at) found")
+            print("   ✅ Authentication cookie (li_at) found")
         else:
-            print(f"   ⚠️  Warning: Authentication cookie (li_at) not found")
-            print(f"   The session may not be fully functional")
+            print("   ⚠️  Warning: Authentication cookie (li_at) not found")
+            print("   The session may not be fully functional")
         
-        print(f"   Run 'linkedin-cli --status' to verify your session")
+        print("   Run 'linkedin-cli --status' to verify your session")
         sys.exit(0)
 
     except Exception as e:
@@ -223,9 +183,9 @@ def profile_info_and_exit() -> None:
     
     # Simple cookie file check first
     if not cookies_path.exists():
-        print(f"❌ No LinkedIn session found")
-        print(f"   Run 'linkedin-cli --import-from-browser' to import cookies from your browser")
-        print(f"   Or run 'linkedin-cli --login' to create a new session")
+        print("❌ No LinkedIn session found")
+        print("   Run 'linkedin-cli --import-from-browser' to import cookies from your browser")
+        print("   Or run 'linkedin-cli --login' to create a new session")
         sys.exit(0)
     
     # Check cookie file contents
@@ -240,10 +200,10 @@ def profile_info_and_exit() -> None:
         print(f"Path: {cookies_path}")
         
         if li_at_found:
-            print(f"✅ Authentication cookie (li_at) found")
+            print("✅ Authentication cookie (li_at) found")
         else:
-            print(f"⚠️  Warning: Authentication cookie (li_at) not found")
-            print(f"   Run 'linkedin-cli --import-from-browser' to refresh your session")
+            print("⚠️  Warning: Authentication cookie (li_at) not found")
+            print("   Run 'linkedin-cli --import-from-browser' to refresh your session")
         
         sys.exit(0)
     except Exception as e:
@@ -339,20 +299,6 @@ def main() -> None:
         # Phase 1: Server Runtime
         try:
             transport = config.server.transport
-
-            # Prompt for transport in interactive mode if not explicitly set
-            if config.is_interactive and not config.server.transport_explicitly_set:
-                print("\n🚀 Server ready! Choose transport mode:")
-                transport = choose_transport_interactive()
-                # Record the answer rather than keeping it in a local. Two
-                # checks read the stored transport to decide how exposed this
-                # process is: the bind-address warning, and the gate that
-                # decides whether reading the local browser's LinkedIn cookie
-                # is safe. Leaving it at stdio told them a listening HTTP
-                # server was a private one. Re-validating applies the HTTP
-                # rules that were skipped when the value said stdio.
-                config.server.transport = transport
-                config.validate()
 
             # Create and run the MCP server
             mcp = create_mcp_server(tool_timeout=config.server.tool_timeout_seconds)

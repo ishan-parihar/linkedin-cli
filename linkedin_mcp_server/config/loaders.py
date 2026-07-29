@@ -355,6 +355,14 @@ def load_from_args(config: AppConfig) -> AppConfig:
     )
 
     parser.add_argument(
+        "-y",
+        "--yes",
+        action="store_true",
+        default=False,
+        help="Auto-confirm destructive prompts (e.g. profile clear on --logout)",
+    )
+
+    parser.add_argument(
         "--transport",
         choices=["stdio", "streamable-http"],
         default=None,
@@ -626,6 +634,9 @@ def load_from_args(config: AppConfig) -> AppConfig:
 
     if args.log_level:
         config.server.log_level = args.log_level
+
+    if args.yes:
+        config.server.yes = True
 
     if args.transport:
         config.server.transport = args.transport
