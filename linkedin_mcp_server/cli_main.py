@@ -1,7 +1,9 @@
 """LinkedIn MCP Server main CLI application entry point."""
 
 import asyncio
+import json
 import logging
+import os
 import sys
 from typing import Literal
 
@@ -132,46 +134,74 @@ def import_from_browser_and_exit() -> None:
     )
     logger.info("LinkedIn MCP Server v%s - Browser Import mode", get_version())
 
-    configure_browser_environment()
-    set_headless(True)  # validation runs headless
-    user_data_dir = get_profile_dir()
-    selector = (
+    # Use the new browser_cookie_extractor module
+    from linkedin_mcp_server.browser_cookie_extractor import (
+        extract_linkedin_cookies,
+        format_cookies_for_linkedin_mcp,
+    )
+    from linkedin_mcp_server.session_state import auth_root_dir
+
+    auth_root = auth_root_dir()
+    output_path = auth_root / "cookies.json"
+    
+    # Get browser selector from config
+    browser = (
         None
         if config.server.import_from_browser == "auto"
         else config.server.import_from_browser
     )
 
-    from linkedin_mcp_server.browser_import.orchestrate import (
-        import_session_from_browser,
-    )
-    from linkedin_mcp_server.exceptions import (
-        CookieDecryptionError,
-        NoLinkedInSessionFoundError,
-    )
-
     if config.is_interactive:
         print(
-            "ℹ️  macOS may prompt to allow keychain access to the browser's "
-            "Safe Storage."
+            "ℹ️  Importing LinkedIn cookies from browser. "
+            "On macOS, you may be prompted to allow keychain access."
         )
-    try:
-        ok = asyncio.run(
-            import_session_from_browser(selector, user_data_dir=user_data_dir)
-        )
-    except NoLinkedInSessionFoundError as e:
-        print(f"❌ {e}")
-        print("   Log into LinkedIn in your browser first, or run with --login.")
-        sys.exit(1)
-    except (CookieDecryptionError, AuthenticationError) as e:
-        print(f"❌ Could not import session: {e}")
-        sys.exit(1)
 
-    if ok:
-        print(f"✅ Imported and validated LinkedIn session into {user_data_dir}")
+    try:
+        # Extract cookies using browser_cookie3 (no browser environment setup needed)
+        cookie_data = extract_linkedin_cookies(browser=browser)
+        if not cookie_data:
+            print(f"❌ No LinkedIn cookies found")
+            if browser:
+                print(f"   Tried browser: {browser}")
+            else:
+                print("   Tried auto-detection across all browsers")
+            print("   Log into LinkedIn in your browser first, or run with --login.")
+            sys.exit(1)
+
+        # Format cookies for LinkedIn MCP
+        formatted_cookies = format_cookies_for_linkedin_mcp(cookie_data)
+
+        # Save cookies
+        os.makedirs(auth_root, exist_ok=True)
+
+        with open(output_path, 'w') as f:
+            json.dump(formatted_cookies, f, indent=2)
+
+        # Set proper permissions
+        os.chmod(output_path, 0o600)
+
+        # Verify li_at cookie is present
+        li_at_found = any(c.get("name") == "li_at" for c in formatted_cookies)
+        
+        print(f"✅ Successfully imported LinkedIn cookies")
+        print(f"   Source: {cookie_data.get('source', 'unknown')}")
+        print(f"   Cookies: {len(formatted_cookies)}")
+        print(f"   Path: {output_path}")
+        
+        if li_at_found:
+            print(f"   ✅ Authentication cookie (li_at) found")
+        else:
+            print(f"   ⚠️  Warning: Authentication cookie (li_at) not found")
+            print(f"   The session may not be fully functional")
+        
+        print(f"   Run 'linkedin-cli --status' to verify your session")
         sys.exit(0)
-    print("❌ Imported cookies did not produce a valid session.")
-    print("   The browser session may be expired. Re-login there or use --login.")
-    sys.exit(1)
+
+    except Exception as e:
+        print(f"❌ Failed to import cookies: {e}")
+        logger.exception("Cookie import failed")
+        sys.exit(1)
 
 
 def profile_info_and_exit() -> None:
@@ -186,100 +216,39 @@ def profile_info_and_exit() -> None:
     version = get_version()
     logger.info(f"LinkedIn MCP Server v{version} - Session Info mode")
 
-    profile_dir = get_profile_dir()
-    cookies_path = portable_cookie_path(profile_dir)
-    source_state = load_source_state(profile_dir)
-    current_runtime = get_runtime_id()
-
-    if not source_state or not profile_exists(profile_dir) or not cookies_path.exists():
-        print(f"❌ No valid source session found at {profile_dir}")
-        print("   Run with --login to create a source session")
-        sys.exit(1)
-
-    print(f"Current runtime: {current_runtime}")
-    print(f"Source runtime: {source_state.source_runtime_id}")
-    print(f"Login generation: {source_state.login_generation}")
-
-    runtime_state = None
-    runtime_profile = None
-    runtime_storage_state = None
-    bridge_required = False
-
-    if current_runtime == source_state.source_runtime_id:
-        print(f"Profile mode: source ({profile_dir})")
-    else:
-        runtime_state = load_runtime_state(current_runtime, profile_dir)
-        runtime_profile = runtime_profile_dir(current_runtime, profile_dir)
-        runtime_storage_state = runtime_storage_state_path(current_runtime, profile_dir)
-        if not experimental_persist_derived_runtime():
-            bridge_required = True
-            print("Profile mode: foreign runtime (fresh bridge each startup)")
-            if runtime_profile.exists():
-                print(
-                    f"Derived runtime cache present but ignored by default: {runtime_profile}"
-                )
-        else:
-            if (
-                runtime_state
-                and runtime_state.source_login_generation
-                == source_state.login_generation
-                and profile_exists(runtime_profile)
-                and runtime_storage_state.exists()
-            ):
-                print(
-                    f"Profile mode: derived (committed, current generation) ({runtime_profile})"
-                )
-            else:
-                bridge_required = True
-                state = "stale generation" if runtime_state else "missing"
-                print(f"Profile mode: derived ({state})")
-            print(
-                "Storage snapshot: "
-                f"{runtime_storage_state if runtime_storage_state and runtime_storage_state.exists() else 'missing'}"
-            )
-
-    async def check_session() -> bool:
-        try:
-            set_headless(True)  # Always check headless
-            browser = await get_or_create_browser()
-            return browser.is_authenticated
-        except AuthenticationError:
-            return False
-        except Exception as e:
-            logger.exception(f"Unexpected error checking session: {e}")
-            raise
-        finally:
-            await close_browser()
-
-    if bridge_required:
-        if experimental_persist_derived_runtime():
-            print(
-                "ℹ️  A derived runtime profile will be created and checkpoint-committed on the next server startup."
-            )
-        else:
-            print(
-                "ℹ️  A fresh bridged foreign-runtime session will be created on the next server startup."
-            )
-        print(
-            "ℹ️  Source cookie validity is not verified in this mode. Run the server to test the bridge end-to-end."
-        )
+    from linkedin_mcp_server.session_state import auth_root_dir
+    
+    auth_root = auth_root_dir()
+    cookies_path = auth_root / "cookies.json"
+    
+    # Simple cookie file check first
+    if not cookies_path.exists():
+        print(f"❌ No LinkedIn session found")
+        print(f"   Run 'linkedin-cli --import-from-browser' to import cookies from your browser")
+        print(f"   Or run 'linkedin-cli --login' to create a new session")
         sys.exit(0)
-
+    
+    # Check cookie file contents
     try:
-        valid = asyncio.run(check_session())
-    except Exception as e:
-        print(f"❌ Could not validate session: {e}")
-        print("   Check logs and browser configuration.")
-        sys.exit(1)
-
-    active_profile = profile_dir if runtime_profile is None else runtime_profile
-    if valid:
-        print(f"✅ Session is valid (profile: {active_profile})")
+        with open(cookies_path) as f:
+            cookies = json.load(f)
+        
+        li_at_found = any(c.get("name") == "li_at" for c in cookies)
+        
+        print(f"Session: {'active' if li_at_found else 'invalid'}")
+        print(f"Cookies: {len(cookies)}")
+        print(f"Path: {cookies_path}")
+        
+        if li_at_found:
+            print(f"✅ Authentication cookie (li_at) found")
+        else:
+            print(f"⚠️  Warning: Authentication cookie (li_at) not found")
+            print(f"   Run 'linkedin-cli --import-from-browser' to refresh your session")
+        
         sys.exit(0)
-
-    print(f"❌ Session expired or invalid (profile: {active_profile})")
-    print("   Run with --login to re-authenticate")
-    sys.exit(1)
+    except Exception as e:
+        print(f"❌ Could not read session: {e}")
+        sys.exit(1)
 
 
 def get_version() -> str:
@@ -333,7 +302,11 @@ def main() -> None:
     logger.info(f"LinkedIn MCP Server v{version}")
 
     try:
-        configure_browser_environment()
+        # Configure browser environment only for modes that need it
+        # --import-from-browser and --status don't need it (they use browser_cookie3)
+        # --login and normal server startup do need it
+        if config.server.login or not (config.server.import_from_browser or config.server.status):
+            configure_browser_environment()
 
         # Set headless mode from config
         set_headless(config.browser.headless)
@@ -344,13 +317,9 @@ def main() -> None:
 
         # Ensure browser is installed for CLI modes that launch it.
         # Normal server startup uses async background setup instead. --login is
-        # headed and needs full chromium; --status and --import-from-browser run
-        # headless and need only the shell.
-        if (
-            config.server.login
-            or config.server.status
-            or config.server.import_from_browser
-        ):
+        # headed and needs full chromium; --status and --import-from-browser don't
+        # need browser anymore (they use browser_cookie3 directly).
+        if config.server.login:
             ensure_browser_installed(full=config.server.login)
 
         # Handle --import-from-browser flag

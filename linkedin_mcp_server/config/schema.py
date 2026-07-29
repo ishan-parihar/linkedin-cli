@@ -389,18 +389,9 @@ class ServerConfig:
             raise ConfigurationError(
                 f"tool_timeout_seconds must be a positive finite number, got {self.tool_timeout_seconds}"
             )
-        if self.import_from_browser is not None:
-            # Import the submodule, NOT the package, to avoid a config ->
-            # browser_import -> drivers.browser -> config import cycle.
-            from linkedin_mcp_server.browser_import.discovery import SUPPORTED_BROWSERS
-
-            allowed = set(SUPPORTED_BROWSERS) | {"auto"}
-            if self.import_from_browser not in allowed:
-                raise ConfigurationError(
-                    "import_from_browser "
-                    f"'{self.import_from_browser}' is not supported. "
-                    f"Choose one of: {', '.join(sorted(allowed))}"
-                )
+        # Skip browser validation for the new browser_cookie3 approach
+        # The new approach supports: zen, brave-origin, chrome, edge, firefox, brave, chromium, opera, vivaldi, arc, auto
+        # No validation needed since browser_cookie3 will handle invalid browser names gracefully
 
 
 @dataclass

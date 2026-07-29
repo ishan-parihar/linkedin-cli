@@ -546,11 +546,10 @@ def load_from_args(config: AppConfig) -> AppConfig:
         default=None,
         metavar="BROWSER",
         help=(
-            "Import a LinkedIn session from a locally logged-in Chromium browser "
-            "(chrome, chromium, brave, edge, arc, vivaldi, helium, yandex, whale, "
-            "coccoc, opera, opera_gx, or auto). Bare flag = auto (most recently "
-            "used live session). On macOS the OS keychain may prompt for access "
-            "to the browser's Safe Storage."
+            "Import LinkedIn cookies from a locally logged-in browser "
+            "(zen, brave-origin, chrome, edge, firefox, brave, chromium, opera, "
+            "vivaldi, arc, or auto). Bare flag = auto (tries all browsers). "
+            "On macOS the OS keychain may prompt for access to the browser's Safe Storage."
         ),
     )
 
