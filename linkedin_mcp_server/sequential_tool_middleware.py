@@ -87,9 +87,9 @@ class SequentialToolExecutionMiddleware(Middleware):
         """Run the tool while this process owns the browser profile."""
         # Imported here so the module stays importable without the driver.
         from linkedin_mcp_server.drivers.browser import (
-            note_activity,
-            note_call_started,
-            release_profile_if_idle_or_requested,
+            record_activity,
+            increment_calls_in_flight,
+            release_if_idle,
         )
 
         lease = get_profile_lease()
@@ -117,7 +117,7 @@ class SequentialToolExecutionMiddleware(Middleware):
             # Marks the browser as in use so the background handoff poll cannot
             # close it out from under this call. Inside the try so the finally
             # always balances it, including if the call is cancelled.
-            note_call_started()
+            increment_calls_in_flight()
             return await call_next(context)
         finally:
             hold_seconds = time.perf_counter() - hold_started
@@ -126,11 +126,11 @@ class SequentialToolExecutionMiddleware(Middleware):
                 tool_name,
                 hold_seconds,
             )
-            note_activity()
+            record_activity()
             lease.release()
             # Hand the browser over now if someone is waiting, rather than
             # holding it for the rest of this process's lifetime.
             try:
-                await release_profile_if_idle_or_requested()
+                await release_if_idle()
             except Exception:
                 logger.debug("Profile handoff check failed", exc_info=True)

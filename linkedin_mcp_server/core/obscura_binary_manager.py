@@ -248,8 +248,12 @@ class ObscuraBinaryManager:
         if not self.binary_path.exists():
             logger.info("Obscura binary not found, downloading...")
             return await self.download_latest_binary()
-        
-        if self.auto_update:
+
+        # If the binary exists, skip auto-update by default. The upstream
+        # GitHub release URL (graphite-ng/obscura) may be unavailable (404),
+        # and re-downloading on every start wastes resources when a working
+        # binary is already installed. Set OBSCURA_AUTO_UPDATE=1 to force.
+        if self.auto_update and os.environ.get("OBSCURA_AUTO_UPDATE", "").lower() in ("1", "true", "yes"):
             logger.info("Checking for Obscura updates...")
             try:
                 if await self.is_up_to_date():
@@ -262,7 +266,8 @@ class ObscuraBinaryManager:
                 logger.warning("Failed to update Obscura binary: %s", e)
                 # Return existing binary even if update failed
                 return self.binary_path
-        
+
+        logger.debug("Using existing Obscura binary at %s", self.binary_path)
         return self.binary_path
     
     def get_version(self) -> Optional[str]:

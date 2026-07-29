@@ -157,11 +157,12 @@ class ObscuraBrowserManager:
         if self._storage_dir:
             cmd.extend(["--storage-dir", str(self._storage_dir)])
         
-        # Add cookies if available
-        if self._cookies:
-            cookie_string = "; ".join([f"{k}={v}" for k, v in self._cookies.items()])
-            cmd.extend(["--cookie", cookie_string])
-        
+        # Cookies are injected via --storage-dir persistence, not a CLI flag.
+        # The obscura binary does not support a --cookie argument; it manages
+        # cookies automatically through its storage directory. The cookies
+        # loaded via _load_cookies() are used by the extractor and for
+        # authentication validation, while obscura's own cookie jar handles
+        # HTTP request headers.
         cmd.append(url)
         
         log_obscura_operation("fetch_page", {"url": url, "storage_dir": str(self._storage_dir), "cookies": len(self._cookies)})
@@ -449,6 +450,7 @@ class ObscuraPage:
     
     def __init__(self, browser_manager: ObscuraBrowserManager):
         self._browser = browser_manager
+        self._listeners: dict[str, list[callable]] = {}
     
     async def goto(self, url: str, **kwargs: Any) -> None:
         """Navigate to URL."""
@@ -474,6 +476,27 @@ class ObscuraPage:
     async def locator(self, selector: str) -> "ObscuraLocator":
         """Return a locator object."""
         return ObscuraLocator(self, selector)
+    
+    # --- Playwright-compatible event listener interface ---
+    def on(self, event: str, handler: callable) -> None:
+        """Add an event listener (Playwright-compatible)."""
+        if event not in self._listeners:
+            self._listeners[event] = []
+        self._listeners[event].append(handler)
+    
+    def remove_listener(self, event: str, handler: callable) -> None:
+        """Remove an event listener (Playwright-compatible)."""
+        if event in self._listeners and handler in self._listeners[event]:
+            self._listeners[event].remove(handler)
+    
+    def _emit(self, event: str, *args: Any, **kwargs: Any) -> None:
+        """Emit an event to all listeners (internal use)."""
+        if event in self._listeners:
+            for handler in self._listeners[event]:
+                try:
+                    handler(*args, **kwargs)
+                except Exception:
+                    pass  # Ignore listener errors
 
 
 class ObscuraLocator:
@@ -503,3 +526,39 @@ def page_property(self) -> ObscuraPage:
     return ObscuraPage(self)
 
 ObscuraBrowserManager.page = page_property
+
+
+# ---------------------------------------------------------------------------
+# Context property: setup.py and drivers/browser.py call `browser.context`
+# to access cookies, storage state, etc. ObscuraBrowserManager already has
+# async `cookies()` and `add_cookies()` methods — the context proxy just
+# delegates to those so the Playwright-compatible interface is complete.
+# ---------------------------------------------------------------------------
+class _ObscuraContextProxy:
+    """Playwright-like BrowserContext proxy for ObscuraBrowserManager.
+
+    Delegates ``cookies()``, ``add_cookies()``, and ``set_cookies()`` to the
+    underlying manager so callers that expect a ``browser.context`` handle
+    (e.g. ``setup.py`` login flow) work transparently.
+    """
+
+    def __init__(self, manager: ObscuraBrowserManager):
+        self._manager = manager
+
+    async def cookies(self) -> list[dict[str, Any]]:
+        return await self._manager.cookies()
+
+    async def add_cookies(self, cookies: list[dict[str, Any]]) -> None:
+        await self._manager.add_cookies(cookies)
+
+    async def set_cookies(self, cookies: list[dict[str, Any]]) -> None:
+        await self._manager.add_cookies(cookies)
+
+
+@property
+def context_property(self):
+    """Get a Playwright-like BrowserContext proxy."""
+    return _ObscuraContextProxy(self)
+
+
+ObscuraBrowserManager.context = context_property

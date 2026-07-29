@@ -174,13 +174,10 @@ def _is_container_runtime() -> bool:
         if _path_contains_markers(probe, markers):
             return True
 
-    for probe in (
-        Path("/proc/1/mountinfo"),
-        Path("/proc/self/mountinfo"),
-    ):
-        if _path_contains_markers(probe, markers) or _root_mount_uses_overlay(probe):
-            return True
-
+    # The mountinfo check is intentionally omitted because it false-positives
+    # on hosts that run Docker (overlayfs mounts from containers leak into
+    # /proc/self/mountinfo). Only use strong signals: .dockerenv file and
+    # cgroup markers.
     return False
 
 
