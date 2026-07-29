@@ -95,11 +95,17 @@ uv sync
 success "Dependencies installed"
 
 # Create symlink for CLI
-info "Creating CLI symlink..."
-mkdir -p "$HOME/.local/bin"
-rm -f "$HOME/.local/bin/linkedin-cli"
-ln -s "$NEW_INSTALL_DIR/.venv/bin/linkedin-cli" "$HOME/.local/bin/linkedin-cli"
-success "CLI symlink created"
+CLI_PATH="$NEW_INSTALL_DIR/.venv/bin/linkedin-cli"
+if [ -f "$CLI_PATH" ]; then
+    info "Creating CLI symlink..."
+    mkdir -p "$HOME/.local/bin"
+    rm -f "$HOME/.local/bin/linkedin-cli"
+    ln -s "$CLI_PATH" "$HOME/.local/bin/linkedin-cli"
+    success "CLI symlink created"
+else
+    error "CLI binary not found at $CLI_PATH"
+    exit 1
+fi
 
 # Ensure PATH includes ~/.local/bin
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then

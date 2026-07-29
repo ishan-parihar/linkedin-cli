@@ -105,16 +105,22 @@ uv sync
 success "Dependencies installed"
 
 # Create symlink for CLI (if not already exists)
-if [ ! -L "$HOME/.local/bin/linkedin-cli" ]; then
-    info "Creating CLI symlink..."
-    mkdir -p "$HOME/.local/bin"
-    ln -s "$REPO_DIR/.venv/bin/linkedin-cli" "$HOME/.local/bin/linkedin-cli"
-    success "CLI symlink created"
+CLI_PATH="$REPO_DIR/.venv/bin/linkedin-cli"
+if [ -f "$CLI_PATH" ]; then
+    if [ ! -L "$HOME/.local/bin/linkedin-cli" ]; then
+        info "Creating CLI symlink..."
+        mkdir -p "$HOME/.local/bin"
+        ln -s "$CLI_PATH" "$HOME/.local/bin/linkedin-cli"
+        success "CLI symlink created"
+    else
+        info "CLI symlink already exists, updating..."
+        rm "$HOME/.local/bin/linkedin-cli"
+        ln -s "$CLI_PATH" "$HOME/.local/bin/linkedin-cli"
+        success "CLI symlink updated"
+    fi
 else
-    info "CLI symlink already exists, updating..."
-    rm "$HOME/.local/bin/linkedin-cli"
-    ln -s "$REPO_DIR/.venv/bin/linkedin-cli" "$HOME/.local/bin/linkedin-cli"
-    success "CLI symlink updated"
+    error "CLI binary not found at $CLI_PATH"
+    exit 1
 fi
 
 # Ensure PATH includes ~/.local/bin
