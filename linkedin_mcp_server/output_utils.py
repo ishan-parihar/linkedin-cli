@@ -37,6 +37,26 @@ def add_next_step(result: dict[str, Any], hints: list[str]) -> dict[str, Any]:
     return result
 
 
+def add_result_counts(
+    result: dict[str, Any],
+    *,
+    results_count: int | None = None,
+    total_pages: int | None = None,
+) -> dict[str, Any]:
+    """Add aggregate result-count metadata (AXI §4).
+
+    When sections is empty, injects an explicit empty-state message (AXI §5).
+    """
+    if result.get("sections"):
+        if results_count is not None:
+            result["results_count"] = results_count
+        if total_pages is not None:
+            result["total_pages"] = total_pages
+    else:
+        result["empty_state"] = "0 results found"
+    return result
+
+
 # Per-tool next-step hint maps (AXI §9)
 PERSON_PROFILE_HINTS = [
     "Use sections='posts,skills' to get specific sections",

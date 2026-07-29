@@ -21,6 +21,7 @@ from linkedin_mcp_server.output_utils import (
     PERSON_PROFILE_HINTS,
     SEARCH_PEOPLE_HINTS,
     add_next_step,
+    add_result_counts,
     apply_section_truncation,
 )
 from linkedin_mcp_server.scraping import parse_person_sections
@@ -180,9 +181,10 @@ def register_person_tools(
 
             await ctx.report_progress(progress=100, total=100, message="Complete")
 
-            # AXI §3: truncate long section text; §9: next-step hints
+            # AXI §3: truncate long section text; §5: empty-state; §9: next-step hints
             if "sections" in result:
                 result["sections"] = apply_section_truncation(result["sections"])
+            add_result_counts(result)
             add_next_step(result, SEARCH_PEOPLE_HINTS)
             return result
 
