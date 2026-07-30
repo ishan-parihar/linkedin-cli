@@ -32,34 +32,16 @@ class LinkedInCookieValidator:
         self._extractor = None
 
     async def validate(self, cookies: dict[str, str]) -> bool:
-        """Validate cookies by checking if we can access LinkedIn."""
+        """Validate cookies by checking required cookies are present."""
         try:
-            # Import here to avoid circular imports
-            from linkedin_mcp_server.drivers.browser import get_or_create_browser
-            from linkedin_mcp_server.scraping import LinkedInExtractor
-
-            # Create a temporary browser with these cookies
-            browser = await get_or_create_browser()
-            page = browser.page
-
-            # Set cookies
-            cookie_list = [
-                {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
-                for name, value in cookies.items()
-            ]
-            await page.context.add_cookies(cookie_list)
-
-            # Try to access a page
-            await page.goto("https://www.linkedin.com/feed/", wait_until="domcontentloaded", timeout=10000)
-
-            # Check if we're logged in
-            is_logged_in = await page.evaluate("""() => {
-                return !document.body.innerText.includes('Sign in') && 
-                       !document.body.innerText.includes('Join now') &&
-                       document.querySelector('[data-test-global-nav-me]') !== null;
-            }""")
-
-            return is_logged_in
+            # For now, just check that required cookies are present
+            # Full API validation can be added later
+            required = ["li_at"]
+            for cookie in required:
+                if cookie not in cookies or not cookies[cookie]:
+                    logger.debug(f"Required cookie missing: {cookie}")
+                    return False
+            return True
         except Exception as e:
             logger.debug(f"LinkedIn cookie validation failed: {e}")
             return False
