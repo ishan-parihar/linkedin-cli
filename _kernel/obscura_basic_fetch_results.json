@@ -1,0 +1,104 @@
+{
+  "summary": {
+    "total_tests": 6,
+    "passed_tests": 1,
+    "failed_tests": 5,
+    "success_rate": 16.666666666666664,
+    "avg_duration": 6.425972104072571,
+    "avg_content_length": 206307.16666666666
+  },
+  "detailed_results": [
+    {
+      "test_name": "LinkedIn Home Page",
+      "url": "https://www.linkedin.com/",
+      "status_code": 0,
+      "duration": 7.481905221939087,
+      "content_length": 165395,
+      "has_linkedin": true,
+      "has_feed": true,
+      "has_auth_barrier": true,
+      "content_checks": {
+        "linkedin": true,
+        "home": true
+      },
+      "success": false
+    },
+    {
+      "test_name": "LinkedIn Profile Page (Bill Gates)",
+      "url": "https://www.linkedin.com/in/williamhgates/",
+      "status_code": 0,
+      "duration": 0.7585413455963135,
+      "content_length": 1560,
+      "has_linkedin": true,
+      "has_feed": false,
+      "has_auth_barrier": false,
+      "content_checks": {
+        "linkedin": true,
+        "profile": false,
+        "bill": false
+      },
+      "success": true
+    },
+    {
+      "test_name": "LinkedIn Company Page (Microsoft)",
+      "url": "https://www.linkedin.com/company/microsoft/",
+      "status_code": 0,
+      "duration": 8.476764917373657,
+      "content_length": 511199,
+      "has_linkedin": true,
+      "has_feed": true,
+      "has_auth_barrier": true,
+      "content_checks": {
+        "linkedin": true,
+        "microsoft": true,
+        "company": true
+      },
+      "success": false
+    },
+    {
+      "test_name": "LinkedIn Feed Page",
+      "url": "https://www.linkedin.com/feed/",
+      "status_code": 0,
+      "duration": 7.371631622314453,
+      "content_length": 58234,
+      "has_linkedin": true,
+      "has_feed": true,
+      "has_auth_barrier": true,
+      "content_checks": {
+        "linkedin": true,
+        "feed": true
+      },
+      "success": false
+    },
+    {
+      "test_name": "LinkedIn Search Results (Software Engineer)",
+      "url": "https://www.linkedin.com/jobs/search/?keywords=software%20engineer",
+      "status_code": 0,
+      "duration": 7.254270553588867,
+      "content_length": 337768,
+      "has_linkedin": true,
+      "has_feed": true,
+      "has_auth_barrier": true,
+      "content_checks": {
+        "linkedin": true,
+        "search": true,
+        "jobs": true
+      },
+      "success": false
+    },
+    {
+      "test_name": "LinkedIn Redirect Handling",
+      "url": "https://linkedin.com",
+      "status_code": 0,
+      "duration": 7.212718963623047,
+      "content_length": 163687,
+      "has_linkedin": true,
+      "has_feed": true,
+      "has_auth_barrier": true,
+      "content_checks": {
+        "linkedin": true
+      },
+      "success": false
+    }
+  ]
+}

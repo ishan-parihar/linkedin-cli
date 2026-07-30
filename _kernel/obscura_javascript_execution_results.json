@@ -1,0 +1,100 @@
+{
+  "summary": {
+    "total_tests": 8,
+    "passed_tests": 8,
+    "failed_tests": 0,
+    "success_rate": 100.0,
+    "avg_duration": 7.914335757493973,
+    "eval_success_rate": 1.0
+  },
+  "detailed_results": [
+    {
+      "test_name": "Simple JavaScript Expression",
+      "url": "https://www.linkedin.com/in/williamhgates/",
+      "eval_script": "document.title",
+      "status_code": 0,
+      "duration": 0.36082887649536133,
+      "content_length": 24661,
+      "eval_worked": true,
+      "has_expected": true,
+      "success": true
+    },
+    {
+      "test_name": "DOM Modification - Change Title (IIFE)",
+      "url": "https://www.linkedin.com/in/williamhgates/",
+      "eval_script": "(function(){ document.title = 'Test Title'; return document.title; })()",
+      "status_code": 0,
+      "duration": 0.3681361675262451,
+      "content_length": 24661,
+      "eval_worked": true,
+      "has_expected": false,
+      "success": true
+    },
+    {
+      "test_name": "Element Extraction - Get URL (IIFE)",
+      "url": "https://www.linkedin.com/in/williamhgates/",
+      "eval_script": "(function(){ return window.location.href; })()",
+      "status_code": 0,
+      "duration": 0.6140780448913574,
+      "content_length": 1560,
+      "eval_worked": true,
+      "has_expected": true,
+      "success": true
+    },
+    {
+      "test_name": "Cookie Access (IIFE)",
+      "url": "https://www.linkedin.com/in/williamhgates/",
+      "eval_script": "(function(){ return document.cookie; })()",
+      "status_code": 0,
+      "duration": 12.118186235427856,
+      "content_length": 608669,
+      "eval_worked": true,
+      "has_expected": true,
+      "success": true
+    },
+    {
+      "test_name": "Dynamic Content Check - Scroll Height (IIFE)",
+      "url": "https://www.linkedin.com/feed/",
+      "eval_script": "(function(){ return document.body.scrollHeight; })()",
+      "status_code": 0,
+      "duration": 13.246739149093628,
+      "content_length": 58241,
+      "eval_worked": true,
+      "has_expected": false,
+      "success": true
+    },
+    {
+      "test_name": "LinkedIn-Specific - Check for React (IIFE)",
+      "url": "https://www.linkedin.com/feed/",
+      "eval_script": "(function(){ return typeof document.querySelector('[data-test-id]'); })()",
+      "status_code": 0,
+      "duration": 11.91976284980774,
+      "content_length": 58242,
+      "eval_worked": true,
+      "has_expected": true,
+      "success": true
+    },
+    {
+      "test_name": "Async Operation - Window Inner Height (IIFE)",
+      "url": "https://www.linkedin.com/feed/",
+      "eval_script": "(function(){ return window.innerHeight; })()",
+      "status_code": 0,
+      "duration": 12.243053674697876,
+      "content_length": 58245,
+      "eval_worked": true,
+      "has_expected": false,
+      "success": true
+    },
+    {
+      "test_name": "Complex Multi-Statement - Link Extraction (IIFE)",
+      "url": "https://www.linkedin.com/feed/",
+      "eval_script": "(function(){ const links = document.querySelectorAll('a'); return Array.from(links).slice(0, 5).map(a => a.href).join(','); })()",
+      "status_code": 0,
+      "duration": 12.443901062011719,
+      "content_length": 58239,
+      "eval_worked": true,
+      "has_expected": true,
+      "success": true
+    }
+  ]
+}

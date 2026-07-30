@@ -1,0 +1,59 @@
+{
+  "summary": {
+    "total_tests": 3,
+    "obscura_wins": 1,
+    "playwright_wins": 2,
+    "avg_speed_improvement": -3384.299537552374,
+    "avg_memory_improvement": 0.0
+  },
+  "detailed_results": [
+    {
+      "test_name": "Single Page Fetch (Profile)",
+      "url": "https://www.linkedin.com/in/williamhgates/",
+      "obscura": {
+        "browser": "obscura",
+        "test_name": "Single Page Fetch (Profile)",
+        "url": "https://www.linkedin.com/in/williamhgates/",
+        "duration": 0.82861328125,
+        "memory_delta_mb": 0.0234375,
+        "content_length": 1560,
+        "status_code": 0,
+        "success": true
+      },
+      "playwright": {
+        "browser": "playwright",
+        "test_name": "Single Page Fetch (Profile)",
+        "url": "https://www.linkedin.com/in/williamhgates/",
+        "duration": 0.1387481689453125,
+        "memory_delta_mb": 0.03125,
+        "content_length": 0,
+        "status_code": 1,
+        "success": false
+      },
+      "speed_improvement_percent": 0,
+      "memory_improvement_percent": 0,
+      "winner": "playwright"
+    },
+    {
+      "test_name": "Sequential Fetches (3 pages)",
+      "obscura": {
+        "duration": 15.903355360031128,
+        "memory_delta_mb": 0.60546875
+      },
+      "playwright": {
+        "duration": 0.2315371036529541,
+        "memory_delta_mb": 0.0
+      },
+      "speed_improvement_percent": -6768.599075104748,
+      "memory_improvement_percent": 0,
+      "winner": "playwright"
+    },
+    {
+      "test_name": "Startup Time",
+      "obscura_startup_seconds": 0.002657651901245117,
+      "playwright_startup_seconds": 0.06873416900634766,
+      "improvement_percent": 96.13343415703523,
+      "winner": "obscura"
+    }
+  ]
+}

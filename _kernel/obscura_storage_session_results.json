@@ -1,0 +1,147 @@
+{
+  "summary": {
+    "total_tests": 8,
+    "passed_tests": 8,
+    "failed_tests": 0,
+    "success_rate": 100.0,
+    "avg_duration": 1.611716479063034
+  },
+  "detailed_results": [
+    {
+      "test_name": "Storage Directory Creation",
+      "url": "https://www.linkedin.com/in/williamhgates/",
+      "use_storage": true,
+      "storage_path": "/tmp/tmpgv55c3qu/test_creation",
+      "status_code": 0,
+      "duration": 0.844228982925415,
+      "content_length": 1560,
+      "storage_exists": true,
+      "storage_files_count": 1,
+      "has_linkedin": true,
+      "success": true
+    },
+    {
+      "test_name": "Cookie Persistence - First Request",
+      "url": "https://www.linkedin.com/in/williamhgates/",
+      "use_storage": true,
+      "storage_path": "/tmp/tmpgv55c3qu/cookie_persistence",
+      "status_code": 0,
+      "duration": 0.4731724262237549,
+      "content_length": 24661,
+      "storage_exists": true,
+      "storage_files_count": 1,
+      "has_linkedin": true,
+      "success": true
+    },
+    {
+      "test_name": "Cookie Persistence - Second Request",
+      "url": "https://www.linkedin.com/in/williamhgates/",
+      "use_storage": true,
+      "storage_path": "/tmp/tmpgv55c3qu/cookie_persistence",
+      "status_code": 0,
+      "duration": 0.7473654747009277,
+      "content_length": 1560,
+      "storage_exists": true,
+      "storage_files_count": 1,
+      "has_linkedin": true,
+      "success": true
+    },
+    {
+      "test_name": "Cookie Persistence",
+      "first_request": {
+        "test_name": "Cookie Persistence - First Request",
+        "url": "https://www.linkedin.com/in/williamhgates/",
+        "use_storage": true,
+        "storage_path": "/tmp/tmpgv55c3qu/cookie_persistence",
+        "status_code": 0,
+        "duration": 0.4731724262237549,
+        "content_length": 24661,
+        "storage_exists": true,
+        "storage_files_count": 1,
+        "has_linkedin": true,
+        "success": true
+      },
+      "second_request": {
+        "test_name": "Cookie Persistence - Second Request",
+        "url": "https://www.linkedin.com/in/williamhgates/",
+        "use_storage": true,
+        "storage_path": "/tmp/tmpgv55c3qu/cookie_persistence",
+        "status_code": 0,
+        "duration": 0.7473654747009277,
+        "content_length": 1560,
+        "storage_exists": true,
+        "storage_files_count": 1,
+        "has_linkedin": true,
+        "success": true
+      },
+      "cookies_persisted": true,
+      "success": true
+    },
+    {
+      "test_name": "Storage Isolation - Storage 1",
+      "url": "https://www.linkedin.com/in/williamhgates/",
+      "use_storage": true,
+      "storage_path": "/tmp/tmpgv55c3qu/isolated_1",
+      "status_code": 0,
+      "duration": 1.253680944442749,
+      "content_length": 1560,
+      "storage_exists": true,
+      "storage_files_count": 1,
+      "has_linkedin": true,
+      "success": true
+    },
+    {
+      "test_name": "Storage Isolation - Storage 2",
+      "url": "https://www.linkedin.com/company/microsoft/",
+      "use_storage": true,
+      "storage_path": "/tmp/tmpgv55c3qu/isolated_2",
+      "status_code": 0,
+      "duration": 9.575284004211426,
+      "content_length": 511203,
+      "storage_exists": true,
+      "storage_files_count": 1,
+      "has_linkedin": true,
+      "success": true
+    },
+    {
+      "test_name": "Storage Isolation",
+      "storage1_result": {
+        "test_name": "Storage Isolation - Storage 1",
+        "url": "https://www.linkedin.com/in/williamhgates/",
+        "use_storage": true,
+        "storage_path": "/tmp/tmpgv55c3qu/isolated_1",
+        "status_code": 0,
+        "duration": 1.253680944442749,
+        "content_length": 1560,
+        "storage_exists": true,
+        "storage_files_count": 1,
+        "has_linkedin": true,
+        "success": true
+      },
+      "storage2_result": {
+        "test_name": "Storage Isolation - Storage 2",
+        "url": "https://www.linkedin.com/company/microsoft/",
+        "use_storage": true,
+        "storage_path": "/tmp/tmpgv55c3qu/isolated_2",
+        "status_code": 0,
+        "duration": 9.575284004211426,
+        "content_length": 511203,
+        "storage_exists": true,
+        "storage_files_count": 1,
+        "has_linkedin": true,
+        "success": true
+      },
+      "storage_files_1": 1,
+      "storage_files_2": 1,
+      "isolated": true,
+      "success": true
+    },
+    {
+      "test_name": "Cookie Dump and Load",
+      "dump_status": 0,
+      "cookies_obtained": true,
+      "cookie_content_length": 2559,
+      "success": true
+    }
+  ]
+}

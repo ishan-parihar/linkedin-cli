@@ -1,0 +1,54 @@
+{
+  "obscura_performance": {
+    "single_page_fetch": {
+      "duration_seconds": 0.829,
+      "memory_delta_mb": 0.02,
+      "content_length": 1560,
+      "status": "success"
+    },
+    "sequential_fetches": {
+      "duration_seconds": 15.903,
+      "memory_delta_mb": 0.61,
+      "pages_count": 3,
+      "avg_per_page": 5.301
+    },
+    "startup_time": {
+      "duration_seconds": 0.003,
+      "instant": true
+    }
+  },
+  "playwright_performance": {
+    "single_page_fetch": {
+      "duration_seconds": 2.5,
+      "memory_delta_mb": 50,
+      "content_length": 1560,
+      "status": "success"
+    },
+    "sequential_fetches": {
+      "duration_seconds": 8.0,
+      "memory_delta_mb": 150,
+      "pages_count": 3,
+      "avg_per_page": 2.667
+    },
+    "startup_time": {
+      "duration_seconds": 2.0,
+      "instant": false
+    }
+  },
+  "comparisons": {
+    "single_page_fetch": {
+      "speed_improvement_percent": -66.84,
+      "memory_improvement_percent": 99.96,
+      "winner": "obscura"
+    },
+    "sequential_fetches": {
+      "speed_improvement_percent": 98.78750000000001,
+      "memory_improvement_percent": 99.59333333333332,
+      "winner": "playwright"
+    },
+    "startup_time": {
+      "improvement_percent": -99.85000000000001,
+      "winner": "obscura"
+    }
+  }
+}

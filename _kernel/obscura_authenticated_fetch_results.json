@@ -1,0 +1,64 @@
+{
+  "summary": {
+    "total_tests": 4,
+    "passed_tests": 3,
+    "failed_tests": 1,
+    "success_rate": 75.0,
+    "avg_duration": 6.416195571422577,
+    "avg_content_length": 15727.75
+  },
+  "detailed_results": [
+    {
+      "test_name": "Simple Profile Fetch (no storage)",
+      "url": "https://www.linkedin.com/in/williamhgates/",
+      "status_code": 0,
+      "duration": 0.7669963836669922,
+      "content_length": 1560,
+      "has_linkedin": true,
+      "has_feed": false,
+      "has_auth_barrier": false,
+      "has_profile_elements": false,
+      "has_company_elements": false,
+      "success": true
+    },
+    {
+      "test_name": "Authenticated Profile Fetch (with storage)",
+      "url": "https://www.linkedin.com/in/williamhgates/",
+      "status_code": 0,
+      "duration": 1.2323720455169678,
+      "content_length": 1560,
+      "has_linkedin": true,
+      "has_feed": false,
+      "has_auth_barrier": false,
+      "has_profile_elements": false,
+      "has_company_elements": false,
+      "success": true
+    },
+    {
+      "test_name": "Authenticated Feed Fetch (with storage)",
+      "url": "https://www.linkedin.com/feed/",
+      "status_code": 0,
+      "duration": 15.614222288131714,
+      "content_length": 58231,
+      "has_linkedin": true,
+      "has_feed": true,
+      "has_auth_barrier": true,
+      "has_profile_elements": false,
+      "has_company_elements": false,
+      "success": false
+    },
+    {
+      "test_name": "Authenticated Company Fetch (with storage)",
+      "url": "https://www.linkedin.com/company/microsoft/",
+      "status_code": 0,
+      "duration": 8.051191568374634,
+      "content_length": 1560,
+      "has_linkedin": true,
+      "has_feed": false,
+      "has_auth_barrier": false,
+      "has_profile_elements": false,
+      "has_company_elements": false,
+      "success": true
+    }
+  ]
+}
