@@ -561,6 +561,33 @@ def load_from_args(config: AppConfig) -> AppConfig:
         ),
     )
 
+    # AXI features
+    parser.add_argument(
+        "--list-tools",
+        action="store_true",
+        help="List all available MCP tools and exit",
+    )
+
+    parser.add_argument(
+        "--tool-info",
+        type=str,
+        default=None,
+        metavar="NAME",
+        help="Show detailed info for a specific tool and exit",
+    )
+
+    parser.add_argument(
+        "--install-hook",
+        action="store_true",
+        help="Install session hooks for ambient context in Claude Code/Codex",
+    )
+
+    parser.add_argument(
+        "--install-skill",
+        action="store_true",
+        help="Create installable agent skill for Claude Code",
+    )
+
     auto_import_group = parser.add_mutually_exclusive_group()
     auto_import_group.add_argument(
         "--auto-import",
@@ -719,6 +746,19 @@ def load_from_args(config: AppConfig) -> AppConfig:
     if args.import_from_browser is not None:
         value = args.import_from_browser.strip().lower()
         config.server.import_from_browser = value or "auto"
+
+    # AXI features
+    if args.list_tools:
+        config.server.list_tools = True
+
+    if args.tool_info:
+        config.server.tool_info = args.tool_info
+
+    if args.install_hook:
+        config.server.install_hook = True
+
+    if args.install_skill:
+        config.server.install_skill = True
 
     if args.auto_import is not None:
         config.browser.auto_import_from_browser = args.auto_import

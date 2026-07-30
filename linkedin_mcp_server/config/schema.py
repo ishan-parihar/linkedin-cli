@@ -381,6 +381,11 @@ class ServerConfig:
     # keep scraping, and until then this stays something you opt into. Only
     # applies to stdio; an explicit HTTP bind is already a single server.
     daemon_enabled: bool = False
+    # AXI features
+    list_tools: bool = False  # List all available MCP tools and exit
+    tool_info: str | None = None  # Show detailed info for a specific tool and exit
+    install_hook: bool = False  # Install session hooks for ambient context
+    install_skill: bool = False  # Create installable agent skill
 
     def validate(self) -> None:
         """Validate server configuration values."""
