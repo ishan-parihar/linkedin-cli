@@ -12,16 +12,17 @@ from typing import Any, Optional
 from obscura_cookie_manager import (
     ObscuraCookieManager,
     FileCookieStorage,
-    BrowserCookie3Extractor,
+    BrowserCookieExtractor,
     CookieSource,
     CookieValidationResult,
     ReLoginRequiredError,
 )
-from linkedin_mcp_server.session_state import get_cookies_path
-from linkedin_mcp_server.logging_config import logger
+from linkedin_mcp_server.session_state import portable_cookie_path
+
+logger = logging.getLogger(__name__)
 
 # Required cookies for LinkedIn
-LINKEDIN_REQUIRED_COOKIES = ["li_at", "bscookie"]
+LINKEDIN_REQUIRED_COOKIES = ["li_at"]
 
 
 class LinkedInCookieValidator:
@@ -73,11 +74,15 @@ class LinkedInObscuraManager:
 
     def _get_storage(self) -> FileCookieStorage:
         """Get file-based cookie storage."""
-        return FileCookieStorage(get_cookies_path())
+        return FileCookieStorage(portable_cookie_path())
 
-    def _get_extractor(self) -> BrowserCookie3Extractor:
+    def _get_extractor(self) -> BrowserCookieExtractor:
         """Get browser cookie extractor (prefers Chrome/Arc)."""
-        return BrowserCookie3Extractor("chrome")
+        return BrowserCookieExtractor(
+            domain="linkedin.com",
+            required_cookies=LINKEDIN_REQUIRED_COOKIES,
+            preferred_browsers=["chrome", "edge", "firefox", "brave"]
+        )
 
     def _get_manager(self) -> ObscuraCookieManager:
         """Get or create the ObscuraCookieManager instance."""
@@ -87,7 +92,6 @@ class LinkedInObscuraManager:
                 extractor=self._get_extractor(),
                 validator=self._validator.validate,
                 required_cookies=LINKEDIN_REQUIRED_COOKIES,
-                domain="linkedin.com",
                 validation_interval=300,  # 5 minutes
                 max_re_extraction_attempts=3,
                 re_extraction_cooldown=60,
