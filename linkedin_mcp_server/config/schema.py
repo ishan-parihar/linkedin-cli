@@ -15,24 +15,24 @@ from urllib.parse import unquote, urlsplit
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_TOOL_TIMEOUT_SECONDS: float = 180.0
-DEFAULT_LOGIN_TIMEOUT_SECONDS: float = 1800.0  # 30 min; 0 = no limit
-DEFAULT_LOGIN_INLINE_WAIT_SECONDS: float = 25.0  # bounded inline wait
+DEFAULT_TOOL_TIMEOUT_SECONDS: float = 120.0  # Reduced from 180.0 for VPS
+DEFAULT_LOGIN_TIMEOUT_SECONDS: float = 900.0  # Reduced from 1800.0 for VPS (15 min)
+DEFAULT_LOGIN_INLINE_WAIT_SECONDS: float = 15.0  # Reduced from 25.0 for VPS
 # Clamp ceiling: scrape time stacks on top of the inline wait inside one tool
 # call and the smallest MCP client timeout is ~60s, so the wait alone must stay
 # well under that floor.
-MAX_LOGIN_INLINE_WAIT_SECONDS: float = 45.0
+MAX_LOGIN_INLINE_WAIT_SECONDS: float = 30.0  # Reduced from 45.0 for VPS
 
 # How long a tool call waits for another process to hand over the browser. Same
 # budget and ceiling as the login inline wait, for the same reason: the wait is
 # spent inside one tool call, ahead of the scrape itself.
-DEFAULT_BROWSER_WAIT_SECONDS: float = 25.0
-MAX_BROWSER_WAIT_SECONDS: float = 45.0
+DEFAULT_BROWSER_WAIT_SECONDS: float = 10.0  # Reduced from 25.0 for VPS
+MAX_BROWSER_WAIT_SECONDS: float = 15.0  # Reduced from 45.0 for VPS
 # Shortest time an owner keeps the browser before honouring a handoff request.
 # Every handoff costs a reopen, and a reopen re-validates /feed/, so handing over
 # on literally every call would multiply LinkedIn requests. Matched to the wait
 # budget: a longer window would push waiters past their own timeout.
-DEFAULT_BROWSER_MIN_HOLD_SECONDS: float = 20.0
+DEFAULT_BROWSER_MIN_HOLD_SECONDS: float = 5.0  # Reduced from 20.0 for VPS
 # Slack between the end of the hold window and the waiter's deadline: the owner
 # notices on a one-second poll and then has to tear Chromium down (~0.7s
 # measured). Without it a waiter gives up moments before the handover lands.
