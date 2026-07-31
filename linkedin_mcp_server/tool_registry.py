@@ -94,31 +94,42 @@ def toon_print_dict(data: Any, indent: int = 0) -> None:
 async def _get_extractor_for_tool():
     """Get a LinkedIn extractor for direct CLI execution."""
     from linkedin_mcp_server.bootstrap import initialize_bootstrap
-    from linkedin_mcp_server.obscura_integration import get_valid_linkedin_cookies
     from linkedin_mcp_server.drivers.browser import get_or_create_browser
     from linkedin_mcp_server.scraping import LinkedInExtractor
     from linkedin_mcp_server.core.exceptions import AuthenticationError
+    from linkedin_mcp_server.session_state import portable_cookie_path
+    import json
+    from pathlib import Path
     
     try:
         # Initialize bootstrap environment
         initialize_bootstrap()
         
-        # Get valid cookies using ObscuraCookieManager
-        result = await get_valid_linkedin_cookies()
+        # Read cookies directly from portable cookie path
+        cookie_path = portable_cookie_path()
+        with open(cookie_path, 'r') as f:
+            cookies_data = json.load(f)
         
-        if not result.valid:
+        # Convert list format to dict format
+        if isinstance(cookies_data, list):
+            cookies_dict = {c['name']: c['value'] for c in cookies_data}
+        else:
+            cookies_dict = cookies_data
+        
+        # Check if required cookies are present
+        if 'li_at' not in cookies_dict:
             axi_error(
                 "LinkedIn session expired",
-                f"Cookie validation failed: {result.error}. Run 'linkedin-cli --login' to re-authenticate."
+                "No li_at cookie found. Run 'linkedin-cli --login' to re-authenticate."
             )
         
         browser = await get_or_create_browser()
         page = browser.page
 
-        # Set cookies from ObscuraCookieManager
+        # Set cookies from file
         cookie_list = [
             {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
-            for name, value in result.cookies.items()
+            for name, value in cookies_dict.items()
         ]
         await page.context.add_cookies(cookie_list)
 
