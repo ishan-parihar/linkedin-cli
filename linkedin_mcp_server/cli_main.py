@@ -282,10 +282,16 @@ def profile_info_and_exit() -> None:
         with open(cookies_path) as f:
             cookies = json.load(f)
 
-        li_at_found = any(c.get("name") == "li_at" for c in cookies)
+        # Handle both dict format (cookie name as key) and list format (dict with "name" key)
+        if isinstance(cookies, dict):
+            li_at_found = "li_at" in cookies and cookies["li_at"]
+        elif isinstance(cookies, list):
+            li_at_found = any(c.get("name") == "li_at" for c in cookies)
+        else:
+            li_at_found = False
 
         print(_toon_kv("session", "valid" if li_at_found else "invalid"))
-        print(_toon_kv("cookies", len(cookies)))
+        print(_toon_kv("cookies", len(cookies) if isinstance(cookies, list) else len(cookies.keys())))
         print(_toon_kv("path", str(cookies_path)))
 
         if li_at_found:
