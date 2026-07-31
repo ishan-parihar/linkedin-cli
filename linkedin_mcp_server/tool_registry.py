@@ -132,23 +132,32 @@ async def _get_extractor_for_tool():
                 "No li_at cookie found. Run 'linkedin-cli --login' to re-authenticate."
             )
         
-        browser = await get_or_create_browser()
-        page = browser.page
-
-        # Set cookies from file using browser's add_cookies method
-        cookie_list = [
-            {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
-            for name, value in cookies_dict.items()
-        ]
-        await browser.add_cookies(cookie_list)
-
-        # Wait a bit for cookies to be applied
+        # Try to get browser, but if it fails, return early with a message
         try:
-            await asyncio.sleep(1)  # Small delay to ensure cookies are applied
-        except Exception:
-            pass
+            browser = await get_or_create_browser()
+            page = browser.page
 
-        return LinkedInExtractor(page)
+            # Set cookies from file using browser's add_cookies method
+            cookie_list = [
+                {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
+                for name, value in cookies_dict.items()
+            ]
+            await browser.add_cookies(cookie_list)
+
+            # Wait a bit for cookies to be applied
+            try:
+                await asyncio.sleep(1)  # Small delay to ensure cookies are applied
+            except Exception:
+                pass
+
+            return LinkedInExtractor(page)
+        except Exception as browser_error:
+            # Browser creation failed - likely due to VPS resource constraints
+            logger.error(f"Browser creation failed (VPS resource constraints): {browser_error}")
+            axi_error(
+                "Browser initialization failed",
+                f"Browser startup failed on VPS: {str(browser_error)}. This may be due to limited memory (2.4GB). Consider upgrading VPS resources or using a local environment."
+            )
     except AuthenticationError as e:
         axi_error(
             "LinkedIn authentication failed",
