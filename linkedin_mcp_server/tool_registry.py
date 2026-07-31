@@ -142,13 +142,11 @@ async def _get_extractor_for_tool():
         ]
         await browser.add_cookies(cookie_list)
 
-        # Navigate to LinkedIn to verify authentication
+        # Wait a bit for cookies to be applied
         try:
-            await page.goto("https://www.linkedin.com/feed/", timeout=10000)
-            logger.info("Successfully navigated to LinkedIn feed")
-        except Exception as e:
-            logger.warning(f"Navigation to LinkedIn feed failed: {e}")
-            # Continue anyway - cookies might still work
+            await asyncio.sleep(1)  # Small delay to ensure cookies are applied
+        except Exception:
+            pass
 
         return LinkedInExtractor(page)
     except AuthenticationError as e:
