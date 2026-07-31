@@ -574,7 +574,9 @@ class ObscuraLocator:
     
     async def count(self) -> int:
         """Count elements matching selector."""
-        return await self._playwright_locator.count()
+        result = await self._playwright_locator.count()
+        # Ensure we return an integer
+        return int(result) if result is not None else 0
     
     async def inner_text(self, timeout: int = 5000) -> str:
         """Get inner text of first matching element."""
