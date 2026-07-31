@@ -12,7 +12,7 @@ from typing import Any, Optional
 from obscura_cookie_manager import (
     ObscuraCookieManager,
     FileCookieStorage,
-    BrowserCookieExtractor,
+    BrowserCookie3Extractor,
     CookieSource,
     CookieValidationResult,
     ReLoginRequiredError,
@@ -58,12 +58,10 @@ class LinkedInObscuraManager:
         """Get file-based cookie storage."""
         return FileCookieStorage(portable_cookie_path())
 
-    def _get_extractor(self) -> BrowserCookieExtractor:
+    def _get_extractor(self) -> BrowserCookie3Extractor:
         """Get browser cookie extractor (prefers Chrome/Arc)."""
-        return BrowserCookieExtractor(
-            domain="linkedin.com",
-            required_cookies=LINKEDIN_REQUIRED_COOKIES,
-            preferred_browsers=["chrome", "edge", "firefox", "brave"]
+        return BrowserCookie3Extractor(
+            browser_name="chrome",
         )
 
     def _get_manager(self) -> ObscuraCookieManager:

@@ -46,6 +46,17 @@ from linkedin_mcp_server.setup import interactive_login
 
 logger = logging.getLogger(__name__)
 
+# Browser install constants
+_BROWSER_DIR = "patchright-browsers"
+_BROWSER_INSTALL_METADATA = "browser_install.json"
+_SHELL_DIR_PREFIX = "chromium_headless_shell-"
+_FULL_DIR_PREFIX = "chromium-"
+_INSTALL_METADATA_SCHEMA = 1
+_REGISTRY_NAME_TO_DIR_PREFIX = {
+    "chromium": _FULL_DIR_PREFIX,
+    "chromium-headless-shell": _SHELL_DIR_PREFIX,
+}
+
 # Obscura binary directory
 _OBSCURA_DIR = "obscura"
 _OBSCURA_BINARY_PATH = Path("/tmp/obscura")
