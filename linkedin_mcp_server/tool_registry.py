@@ -126,12 +126,12 @@ async def _get_extractor_for_tool():
         browser = await get_or_create_browser()
         page = browser.page
 
-        # Set cookies from file
+        # Set cookies from file using browser's add_cookies method
         cookie_list = [
             {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
             for name, value in cookies_dict.items()
         ]
-        await page.context.add_cookies(cookie_list)
+        await browser.add_cookies(cookie_list)
 
         return LinkedInExtractor(page)
     except AuthenticationError as e:
