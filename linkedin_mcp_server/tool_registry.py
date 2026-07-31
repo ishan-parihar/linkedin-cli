@@ -97,47 +97,67 @@ def toon_print_dict(data: Any, indent: int = 0) -> None:
 async def _get_extractor_for_tool():
     """Get a LinkedIn extractor for direct CLI execution."""
     from linkedin_mcp_server.bootstrap import initialize_bootstrap
+    from linkedin_mcp_server.obscura_integration import get_valid_linkedin_cookies
     from linkedin_mcp_server.drivers.browser import get_or_create_browser
     from linkedin_mcp_server.scraping import LinkedInExtractor
     from linkedin_mcp_server.core.exceptions import AuthenticationError
     from linkedin_mcp_server.session_state import portable_cookie_path
     import json
-    from pathlib import Path
-    
+
     try:
         # Initialize bootstrap environment
         initialize_bootstrap()
-        
-        # Read cookies directly from portable cookie path
-        cookie_path = portable_cookie_path()
-        with open(cookie_path, 'r') as f:
-            cookies_data = json.load(f)
-        
-        # Handle both dict format and list format
-        if isinstance(cookies_data, dict):
-            if "cookies" in cookies_data:
-                cookies_dict = {c['name']: c['value'] for c in cookies_data["cookies"]}
+
+        # Try to use ObscuraCookieManager for automatic cookie refresh and validation
+        try:
+            result = await get_valid_linkedin_cookies()
+
+            if not result.valid:
+                axi_error(
+                    "LinkedIn session expired",
+                    f"Cookie validation failed: {result.error}. Run 'linkedin-cli --login' to re-authenticate."
+                )
+
+            cookies_dict = result.cookies
+        except Exception as obscura_error:
+            # Fallback to direct file reading if ObscuraCookieManager fails
+            logger.warning(f"ObscuraCookieManager failed, falling back to direct file reading: {obscura_error}")
+
+            cookie_path = portable_cookie_path()
+            if not cookie_path.exists():
+                axi_error(
+                    "No cookie file found",
+                    f"Cookie file not found at {cookie_path}. Run 'linkedin-cli --login' to authenticate."
+                )
+
+            with open(cookie_path, 'r') as f:
+                cookies_data = json.load(f)
+
+            # Handle both dict format and list format
+            if isinstance(cookies_data, dict):
+                if "cookies" in cookies_data:
+                    cookies_dict = {c['name']: c['value'] for c in cookies_data["cookies"]}
+                else:
+                    # Already in dict format
+                    cookies_dict = cookies_data
+            elif isinstance(cookies_data, list):
+                cookies_dict = {c['name']: c['value'] for c in cookies_data}
             else:
-                # Already in dict format
                 cookies_dict = cookies_data
-        elif isinstance(cookies_data, list):
-            cookies_dict = {c['name']: c['value'] for c in cookies_data}
-        else:
-            cookies_dict = cookies_data
-        
+
         # Check if required cookies are present
         if 'li_at' not in cookies_dict:
             axi_error(
                 "LinkedIn session expired",
                 "No li_at cookie found. Run 'linkedin-cli --login' to re-authenticate."
             )
-        
+
         # Try to get browser, but if it fails, return early with a message
         try:
             browser = await get_or_create_browser()
             page = browser.page
 
-            # Set cookies from file using browser's add_cookies method
+            # Set cookies using browser's add_cookies method
             cookie_list = [
                 {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
                 for name, value in cookies_dict.items()

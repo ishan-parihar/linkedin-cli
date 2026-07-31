@@ -4,36 +4,16 @@ LinkedIn-specific ObscuraCookieManager integration.
 
 from __future__ import annotations
 
-import asyncio
 import logging
-from pathlib import Path
-from typing import Any, Optional
+import os
+from typing import Optional
 
 from obscura_cookie_manager import (
     ObscuraCookieManager,
     FileCookieStorage,
-    BrowserCookie3Extractor,
-    CookieSource,
+    LinkedInCookieExtractor,
     CookieValidationResult,
-    ReLoginRequiredError,
 )
-
-# Wrapper to add domain attribute to BrowserCookie3Extractor
-class BrowserCookie3ExtractorWithDomain:
-    """Wrapper around BrowserCookie3Extractor that adds domain attribute."""
-    
-    def __init__(self, browser_name: str, domain: str):
-        self._extractor = BrowserCookie3Extractor(browser_name=browser_name)
-        self.domain = domain
-        self.name = browser_name
-    
-    async def extract(self, domain: str, required_cookies: list[str]):
-        """Extract cookies using the wrapped extractor."""
-        return await self._extractor.extract(domain, required_cookies)
-    
-    def is_available(self) -> bool:
-        """Check if the extractor is available."""
-        return self._extractor.is_available()
 
 from linkedin_mcp_server.session_state import portable_cookie_path
 
@@ -50,16 +30,50 @@ class LinkedInCookieValidator:
         self._extractor = None
 
     async def validate(self, cookies: dict[str, str]) -> bool:
-        """Validate cookies by checking required cookies are present."""
+        """Validate cookies by checking required cookies are present and performing browser validation if enabled."""
         try:
-            # For now, just check that required cookies are present
-            # Full API validation can be added later
+            # Fast fail: check that required cookies are present
             required = ["li_at"]
             for cookie in required:
                 if cookie not in cookies or not cookies[cookie]:
                     logger.debug(f"Required cookie missing: {cookie}")
                     return False
-            return True
+
+            # Full browser validation can be disabled for resource-constrained environments
+            # Set LINKEDIN_SKIP_BROWSER_VALIDATION=1 to skip browser-based validation
+            skip_browser_validation = os.getenv("LINKEDIN_SKIP_BROWSER_VALIDATION", "").lower() in (
+                "1", "true", "yes", "on"
+            )
+
+            if skip_browser_validation:
+                logger.debug("Skipping browser-based validation (LINKEDIN_SKIP_BROWSER_VALIDATION set)")
+                return True
+
+            # Import here to avoid circular imports
+            from linkedin_mcp_server.drivers.browser import get_or_create_browser
+
+            # Create a temporary browser with these cookies
+            browser = await get_or_create_browser()
+            page = browser.page
+
+            # Set cookies
+            cookie_list = [
+                {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
+                for name, value in cookies.items()
+            ]
+            await page.context.add_cookies(cookie_list)
+
+            # Try to access a page
+            await page.goto("https://www.linkedin.com/feed/", wait_until="domcontentloaded", timeout=10000)
+
+            # Check if we're logged in (locale-independent check)
+            is_logged_in = await page.evaluate("""() => {
+                return !document.body.innerText.includes('Sign in') && 
+                       !document.body.innerText.includes('Join now') &&
+                       document.querySelector('[data-test-global-nav-me]') !== null;
+            }""")
+
+            return is_logged_in
         except Exception as e:
             logger.debug(f"LinkedIn cookie validation failed: {e}")
             return False
@@ -76,12 +90,9 @@ class LinkedInObscuraManager:
         """Get file-based cookie storage."""
         return FileCookieStorage(portable_cookie_path())
 
-    def _get_extractor(self) -> BrowserCookie3ExtractorWithDomain:
+    def _get_extractor(self) -> LinkedInCookieExtractor:
         """Get browser cookie extractor (prefers Chrome/Arc)."""
-        return BrowserCookie3ExtractorWithDomain(
-            browser_name="chrome",
-            domain="linkedin.com"
-        )
+        return LinkedInCookieExtractor(preferred_browsers=["chrome", "arc", "brave", "firefox", "edge"])
 
     def _get_manager(self) -> ObscuraCookieManager:
         """Get or create the ObscuraCookieManager instance."""
