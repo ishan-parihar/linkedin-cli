@@ -101,6 +101,14 @@ class ObscuraBrowserManager:
             raise RuntimeError("Browser already started. Call close() first.")
         
         try:
+            # Kill any existing Obscura processes on this port
+            try:
+                subprocess.run(["fuser", "-k", f"{self.cdp_port}/tcp"], check=False, capture_output=True)
+                subprocess.run(["pkill", "-9", "obscura"], check=False, capture_output=True)
+                logger.info("Cleared any existing Obscura processes on port %s", self.cdp_port)
+            except Exception:
+                pass  # Ignore errors from cleanup
+            
             # Ensure Obscura binary is available and up to date
             binary_path = await ensure_obscura_binary()
             logger.info("Using Obscura binary: %s", binary_path)
