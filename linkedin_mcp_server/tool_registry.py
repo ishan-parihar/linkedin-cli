@@ -5,9 +5,25 @@ This module is separate from cli_main to avoid circular imports when
 early-intercepting tool names in __main__.py.
 """
 
+import asyncio
 import json
+import os
 import sys
 from typing import Any
+
+# Mock Context for direct CLI execution
+class MockContext:
+    """Mock FastMCP Context for direct CLI tool execution."""
+    
+    def __init__(self):
+        self._progress = []
+    
+    async def report_progress(self, message: str, progress: float = 0.0):
+        """Mock progress reporting."""
+        self._progress.append((message, progress))
+        # Optionally print progress to stdout
+        if progress > 0:
+            print(f"Progress: {progress:.0%} - {message}")
 
 TOOLS = [
     # Profile
@@ -75,10 +91,52 @@ def toon_print_dict(data: Any, indent: int = 0) -> None:
         print(f"{indent_str}{data}")
 
 
+async def _get_extractor_for_tool():
+    """Get a LinkedIn extractor for direct CLI execution."""
+    from linkedin_mcp_server.bootstrap import initialize_bootstrap
+    from linkedin_mcp_server.obscura_integration import get_valid_linkedin_cookies
+    from linkedin_mcp_server.drivers.browser import get_or_create_browser
+    from linkedin_mcp_server.scraping import LinkedInExtractor
+    from linkedin_mcp_server.core.exceptions import AuthenticationError
+    
+    try:
+        # Initialize bootstrap environment
+        initialize_bootstrap()
+        
+        # Get valid cookies using ObscuraCookieManager
+        result = await get_valid_linkedin_cookies()
+        
+        if not result.valid:
+            axi_error(
+                "LinkedIn session expired",
+                f"Cookie validation failed: {result.error}. Run 'linkedin-cli --login' to re-authenticate."
+            )
+        
+        browser = await get_or_create_browser()
+        page = browser.page
+
+        # Set cookies from ObscuraCookieManager
+        cookie_list = [
+            {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
+            for name, value in result.cookies.items()
+        ]
+        await page.context.add_cookies(cookie_list)
+
+        return LinkedInExtractor(page)
+    except AuthenticationError as e:
+        axi_error(
+            "LinkedIn authentication failed",
+            f"{str(e)}. Run 'linkedin-cli --login' to re-authenticate."
+        )
+    except Exception as e:
+        axi_error(
+            "Failed to initialize LinkedIn extractor",
+            f"{str(e)}. Check your browser setup and authentication."
+        )
+
+
 def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> None:
     """Execute a tool directly from CLI without MCP protocol."""
-    import asyncio
-    import os
     
     # Set environment variable to prevent argparse from processing tool args
     os.environ["LINKEDIN_MCP_TOOL_MODE"] = "1"
@@ -160,6 +218,14 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
                     f"Tool `{tool_name}` parameter `{key}` expects type {prop_type}",
                 )
 
+    # Prepare context and extractor for direct CLI execution
+    ctx = MockContext()
+    
+    # Pre-fetch extractor for tools that need it
+    extractor = asyncio.run(_get_extractor_for_tool())
+    kwargs["extractor"] = extractor
+    kwargs["ctx"] = ctx
+
     # Call the tool
     try:
         result = asyncio.run(tool.fn(**kwargs))
@@ -167,10 +233,15 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
         raise
     except TypeError as e:
         # Catch missing required args (e.g. "missing 1 required positional argument")
-        axi_error(
-            f"Tool `{tool_name}` missing required argument",
-            f"Run `linkedin-cli --tool-info {tool_name}` to see required parameters",
-        )
+        # LinkedIn tools may have dependency-injected params that don't appear in schema
+        error_msg = str(e)
+        if "missing" in error_msg and "required" in error_msg:
+            axi_error(
+                f"Tool `{tool_name}` requires additional parameters",
+                f"Run `linkedin-cli --tool-info {tool_name}` to see parameters.",
+            )
+        else:
+            axi_error(f"Tool `{tool_name}` failed: {e}", "Check your configuration and try again")
     except Exception as e:
         axi_error(f"Tool `{tool_name}` failed: {e}", "Check your configuration and try again")
 
