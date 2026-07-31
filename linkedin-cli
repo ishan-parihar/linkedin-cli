@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+"""Wrapper script for linkedin-cli that ensures module-level interception executes."""
+
+import sys
+import os
+
+# Ensure the linkedin_mcp_server package is importable
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+# Execute the module directly to ensure module-level code runs
+if __name__ == "__main__":
+    import linkedin_mcp_server.__main_cli__
+    linkedin_mcp_server.__main_cli__.main()

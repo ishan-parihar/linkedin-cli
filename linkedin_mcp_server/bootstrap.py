@@ -50,6 +50,10 @@ logger = logging.getLogger(__name__)
 _OBSCURA_DIR = "obscura"
 _OBSCURA_BINARY_PATH = Path("/tmp/obscura")
 
+# Patchright browser directory
+_BROWSER_DIR = "patchright-browsers"
+_BROWSER_INSTALL_METADATA = "browser-install.json"
+
 
 class RuntimePolicy(str, Enum):
     MANAGED = "managed"
