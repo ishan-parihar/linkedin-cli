@@ -338,6 +338,10 @@ def load_from_env(config: AppConfig) -> AppConfig:
 
 def load_from_args(config: AppConfig) -> AppConfig:
     """Load configuration from command line arguments."""
+    # Skip argparse parsing if in tool mode (to avoid conflicts with direct tool invocation)
+    if os.environ.get("LINKEDIN_MCP_TOOL_MODE") == "1":
+        return config
+    
     parser = argparse.ArgumentParser(
         description="LinkedIn MCP Server - A Model Context Protocol server for LinkedIn integration"
     )
