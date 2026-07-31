@@ -7,9 +7,12 @@ early-intercepting tool names in __main__.py.
 
 import asyncio
 import json
+import logging
 import os
 import sys
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # Mock Context for direct CLI execution
 class MockContext:
@@ -110,8 +113,14 @@ async def _get_extractor_for_tool():
         with open(cookie_path, 'r') as f:
             cookies_data = json.load(f)
         
-        # Convert list format to dict format
-        if isinstance(cookies_data, list):
+        # Handle both dict format and list format
+        if isinstance(cookies_data, dict):
+            if "cookies" in cookies_data:
+                cookies_dict = {c['name']: c['value'] for c in cookies_data["cookies"]}
+            else:
+                # Already in dict format
+                cookies_dict = cookies_data
+        elif isinstance(cookies_data, list):
             cookies_dict = {c['name']: c['value'] for c in cookies_data}
         else:
             cookies_dict = cookies_data
@@ -132,6 +141,14 @@ async def _get_extractor_for_tool():
             for name, value in cookies_dict.items()
         ]
         await browser.add_cookies(cookie_list)
+
+        # Navigate to LinkedIn to verify authentication
+        try:
+            await page.goto("https://www.linkedin.com/feed/", timeout=10000)
+            logger.info("Successfully navigated to LinkedIn feed")
+        except Exception as e:
+            logger.warning(f"Navigation to LinkedIn feed failed: {e}")
+            # Continue anyway - cookies might still work
 
         return LinkedInExtractor(page)
     except AuthenticationError as e:
