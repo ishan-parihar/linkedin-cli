@@ -1,7 +1,7 @@
 """
 Obscura-based browser manager for LinkedIn scraping.
 
-Provides lightweight browser management using Obscura for LinkedIn scraping
+Provides lightweight browser management using Obscura CDP server for LinkedIn scraping
 with transformative performance improvements over traditional browser automation.
 """
 
@@ -9,7 +9,6 @@ import asyncio
 import json
 import logging
 import subprocess
-import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +32,7 @@ from linkedin_mcp_server.core.obscura_error_handling import (
 from linkedin_mcp_server.core.obscura_binary_manager import (
     ensure_obscura_binary,
 )
+from playwright.async_api import async_playwright
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,8 @@ _OBSCURA_PATH = "/tmp/obscura"
 _REQUIRED_COOKIES = {"li_at", "bscookie"}
 # Default user data directory
 _DEFAULT_USER_DATA_DIR = Path.home() / ".linkedin" / "profile"
+# Default CDP port
+_DEFAULT_CDP_PORT = 9224
 # Private file mode
 _PRIVATE_FILE_MODE = 0o600
 
@@ -49,9 +51,8 @@ _PRIVATE_FILE_MODE = 0o600
 class ObscuraBrowserManager:
     """Obscura-based browser manager with Playwright-compatible interface.
     
-    Implements the same interface as core/browser.py BrowserManager but uses
-    Obscura for lightweight scraping with 99.85% faster startup and 99.6% 
-    less memory usage.
+    Uses Obscura in CDP server mode with Playwright's connectOverCDP for full
+    JavaScript support and Playwright API compatibility.
     """
 
     def __init__(
@@ -61,6 +62,7 @@ class ObscuraBrowserManager:
         slow_mo: int = 0,
         viewport: dict[str, int] | None = None,
         user_agent: str | None = None,
+        cdp_port: int = _DEFAULT_CDP_PORT,
         **launch_options: Any,
     ):
         self.user_data_dir = str(Path(user_data_dir).expanduser())
@@ -68,14 +70,18 @@ class ObscuraBrowserManager:
         self.slow_mo = slow_mo
         self.viewport = viewport or {"width": 1280, "height": 720}
         self.user_agent = user_agent
+        self.cdp_port = cdp_port
         self.launch_options = launch_options
 
         # Obscura-specific state
         self._cookies: dict[str, str] = {}
         self._is_authenticated = False
         self._storage_dir: Path | None = None
-        self._page_content: str = ""
-        self._current_url: str = ""
+        self._cdp_endpoint: str | None = None
+        self._playwright_browser: Any = None
+        self._playwright_context: Any = None
+        self._playwright_page: Any = None
+        self._playwright_obj: Any = None
         
         # Compatibility with Playwright interface
         self._close_confirmed = False
@@ -90,7 +96,7 @@ class ObscuraBrowserManager:
         self._close_confirmed = await self.close()
 
     async def start(self) -> None:
-        """Start Obscura browser session."""
+        """Start Obscura browser session in CDP server mode."""
         if self._storage_dir is not None:
             raise RuntimeError("Browser already started. Call close() first.")
         
@@ -108,28 +114,109 @@ class ObscuraBrowserManager:
             secure_mkdir(self._storage_dir)
             harden_linkedin_tree(self._storage_dir)
             
+            # Start Obscura CDP server
+            self._cdp_endpoint = f"ws://127.0.0.1:{self.cdp_port}"
+            cmd = [
+                _OBSCURA_PATH,
+                "serve",
+                "--port", str(self.cdp_port),
+                "--storage-dir", str(self._storage_dir),
+                "--stealth",
+                "--quiet"
+            ]
+            
+            logger.info("Starting Obscura CDP server on port %s", self.cdp_port)
+            self._obscura_process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Wait for server to start and check if it's running
+            await asyncio.sleep(5)
+            
+            if self._obscura_process.poll() is not None:
+                stdout, stderr = self._obscura_process.communicate()
+                error_msg = f"Obscura CDP server failed to start. stderr: {stderr}, stdout: {stdout}"
+                logger.error(error_msg)
+                raise RuntimeError(error_msg)
+            
+            # Connect Playwright to Obscura CDP server
+            self._playwright_obj = await async_playwright().start()
+            self._playwright_browser = await self._playwright_obj.chromium.connect_over_cdp(
+                self._cdp_endpoint
+            )
+            
+            # Get or create context
+            contexts = self._playwright_browser.contexts
+            if contexts:
+                self._playwright_context = contexts[0]
+            else:
+                self._playwright_context = await self._playwright_browser.new_context(
+                    viewport=self.viewport,
+                    user_agent=self.user_agent
+                )
+            
+            # Create page
+            self._playwright_page = await self._playwright_context.new_page()
+            
             # Load cookies from existing file or extract from browser
             await self._load_cookies()
             
+            # Set cookies in the Playwright context
+            if self._cookies:
+                await self._playwright_context.add_cookies([
+                    {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
+                    for name, value in self._cookies.items()
+                ])
+            
             logger.info(
-                "Obscura browser session started (headless=%s, user_data_dir=%s)",
+                "Obscura CDP browser session started (headless=%s, user_data_dir=%s, cdp_port=%s)",
                 self.headless,
                 self.user_data_dir,
+                self.cdp_port,
             )
             
         except Exception as e:
-            logger.error("Failed to start Obscura browser: %s", e)
+            logger.error("Failed to start Obscura CDP browser: %s", e)
+            if hasattr(self, '_obscura_process'):
+                self._obscura_process.terminate()
             raise
 
     async def close(self) -> bool:
         """Close Obscura browser session and cleanup resources."""
-        self._storage_dir = None
-        self._cookies = {}
-        self._page_content = ""
-        self._current_url = ""
-        self._close_confirmed = True
+        try:
+            # Close Playwright page and context
+            if self._playwright_page:
+                await self._playwright_page.close()
+            if self._playwright_context:
+                await self._playwright_context.close()
+            if self._playwright_browser:
+                await self._playwright_browser.close()
+            if self._playwright_obj:
+                await self._playwright_obj.stop()
+            
+            # Terminate Obscura CDP server
+            if hasattr(self, '_obscura_process'):
+                self._obscura_process.terminate()
+                try:
+                    self._obscura_process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    self._obscura_process.kill()
+        except Exception as e:
+            logger.warning("Error during browser close: %s", e)
+        finally:
+            self._storage_dir = None
+            self._cookies = {}
+            self._cdp_endpoint = None
+            self._playwright_browser = None
+            self._playwright_context = None
+            self._playwright_page = None
+            self._playwright_obj = None
+            self._close_confirmed = True
         
-        logger.info("Obscura browser session closed")
+        logger.info("Obscura CDP browser session closed")
         return True
 
     @property
@@ -138,127 +225,52 @@ class ObscuraBrowserManager:
         return self._close_confirmed
 
     async def goto(self, url: str, **kwargs: Any) -> None:
-        """Navigate to URL using Obscura fetch."""
-        await self._fetch_page(url)
-
-    async def _fetch_page(self, url: str) -> None:
-        """Fetch page content using Obscura."""
-        import time
-        start_time = time.time()
-        
-        cmd = [
-            _OBSCURA_PATH,
-            "fetch",
-            "--dump", "html",
-            "--stealth",
-        ]
-        
-        # Add storage directory for session persistence
-        if self._storage_dir:
-            cmd.extend(["--storage-dir", str(self._storage_dir)])
-        
-        # Cookies are injected via --storage-dir persistence, not a CLI flag.
-        # The obscura binary does not support a --cookie argument; it manages
-        # cookies automatically through its storage directory. The cookies
-        # loaded via _load_cookies() are used by the extractor and for
-        # authentication validation, while obscura's own cookie jar handles
-        # HTTP request headers.
-        cmd.append(url)
-        
-        log_obscura_operation("fetch_page", {"url": url, "storage_dir": str(self._storage_dir), "cookies": len(self._cookies)})
-        
+        """Navigate to URL using Playwright."""
+        logger.info("Navigating to %s with kwargs: %s", url, kwargs)
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            
-            duration = time.time() - start_time
-            log_obscura_performance("fetch_page", duration, {"url": url, "content_length": len(result.stdout)})
-            
-            if result.returncode == 0:
-                self._page_content = result.stdout
-                self._current_url = url
-                logger.debug("Successfully fetched page: %s (%d chars)", url, len(result.stdout))
-            else:
-                error_msg = f"Obscura fetch failed: {result.stderr}"
-                logger.error(error_msg)
-                handle_obscura_error(ObscuraFetchError(error_msg), f"fetch_page({url})")
-                raise ObscuraFetchError(error_msg)
-                
-        except subprocess.TimeoutExpired as e:
-            duration = time.time() - start_time
-            log_obscura_performance("fetch_page", duration, {"url": url, "timeout": True})
-            error_msg = f"Obscura fetch timed out for {url}"
-            handle_obscura_error(ObscuraTimeoutError(error_msg), f"fetch_page({url})")
-            raise ObscuraTimeoutError(error_msg)
+            # Pass through kwargs to Playwright's goto method
+            # Add a timeout to prevent hanging
+            timeout = kwargs.pop('timeout', 60000)  # Increased timeout to 60s
+            logger.info("Starting navigation with timeout=%s", timeout)
+            await self._playwright_page.goto(url, timeout=timeout, **kwargs)
+            self._current_url = url
+            logger.info("Navigation complete, current URL: %s", self._playwright_page.url)
         except Exception as e:
-            duration = time.time() - start_time
-            handle_obscura_error(e, f"fetch_page({url})")
+            logger.error("Navigation failed: %s", e)
             raise
 
     async def content(self) -> str:
         """Get current page content."""
-        return self._page_content
+        return await self._playwright_page.content()
 
     async def title(self) -> str:
-        """Get page title using JavaScript eval."""
-        return await self._evaluate_js("document.title")
+        """Get page title."""
+        return await self._playwright_page.title()
 
     async def url(self) -> str:
         """Get current URL."""
-        return self._current_url
+        return self._playwright_page.url
 
     async def evaluate(self, script: str) -> Any:
         """Evaluate JavaScript in page context."""
-        return await self._evaluate_js(script)
-
-    async def _evaluate_js(self, script: str) -> Any:
-        """Evaluate JavaScript using Obscura eval."""
-        if not self._current_url:
-            raise RuntimeError("No page loaded")
-        
-        cmd = [
-            _OBSCURA_PATH,
-            "fetch",
-            "--dump", "html",
-            "--eval", script,
-            "--stealth",
-            self._current_url
-        ]
-        
-        try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-            
-            if result.returncode == 0:
-                # Return the eval result (stdout contains the result)
-                return result.stdout.strip()
-            else:
-                logger.warning("JavaScript eval failed: %s", result.stderr)
-                return None
-                
-        except Exception as e:
-            logger.error("JavaScript eval error: %s", e)
-            return None
+        return await self._playwright_page.evaluate(script)
 
     async def set_cookie(
         self, name: str, value: str, domain: str = ".linkedin.com"
     ) -> None:
         """Set cookie in session."""
+        await self._playwright_context.add_cookies([{"name": name, "value": value, "domain": domain, "path": "/"}])
         self._cookies[name] = value
         logger.debug("Cookie set: %s", name)
 
     async def cookies(self) -> list[dict[str, Any]]:
         """Get all cookies as Playwright-compatible format."""
-        return [
-            {
-                "name": name,
-                "value": value,
-                "domain": ".linkedin.com",
-                "path": "/"
-            }
-            for name, value in self._cookies.items()
-        ]
+        return await self._playwright_context.cookies()
 
     async def add_cookies(self, cookies: list[dict[str, Any]]) -> None:
         """Add cookies in Playwright format."""
+        await self._playwright_context.add_cookies(cookies)
+        # Update internal cache
         for cookie in cookies:
             name = cookie.get("name")
             value = cookie.get("value")
@@ -297,7 +309,11 @@ class ObscuraBrowserManager:
                 logger.warning("No li_at cookie found in %s", path)
                 return False
             
-            # Load cookies
+            # Load cookies into Playwright context
+            if self._playwright_context:
+                await self._playwright_context.add_cookies(linkedin_cookies)
+            
+            # Update internal cache
             self._cookies = {c['name']: c['value'] for c in linkedin_cookies}
             
             if self._validate_cookies():
@@ -332,15 +348,79 @@ class ObscuraBrowserManager:
 
     async def _load_cookies(self) -> None:
         """Load cookies from file or browser extraction."""
+        # If cookies are already set (e.g., manually set before start), skip loading
+        if self._cookies and self._is_authenticated:
+            logger.debug("Cookies already set, skipping cookie loading")
+            return
+        
+        # Try loading from storage directory first (for temp profiles)
+        if self._storage_dir:
+            storage_cookie_path = Path(self._storage_dir) / "cookies.json"
+            if storage_cookie_path.exists():
+                try:
+                    cookie_data = json.loads(storage_cookie_path.read_text())
+                    
+                    # Handle different cookie file formats
+                    if isinstance(cookie_data, dict):
+                        if "cookies" in cookie_data:
+                            # Check if cookies is a dict (name: value) or list (cookie objects)
+                            if isinstance(cookie_data["cookies"], dict):
+                                self._cookies = cookie_data["cookies"]
+                            else:
+                                self._cookies = {c['name']: c['value'] for c in cookie_data["cookies"]}
+                        else:
+                            # Already in dict format
+                            self._cookies = cookie_data
+                    elif isinstance(cookie_data, list):
+                        self._cookies = {c['name']: c['value'] for c in cookie_data}
+                    else:
+                        self._cookies = cookie_data
+                    
+                    if self._validate_cookies():
+                        self._is_authenticated = True
+                        # Load into Playwright context if available
+                        if self._playwright_context:
+                            playwright_cookies = [
+                                {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
+                                for name, value in self._cookies.items()
+                            ]
+                            await self._playwright_context.add_cookies(playwright_cookies)
+                        logger.info("Loaded cookies from storage dir: %s", storage_cookie_path)
+                        return
+                except Exception as e:
+                    logger.warning("Failed to load cookies from storage dir: %s", e)
+        
         # Try loading from existing cookie file first
         cookie_path = self._default_cookie_path()
         if cookie_path.exists():
             try:
                 cookie_data = json.loads(cookie_path.read_text())
-                self._cookies = {cookie['name']: cookie['value'] for cookie in cookie_data}
+                
+                # Handle different cookie file formats
+                if isinstance(cookie_data, dict):
+                    if "cookies" in cookie_data:
+                        # Check if cookies is a dict (name: value) or list (cookie objects)
+                        if isinstance(cookie_data["cookies"], dict):
+                            self._cookies = cookie_data["cookies"]
+                        else:
+                            self._cookies = {c['name']: c['value'] for c in cookie_data["cookies"]}
+                    else:
+                        # Already in dict format
+                        self._cookies = cookie_data
+                elif isinstance(cookie_data, list):
+                    self._cookies = {c['name']: c['value'] for c in cookie_data}
+                else:
+                    self._cookies = cookie_data
                 
                 if self._validate_cookies():
                     self._is_authenticated = True
+                    # Load into Playwright context if available
+                    if self._playwright_context:
+                        playwright_cookies = [
+                            {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
+                            for name, value in self._cookies.items()
+                        ]
+                        await self._playwright_context.add_cookies(playwright_cookies)
                     logger.info("Loaded cookies from file: %s", cookie_path)
                     return
             except Exception as e:
@@ -352,6 +432,13 @@ class ObscuraBrowserManager:
             if cookies and self._validate_cookies_dict(cookies):
                 self._cookies = cookies
                 self._is_authenticated = True
+                # Load into Playwright context if available
+                if self._playwright_context:
+                    playwright_cookies = [
+                        {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
+                        for name, value in self._cookies.items()
+                    ]
+                    await self._playwright_context.add_cookies(playwright_cookies)
                 logger.info("Extracted cookies from browser")
             else:
                 logger.warning("No valid cookies found in browser")
@@ -392,51 +479,7 @@ class ObscuraBrowserManager:
             logger.error("Failed to export cookies: %s", e)
             return False
 
-    async def import_cookies(
-        self,
-        cookie_path: str | Path | None = None,
-        *,
-        preset_name: str | None = None,
-    ) -> bool:
-        """Import cookies from portable JSON file."""
-        path = Path(cookie_path) if cookie_path else self._default_cookie_path()
-        
-        if not path.exists():
-            logger.debug("No cookie file at %s", path)
-            return False
-        
-        try:
-            cookie_data = json.loads(path.read_text())
-            if not cookie_data:
-                logger.debug("Cookie file is empty")
-                return False
-            
-            # Filter for LinkedIn cookies
-            linkedin_cookies = [
-                cookie for cookie in cookie_data
-                if "linkedin.com" in cookie.get("domain", "")
-            ]
-            
-            # Check for required cookies
-            has_li_at = any(c.get("name") == "li_at" for c in linkedin_cookies)
-            if not has_li_at:
-                logger.warning("No li_at cookie found in %s", path)
-                return False
-            
-            # Load cookies
-            self._cookies = {c['name']: c['value'] for c in linkedin_cookies}
-            
-            if self._validate_cookies():
-                self._is_authenticated = True
-                logger.info("Imported %d cookies from %s", len(linkedin_cookies), path)
-                return True
-            else:
-                logger.warning("Imported cookies missing required fields")
-                return False
-                
-        except Exception as e:
-            logger.error("Failed to import cookies from %s: %s", path, e)
-            return False
+
 
     def cookie_file_exists(self, cookie_path: str | Path | None = None) -> bool:
         """Check if cookie file exists."""
@@ -446,77 +489,96 @@ class ObscuraBrowserManager:
 
 # Page-like compatibility object
 class ObscuraPage:
-    """Page-like object for Obscura compatibility with Playwright interface."""
+    """Page-like object for Obscura compatibility with Playwright interface.
+    
+    Now wraps Playwright's Page object for full JavaScript support.
+    """
     
     def __init__(self, browser_manager: ObscuraBrowserManager):
         self._browser = browser_manager
-        self._listeners: dict[str, list[callable]] = {}
+    
+    @property
+    def _playwright_page(self):
+        """Get the underlying Playwright page."""
+        return self._browser._playwright_page
+    
+    # Expose Playwright page attributes directly
+    @property
+    def main_frame(self):
+        """Get the main frame of the page."""
+        return self._playwright_page.main_frame
+    
+    @property
+    def context(self):
+        """Get the browser context."""
+        return self._playwright_page.context
     
     async def goto(self, url: str, **kwargs: Any) -> None:
         """Navigate to URL."""
-        await self._browser.goto(url, **kwargs)
+        await self._playwright_page.goto(url, **kwargs)
     
     async def content(self) -> str:
         """Get page content."""
-        return await self._browser.content()
+        return await self._playwright_page.content()
     
     async def title(self) -> str:
         """Get page title."""
-        return await self._browser.title()
+        return await self._playwright_page.title()
     
     @property
     def url(self) -> str:
         """Get current URL."""
-        return self._browser._current_url
+        return self._playwright_page.url
     
-    async def evaluate(self, script: str) -> Any:
+    async def evaluate(self, script: str, *args: Any) -> Any:
         """Evaluate JavaScript."""
-        return await self._browser.evaluate(script)
+        return await self._playwright_page.evaluate(script, *args)
     
-    def locator(self, selector: str) -> "ObscuraLocator":
-        """Return a locator object."""
-        return ObscuraLocator(self, selector)
+    def locator(self, selector: str) -> Any:
+        """Return a locator object (Playwright Locator)."""
+        return self._playwright_page.locator(selector)
+    
+    async def wait_for_selector(self, selector: str, timeout: int = 5000, state: str = "attached") -> Any:
+        """Wait for selector to be available (full Playwright support).
+        
+        Uses state="attached" by default instead of "visible" since hidden elements
+        are common in LinkedIn's DOM structure.
+        """
+        logger.debug("Waiting for selector: %s (timeout=%s, state=%s)", selector, timeout, state)
+        return await self._playwright_page.wait_for_selector(selector, timeout=timeout, state=state)
     
     # --- Playwright-compatible event listener interface ---
     def on(self, event: str, handler: callable) -> None:
         """Add an event listener (Playwright-compatible)."""
-        if event not in self._listeners:
-            self._listeners[event] = []
-        self._listeners[event].append(handler)
+        self._playwright_page.on(event, handler)
     
     def remove_listener(self, event: str, handler: callable) -> None:
         """Remove an event listener (Playwright-compatible)."""
-        if event in self._listeners and handler in self._listeners[event]:
-            self._listeners[event].remove(handler)
-    
-    def _emit(self, event: str, *args: Any, **kwargs: Any) -> None:
-        """Emit an event to all listeners (internal use)."""
-        if event in self._listeners:
-            for handler in self._listeners[event]:
-                try:
-                    handler(*args, **kwargs)
-                except Exception:
-                    pass  # Ignore listener errors
+        self._playwright_page.remove_listener(event, handler)
 
 
 class ObscuraLocator:
-    """Locator-like object for basic element interactions."""
+    """Locator-like object for element interactions.
+    
+    Now wraps Playwright's Locator object for full functionality.
+    """
     
     def __init__(self, page: ObscuraPage, selector: str):
         self._page = page
         self._selector = selector
     
+    @property
+    def _playwright_locator(self):
+        """Get the underlying Playwright locator."""
+        return self._page._playwright_page.locator(self._selector)
+    
     async def count(self) -> int:
         """Count elements matching selector."""
-        # Use JavaScript to count elements
-        script = f"(function() {{ return document.querySelectorAll('{self._selector}').length; }})()"
-        result = await self._page.evaluate(script)
-        return int(result) if result else 0
+        return await self._playwright_locator.count()
     
-    async def inner_text(self) -> str:
+    async def inner_text(self, timeout: int = 5000) -> str:
         """Get inner text of first matching element."""
-        script = f"(function() {{ const el = document.querySelector('{self._selector}'); return el ? el.innerText : ''; }})()"
-        return await self._page.evaluate(script) or ""
+        return await self._playwright_locator.inner_text(timeout=timeout)
 
 
 # Add page property to ObscuraBrowserManager for compatibility

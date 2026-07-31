@@ -9,7 +9,9 @@ import asyncio
 import json
 import logging
 import os
+import shutil
 import sys
+import tempfile
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -97,53 +99,38 @@ def toon_print_dict(data: Any, indent: int = 0) -> None:
 async def _get_extractor_for_tool():
     """Get a LinkedIn extractor for direct CLI execution."""
     from linkedin_mcp_server.bootstrap import initialize_bootstrap
-    from linkedin_mcp_server.obscura_integration import get_valid_linkedin_cookies
-    from linkedin_mcp_server.drivers.browser import get_or_create_browser
+    from linkedin_mcp_server.core.obscura_browser import ObscuraBrowserManager
     from linkedin_mcp_server.scraping import LinkedInExtractor
     from linkedin_mcp_server.core.exceptions import AuthenticationError
     from linkedin_mcp_server.session_state import portable_cookie_path
-    import json
+    from pathlib import Path
 
+    browser = None
+    temp_profile = None
     try:
         # Initialize bootstrap environment
         initialize_bootstrap()
 
-        # Try to use ObscuraCookieManager for automatic cookie refresh and validation
-        try:
-            result = await get_valid_linkedin_cookies()
+        # Read cookies directly from portable cookie path
+        cookie_path = portable_cookie_path()
+        with open(cookie_path, 'r') as f:
+            cookies_data = json.load(f)
 
-            if not result.valid:
-                axi_error(
-                    "LinkedIn session expired",
-                    f"Cookie validation failed: {result.error}. Run 'linkedin-cli --login' to re-authenticate."
-                )
-
-            cookies_dict = result.cookies
-        except Exception as obscura_error:
-            # Fallback to direct file reading if ObscuraCookieManager fails
-            logger.warning(f"ObscuraCookieManager failed, falling back to direct file reading: {obscura_error}")
-
-            cookie_path = portable_cookie_path()
-            if not cookie_path.exists():
-                axi_error(
-                    "No cookie file found",
-                    f"Cookie file not found at {cookie_path}. Run 'linkedin-cli --login' to authenticate."
-                )
-
-            with open(cookie_path, 'r') as f:
-                cookies_data = json.load(f)
-
-            # Handle both dict format and list format
-            if isinstance(cookies_data, dict):
-                if "cookies" in cookies_data:
-                    cookies_dict = {c['name']: c['value'] for c in cookies_data["cookies"]}
+        # Handle both dict format and list format
+        if isinstance(cookies_data, dict):
+            if "cookies" in cookies_data:
+                # Check if cookies is a dict (name: value) or list (cookie objects)
+                if isinstance(cookies_data["cookies"], dict):
+                    cookies_dict = cookies_data["cookies"]
                 else:
-                    # Already in dict format
-                    cookies_dict = cookies_data
-            elif isinstance(cookies_data, list):
-                cookies_dict = {c['name']: c['value'] for c in cookies_data}
+                    cookies_dict = {c['name']: c['value'] for c in cookies_data["cookies"]}
             else:
+                # Already in dict format
                 cookies_dict = cookies_data
+        elif isinstance(cookies_data, list):
+            cookies_dict = {c['name']: c['value'] for c in cookies_data}
+        else:
+            cookies_dict = cookies_data
 
         # Check if required cookies are present
         if 'li_at' not in cookies_dict:
@@ -152,32 +139,38 @@ async def _get_extractor_for_tool():
                 "No li_at cookie found. Run 'linkedin-cli --login' to re-authenticate."
             )
 
-        # Try to get browser, but if it fails, return early with a message
-        try:
-            browser = await get_or_create_browser()
-            page = browser.page
-
-            # Set cookies using browser's add_cookies method
+        # Use the main profile directory for stability
+        temp_profile = str(Path.home() / ".linkedin" / "profile")
+        
+        # Cookies should already exist in the main profile from --login
+        # Just verify they're there and readable
+        cookie_file = Path(temp_profile) / "cookies.json"
+        if not cookie_file.exists():
+            logger.warning("No cookies found in main profile, writing from portable cookies")
             cookie_list = [
-                {"name": name, "value": value, "domain": ".linkedin.com", "path": "/"}
+                {
+                    "name": name, 
+                    "value": str(value),  # Ensure value is string
+                    "domain": ".linkedin.com", 
+                    "path": "/",
+                    "secure": True,
+                    "httpOnly": False,
+                    "sameSite": "Lax",
+                    "expires": None  # Set expires to null for session cookies
+                }
                 for name, value in cookies_dict.items()
             ]
-            await browser.add_cookies(cookie_list)
+            cookie_file.write_text(json.dumps(cookie_list, indent=2))
+            logger.info(f"Wrote {len(cookie_list)} cookies to {cookie_file}")
+        else:
+            logger.info(f"Using existing cookies from {cookie_file}")
+        
+        browser = ObscuraBrowserManager(user_data_dir=temp_profile, headless=True)
+        await browser.start()
+        page = browser.page
 
-            # Wait a bit for cookies to be applied
-            try:
-                await asyncio.sleep(1)  # Small delay to ensure cookies are applied
-            except Exception:
-                pass
-
-            return LinkedInExtractor(page)
-        except Exception as browser_error:
-            # Browser creation failed - likely due to VPS resource constraints
-            logger.error(f"Browser creation failed (VPS resource constraints): {browser_error}")
-            axi_error(
-                "Browser initialization failed",
-                f"Browser startup failed on VPS: {str(browser_error)}. This may be due to limited memory (2.4GB). Consider upgrading VPS resources or using a local environment."
-            )
+        # Return both extractor and browser for proper cleanup
+        return LinkedInExtractor(page), browser, temp_profile
     except AuthenticationError as e:
         axi_error(
             "LinkedIn authentication failed",
@@ -277,7 +270,7 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
     ctx = MockContext()
     
     # Pre-fetch extractor for tools that need it
-    extractor = asyncio.run(_get_extractor_for_tool())
+    extractor, browser, temp_profile = asyncio.run(_get_extractor_for_tool())
     kwargs["extractor"] = extractor
     kwargs["ctx"] = ctx
 
@@ -299,10 +292,24 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
             axi_error(f"Tool `{tool_name}` failed: {e}", "Check your configuration and try again")
     except Exception as e:
         axi_error(f"Tool `{tool_name}` failed: {e}", "Check your configuration and try again")
+    finally:
+        # Cleanup browser only (main profile directory is not cleaned up)
+        logger.info("Cleaning up browser...")
+        if browser:
+            try:
+                asyncio.run(browser.close())
+                logger.info("Browser closed successfully")
+            except Exception as e:
+                logger.warning("Failed to close browser: %s", e)
 
     # Output
+    logger.info("Outputting result...")
     if use_json:
         print(json.dumps(result, indent=2))
     else:
         # AXI §1: TOON is default
+        logger.info("Result type: %s", type(result))
+        if isinstance(result, dict):
+            logger.info("Result keys: %s", list(result.keys()))
         toon_print_dict(result)
+    logger.info("Output complete")
