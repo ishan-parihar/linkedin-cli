@@ -768,9 +768,8 @@ class LinkedInExtractor:
             auth_barrier = None
 
         try:
-            remember_me_visible = (
-                await self._page.locator("#rememberme-div").count()
-            ) > 0
+            locator = self._page.locator("#rememberme-div")
+            remember_me_visible = (await locator.count()) > 0
         except Exception:
             remember_me_visible = False
 
@@ -1034,7 +1033,8 @@ class LinkedInExtractor:
         """Fill the first textarea inside the open dialog (structural)."""
         locator = self._page.locator(_DIALOG_TEXTAREA_SELECTOR).first
         try:
-            if await self._page.locator(_DIALOG_TEXTAREA_SELECTOR).count() == 0:
+            textarea_locator = self._page.locator(_DIALOG_TEXTAREA_SELECTOR)
+            if await textarea_locator.count() == 0:
                 return False
             await locator.fill(value, timeout=timeout)
             return True
@@ -1904,7 +1904,8 @@ class LinkedInExtractor:
 
         note_filled = False
         if note:
-            textarea_count = await self._page.locator(_DIALOG_TEXTAREA_SELECTOR).count()
+            textarea_locator = self._page.locator(_DIALOG_TEXTAREA_SELECTOR)
+            textarea_count = await textarea_locator.count()
             if textarea_count == 0:
                 # Reveal the note textarea via the secondary action.
                 # Two layouts are now in the wild and both place "Add a
@@ -2023,7 +2024,8 @@ class LinkedInExtractor:
             return note_limit_message
 
         try:
-            textarea_count = await self._page.locator(_DIALOG_TEXTAREA_SELECTOR).count()
+            textarea_locator = self._page.locator(_DIALOG_TEXTAREA_SELECTOR)
+            textarea_count = await textarea_locator.count()
         except Exception:
             textarea_count = 0
         if textarea_count > 0:

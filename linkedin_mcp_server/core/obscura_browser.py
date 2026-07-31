@@ -473,7 +473,7 @@ class ObscuraPage:
         """Evaluate JavaScript."""
         return await self._browser.evaluate(script)
     
-    async def locator(self, selector: str) -> "ObscuraLocator":
+    def locator(self, selector: str) -> "ObscuraLocator":
         """Return a locator object."""
         return ObscuraLocator(self, selector)
     
