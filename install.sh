@@ -88,6 +88,7 @@ mkdir -p "$INSTALL_DIR"
 if [ -d "$REPO_DIR" ]; then
     info "Repository already exists. Updating..."
     cd "$REPO_DIR"
+    git remote set-url origin https://github.com/ishan-parihar/linkedin-lyr.git
     git fetch origin
     git reset --hard origin/main
     success "Repository updated"
