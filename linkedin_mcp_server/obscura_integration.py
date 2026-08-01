@@ -8,7 +8,7 @@ import logging
 import os
 from typing import Optional
 
-from obscura_cookie_manager import (
+from obscura_core import (
     ObscuraCookieManager,
     FileCookieStorage,
     LinkedInCookieExtractor,
