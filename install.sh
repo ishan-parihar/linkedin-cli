@@ -1,7 +1,7 @@
 #!/bin/bash
 # LinkedIn MCP Server - AXI-Compliant CLI Install Script
-# This script installs the linkedin-cli with Obscura backend and AXI compliance
-# Usage: curl -sSL https://raw.githubusercontent.com/ishan-parihar/linkedin-cli/main/install.sh | bash
+# This script installs the linkedin-lyr with Obscura backend and AXI compliance
+# Usage: curl -sSL https://raw.githubusercontent.com/ishan-parihar/linkedin-lyr/main/install.sh | bash
 
 set -e
 
@@ -93,7 +93,7 @@ if [ -d "$REPO_DIR" ]; then
     success "Repository updated"
 else
     info "Cloning repository..."
-    git clone https://github.com/ishan-parihar/linkedin-cli.git "$REPO_DIR"
+    git clone https://github.com/ishan-parihar/linkedin-lyr.git "$REPO_DIR"
     cd "$REPO_DIR"
     success "Repository cloned"
 fi
@@ -145,7 +145,7 @@ if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
 fi
 
 # Setup LinkedIn MCP directory
-LINKEDIN_MCP_DIR="${HOME}/.linkedin"
+LINKEDIN_MCP_DIR="${HOME}/.linkedin-lyr"
 mkdir -p "$LINKEDIN_MCP_DIR"
 
 success "Installation directory prepared: $LINKEDIN_MCP_DIR"
@@ -153,11 +153,11 @@ success "Installation directory prepared: $LINKEDIN_MCP_DIR"
 # Check if cookies already exist
 if [ -f "$LINKEDIN_MCP_DIR/cookies.json" ]; then
     warning "Existing cookies found at $LINKEDIN_MCP_DIR/cookies.json"
-    info "You can use: linkedin-cli status to check your session"
+    info "You can use: linkedin-lyr status to check your session"
 else
     info "No existing cookies found."
     info "To import cookies from your browser, run:"
-    echo "  linkedin-cli import"
+    echo "  linkedin-lyr import"
     echo ""
     echo "Supported browsers: chrome, brave, firefox, edge, chromium, opera, vivaldi, arc"
 fi
@@ -169,12 +169,12 @@ success "LinkedIn MCP Server Installation Complete"
 success "=========================================="
 echo ""
 info "Quick Start:"
-echo "  1. Check session status: linkedin-cli status"
-echo "  2. Import cookies: linkedin-cli import [browser]"
-echo "  3. Start MCP server: linkedin-cli mcp"
+echo "  1. Check session status: linkedin-lyr status"
+echo "  2. Import cookies: linkedin-lyr import [browser]"
+echo "  3. Start MCP server: linkedin-lyr mcp"
 echo ""
-info "For more commands: linkedin-cli --help"
-info "Documentation: https://github.com/ishan-parihar/linkedin-cli"
+info "For more commands: linkedin-lyr --help"
+info "Documentation: https://github.com/ishan-parihar/linkedin-lyr"
 echo ""
 
 # Ask if user wants to import cookies now
@@ -183,7 +183,7 @@ if [ ! -f "$LINKEDIN_MCP_DIR/cookies.json" ]; then
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         info "Running cookie import..."
-        "$HOME/.local/bin/linkedin-cli" import
+        "$HOME/.local/bin/linkedin-lyr" import
     fi
 fi
 
