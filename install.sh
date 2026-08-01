@@ -58,8 +58,8 @@ PYTHON_VERSION=$(python3 --version | awk '{print $2}')
 PYTHON_MAJOR=$(echo $PYTHON_VERSION | cut -d. -f1)
 PYTHON_MINOR=$(echo $PYTHON_VERSION | cut -d. -f2)
 
-if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 12 ]); then
-    error "Python 3.12 or higher is required. Found: $PYTHON_VERSION"
+if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 11 ]); then
+    error "Python 3.11 or higher is required. Found: $PYTHON_VERSION"
     exit 1
 fi
 
@@ -76,7 +76,7 @@ else
 fi
 
 # Set installation directory
-INSTALL_DIR="${HOME}/.linkedin"
+INSTALL_DIR="${HOME}/.linkedin-lyr"
 REPO_DIR="${INSTALL_DIR}/linkedin-cli"
 
 info "Installation directory: $INSTALL_DIR"
