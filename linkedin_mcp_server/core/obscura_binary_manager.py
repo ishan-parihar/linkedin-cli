@@ -31,7 +31,7 @@ OBSURA_RELEASES_URL = f"https://github.com/{OBSURA_REPO}/releases"
 
 # Binary installation paths
 DEFAULT_BINARY_PATH = Path("/tmp/obscura")
-METADATA_FILE = Path.home() / ".linkedin" / "obscura_metadata.json"
+METADATA_FILE = Path.home() / ".linkedin-lyr" / "obscura_metadata.json"
 
 
 class ObscuraBinaryManager:

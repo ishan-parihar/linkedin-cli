@@ -37,7 +37,7 @@ _PYPI_URL = "https://pypi.org/pypi/mcp-server-linkedin/json"
 _LATEST_RELEASE_URL = (
     "https://github.com/stickerdaniel/linkedin-mcp-server/releases/latest"
 )
-_CACHE_PATH = Path.home() / ".linkedin" / "update-check.json"
+_CACHE_PATH = Path.home() / ".linkedin-lyr" / "update-check.json"
 _CACHE_TTL_SECONDS = 24 * 60 * 60
 _REQUEST_TIMEOUT_SECONDS = 2.0
 _DISABLED_VALUES = {"0", "false", "off", "no"}

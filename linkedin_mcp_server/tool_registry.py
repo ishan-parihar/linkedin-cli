@@ -140,7 +140,7 @@ async def _get_extractor_for_tool():
             )
 
         # Use the main profile directory for stability
-        temp_profile = str(Path.home() / ".linkedin" / "profile")
+        temp_profile = str(Path.home() / ".linkedin-lyr" / "profile")
         
         # Cookies should already exist in the main profile from --login
         # Just verify they're there and readable

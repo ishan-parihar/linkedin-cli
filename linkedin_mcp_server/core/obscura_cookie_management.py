@@ -35,7 +35,7 @@ class ObscuraCookieManager:
     """Enhanced cookie manager for Obscura with optimization features."""
     
     def __init__(self, cookie_file: Optional[Path] = None):
-        self.cookie_file = cookie_file or Path.home() / ".linkedin" / "cookies.json"
+        self.cookie_file = cookie_file or Path.home() / ".linkedin-lyr" / "cookies.json"
         self._cookies: dict[str, str] = {}
         self._cookie_metadata: dict = {}
         self._last_validation: Optional[float] = None
@@ -200,7 +200,7 @@ class ObscuraSessionManager:
     """Manage Obscura sessions with persistence and optimization."""
     
     def __init__(self, session_dir: Optional[Path] = None):
-        self.session_dir = session_dir or Path.home() / ".linkedin" / "sessions"
+        self.session_dir = session_dir or Path.home() / ".linkedin-lyr" / "sessions"
         self.session_dir.mkdir(parents=True, exist_ok=True)
         
         self._active_sessions: dict = {}

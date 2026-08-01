@@ -87,7 +87,7 @@ class LightweightCookieManager:
             return self.cached_cookies
         
         # Try to load from existing file first
-        existing_cookies = self.load_from_file(Path.home() / ".linkedin" / "cookies.json")
+        existing_cookies = self.load_from_file(Path.home() / ".linkedin-lyr" / "cookies.json")
         if existing_cookies:
             return existing_cookies
         
