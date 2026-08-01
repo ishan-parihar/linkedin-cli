@@ -81,6 +81,9 @@ def get_source_profile_dir() -> Path:
 def auth_root_dir(source_profile_dir: Path | None = None) -> Path:
     """Return the root directory containing auth artifacts."""
     profile_dir = source_profile_dir or get_source_profile_dir()
+    # Use linkedin-lyr as the root directory
+    if profile_dir.name == "profile":
+        return profile_dir.parent
     return profile_dir.expanduser().resolve().parent
 
 

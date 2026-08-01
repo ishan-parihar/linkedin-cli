@@ -111,7 +111,7 @@ def _safe_source_profile_dir() -> Path:
     try:
         return get_source_profile_dir()
     except Exception:
-        return Path("~/.linkedin/profile").expanduser()
+        return Path("~/.linkedin-lyr/profile").expanduser()
 
 
 async def record_page_trace(

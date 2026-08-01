@@ -1,7 +1,7 @@
 """Cross-process ownership of the shared LinkedIn browser profile.
 
 Every MCP client instance spawns its own server process, and each one would
-otherwise launch its own Chromium against the same ``~/.linkedin/profile``.
+otherwise launch its own Chromium against the same ``~/.linkedin-lyr/profile``.
 Chromium does not refuse that: both browsers run, and the last one to close
 overwrites the other's cookies. A live session is lost without any error.
 
