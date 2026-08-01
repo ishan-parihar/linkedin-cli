@@ -28,6 +28,9 @@ from linkedin_mcp_server.obscura_integration import (
     force_linkedin_cookie_refresh,
     invalidate_linkedin_auth,
 )
+from linkedin_mcp_server.obscura_daemon_integration import (
+    get_valid_linkedin_cookies_from_daemon,
+)
 from linkedin_mcp_server.scraping import LinkedInExtractor
 
 logger = logging.getLogger(__name__)
@@ -87,20 +90,20 @@ async def get_ready_extractor(
     """Run bootstrap gating, then acquire an authenticated extractor."""
     try:
         await ensure_tool_ready_or_raise(tool_name, ctx)
-        
-        # Get valid cookies using ObscuraCookieManager
-        result = await get_valid_linkedin_cookies()
-        
+
+        # Try to get cookies from daemon first, fall back to local ObscuraCookieManager
+        result = await get_valid_linkedin_cookies_from_daemon()
+
         if not result.valid:
-            logger.warning(f"Cookie validation failed: {result.error}")
+            logger.warning(f"Cookie validation failed from daemon: {result.error}")
             # Try forced refresh
             result = await force_linkedin_cookie_refresh()
             if not result.valid:
                 raise AuthenticationError(
                     f"LinkedIn session expired: {result.error}. "
-                    "Run 'linkedin-cli --login' to re-authenticate."
+                    "Run 'linkedin-lyr --login' to re-authenticate."
                 )
-        
+
         browser = await get_or_create_browser()
         page = browser.page
 
