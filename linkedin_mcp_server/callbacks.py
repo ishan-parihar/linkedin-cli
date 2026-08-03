@@ -34,9 +34,7 @@ class MCPContextProgressCallback(ProgressCallback):
 
     async def on_start(self, scraper_type: str, url: str) -> None:
         """Report start to MCP client."""
-        await self.ctx.report_progress(
-            progress=0, total=100, message=f"Starting {scraper_type}"
-        )
+        await self.ctx.report_progress(progress=0, total=100, message=f"Starting {scraper_type}")
 
     async def on_progress(self, message: str, percent: int) -> None:
         """Report progress to MCP client."""

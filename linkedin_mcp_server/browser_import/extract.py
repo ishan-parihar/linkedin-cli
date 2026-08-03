@@ -126,9 +126,7 @@ def _macos_safe_storage_password(account: str, service: str) -> bytes:
     last_returncode: int | None = None
     for argv in queries:
         try:
-            result = subprocess.run(
-                argv, capture_output=True, check=False, timeout=10.0
-            )
+            result = subprocess.run(argv, capture_output=True, check=False, timeout=10.0)
         except subprocess.TimeoutExpired as exc:
             # macOS Tahoe can hang the keychain CLI indefinitely when the process
             # lost SecurityAgent context; check=False guards a non-zero exit, not
@@ -309,14 +307,10 @@ def _decrypt_value(
     if prefix in (b"v10", b"v11"):
         if is_macos_or_linux:
             if cbc_key is None:
-                raise KeystoreUnavailableError(
-                    "No Safe Storage key available for CBC decryption"
-                )
+                raise KeystoreUnavailableError("No Safe Storage key available for CBC decryption")
             return _decrypt_cbc(blob, cbc_key, store_version=store_version)
         if win_master_key is None:
-            raise KeystoreUnavailableError(
-                "No DPAPI master key available for GCM decryption"
-            )
+            raise KeystoreUnavailableError("No DPAPI master key available for GCM decryption")
         return _decrypt_gcm_v10(blob, win_master_key, store_version=store_version)
     # Unknown prefix: treat as undecryptable rather than emit garbage.
     raise V20EncryptedError(f"Cookie uses an unsupported encryption prefix {prefix!r}")
@@ -412,17 +406,13 @@ def _resolve_keystore(
     current = _current_os()
     if current == "macos":
         account = profile.mac_keychain_account or profile.safe_storage_label
-        service = (
-            profile.mac_keychain_service or f"{profile.safe_storage_label} Safe Storage"
-        )
+        service = profile.mac_keychain_service or f"{profile.safe_storage_label} Safe Storage"
         password = _macos_safe_storage_password(account, service)
         return _derive_cbc_key(password, iterations=_MACOS_ITERATIONS), None, True
     if current == "windows":
         return None, _windows_master_key(profile.local_state_path), False
     spec = SUPPORTED_BROWSERS.get(profile.browser, {})
-    app_token = (
-        str(spec.get("linux_app_token", "")) or profile.safe_storage_label.lower()
-    )
+    app_token = str(spec.get("linux_app_token", "")) or profile.safe_storage_label.lower()
     password = _linux_safe_storage_password(app_token)
     return _derive_cbc_key(password, iterations=_LINUX_ITERATIONS), None, True
 

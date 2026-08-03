@@ -51,9 +51,13 @@ async def test_import_cookies_imports_bridge_subset_only(tmp_path):
 
     assert imported is True
     context.clear_cookies.assert_not_awaited()
-    context.add_cookies.assert_awaited_once_with(
-        [cookies[0], cookies[1], cookies[2], cookies[3], cookies[4]]
-    )
+    context.add_cookies.assert_awaited_once_with([
+        cookies[0],
+        cookies[1],
+        cookies[2],
+        cookies[3],
+        cookies[4],
+    ])
 
 
 @pytest.mark.asyncio
@@ -83,12 +87,10 @@ async def test_import_cookies_requires_li_at(tmp_path):
     browser, context = _make_browser_manager(tmp_path)
     cookie_path = tmp_path / "cookies.json"
     cookie_path.write_text(
-        json.dumps(
-            [
-                _make_cookie("JSESSIONID"),
-                _make_cookie("bcookie"),
-            ]
-        )
+        json.dumps([
+            _make_cookie("JSESSIONID"),
+            _make_cookie("bcookie"),
+        ])
     )
 
     imported = await browser.import_cookies(cookie_path)
@@ -103,13 +105,11 @@ async def test_import_cookies_preserves_existing_cookies(tmp_path):
     browser, context = _make_browser_manager(tmp_path)
     cookie_path = tmp_path / "cookies.json"
     cookie_path.write_text(
-        json.dumps(
-            [
-                _make_cookie("li_at"),
-                _make_cookie("li_rm"),
-                _make_cookie("JSESSIONID"),
-            ]
-        )
+        json.dumps([
+            _make_cookie("li_at"),
+            _make_cookie("li_rm"),
+            _make_cookie("JSESSIONID"),
+        ])
     )
 
     imported = await browser.import_cookies(cookie_path)

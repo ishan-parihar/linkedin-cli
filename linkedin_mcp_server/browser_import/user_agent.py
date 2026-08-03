@@ -90,11 +90,7 @@ def read_engine_version(profile: BrowserProfile) -> str | None:
 
     try:
         payload = json.loads(profile.local_state_path.read_text(encoding="utf-8"))
-        stats = (
-            payload.get("user_experience_metrics", {})
-            .get("stability", {})
-            .get("stats_version")
-        )
+        stats = payload.get("user_experience_metrics", {}).get("stability", {}).get("stats_version")
         if isinstance(stats, str) and stats.strip():
             # "148.0.7778.179-64" -> "148.0.7778.179"
             return stats.strip().split("-")[0]

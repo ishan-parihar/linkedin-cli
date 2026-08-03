@@ -92,9 +92,7 @@ class TestRedaction:
         assert "s3cr3t" not in redacted and "%40ss" not in redacted
 
     def test_without_a_configured_password_nothing_changes(self, monkeypatch):
-        monkeypatch.setattr(
-            "linkedin_mcp_server.config.get_config", lambda: AppConfig()
-        )
+        monkeypatch.setattr("linkedin_mcp_server.config.get_config", lambda: AppConfig())
         assert redact_proxy_credentials("untouched") == "untouched"
 
     def test_reporting_survives_an_unreadable_config(self, monkeypatch):
@@ -124,9 +122,7 @@ class TestProxyHint:
         assert "s3cr3t" not in proxy_hint()
 
     def test_no_hint_without_a_proxy(self, monkeypatch):
-        monkeypatch.setattr(
-            "linkedin_mcp_server.config.get_config", lambda: AppConfig()
-        )
+        monkeypatch.setattr("linkedin_mcp_server.config.get_config", lambda: AppConfig())
         assert proxy_hint() == ""
 
 
@@ -139,9 +135,7 @@ class TestAmbiguousAuthMarker:
     def test_ignored_without_a_proxy(self, monkeypatch):
         # The same code covers a site's own HTTP auth, so claiming it with no
         # proxy configured would misreport an ordinary failure.
-        monkeypatch.setattr(
-            "linkedin_mcp_server.config.get_config", lambda: AppConfig()
-        )
+        monkeypatch.setattr("linkedin_mcp_server.config.get_config", lambda: AppConfig())
         assert is_proxy_error(Exception("net::ERR_INVALID_AUTH_CREDENTIALS")) is False
 
 

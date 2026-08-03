@@ -41,13 +41,13 @@ class LightweightCookieManager:
         else:
             cookies = auto_extract_cookies()
             self.cookie_source = "auto-detected"
-        
+
         if cookies:
             self.cached_cookies = cookies
             logger.info(f"Extracted cookies from {self.cookie_source}: {list(cookies.keys())}")
         else:
             logger.warning("No cookies extracted")
-        
+
         return cookies
 
     def validate_cookies(self, cookies: dict[str, str]) -> bool:
@@ -64,11 +64,11 @@ class LightweightCookieManager:
         """Load cookies from JSON file (existing format)."""
         if not cookie_path.exists():
             return None
-        
+
         try:
             cookie_data = json.loads(cookie_path.read_text())
-            cookies = {cookie['name']: cookie['value'] for cookie in cookie_data}
-            
+            cookies = {cookie["name"]: cookie["value"] for cookie in cookie_data}
+
             if self.validate_cookies(cookies):
                 self.cached_cookies = cookies
                 self.cookie_source = str(cookie_path)
@@ -85,17 +85,17 @@ class LightweightCookieManager:
         """Get cached cookies or extract fresh ones."""
         if self.cached_cookies and self.validate_cookies(self.cached_cookies):
             return self.cached_cookies
-        
+
         # Try to load from existing file first
         existing_cookies = self.load_from_file(Path.home() / ".linkedin-lyr" / "cookies.json")
         if existing_cookies:
             return existing_cookies
-        
+
         # Extract from browser
         cookies = self.extract_cookies()
         if cookies and self.validate_cookies(cookies):
             return cookies
-        
+
         raise Exception("No valid LinkedIn cookies available")
 
 
@@ -152,17 +152,11 @@ class LightweightContentFetcher:
         """Fetch content using Obscura native fetch."""
         if cookies is None:
             cookies = self.cookie_manager.get_cookies()
-        
-        cmd = [
-            "/tmp/obscura",
-            "fetch",
-            "--dump", "html",
-            "--stealth",
-            url
-        ]
-        
+
+        cmd = ["/tmp/obscura", "fetch", "--dump", "html", "--stealth", url]
+
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        
+
         if result.returncode == 0:
             return result.stdout
         else:
@@ -172,16 +166,11 @@ class LightweightContentFetcher:
         """Fetch content using Lightpanda native fetch."""
         if cookies is None:
             cookies = self.cookie_manager.get_cookies()
-        
-        cmd = [
-            "/tmp/lightpanda",
-            "fetch",
-            "--dump", "html",
-            url
-        ]
-        
+
+        cmd = ["/tmp/lightpanda", "fetch", "--dump", "html", url]
+
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        
+
         if result.returncode == 0:
             return result.stdout
         else:
@@ -191,7 +180,7 @@ class LightweightContentFetcher:
         """Fetch using browser storage with cookie persistence."""
         with tempfile.TemporaryDirectory() as temp_dir:
             storage_path = Path(temp_dir)
-            
+
             # Try to use storage for cookie persistence
             # This is more complex and may require manual cookie setting
             if browser == "obscura":
@@ -209,14 +198,14 @@ class LightweightContentFetcher:
             return self.fetch_with_obscura(url)
         except Exception as e:
             logger.warning(f"Obscura failed: {e}")
-        
+
         # Try Lightpanda
         try:
             logger.info("Trying Lightpanda...")
             return self.fetch_with_lightpanda(url)
         except Exception as e:
             logger.warning(f"Lightpanda failed: {e}")
-        
+
         raise Exception("All fetch methods failed")
 
 
@@ -240,7 +229,7 @@ class LightweightLinkedInScraper:
     def get_profile(self, linkedin_username: str) -> dict:
         """Get LinkedIn profile using lightweight browser."""
         url = f"https://www.linkedin.com/in/{linkedin_username}/"
-        
+
         try:
             html = self.content_fetcher.fetch_with_fallback(url)
             return self._parse_profile(html, url)
@@ -251,7 +240,7 @@ class LightweightLinkedInScraper:
     def get_company(self, company_id: str) -> dict:
         """Get LinkedIn company using lightweight browser."""
         url = f"https://www.linkedin.com/company/{company_id}/"
-        
+
         try:
             html = self.content_fetcher.fetch_with_fallback(url)
             return self._parse_company(html, url)
@@ -267,7 +256,7 @@ class LightweightLinkedInScraper:
             "url": url,
             "html": html,
             "raw_text": html[:1000],  # Sample for now
-            "auth_status": self._check_auth_status(html)
+            "auth_status": self._check_auth_status(html),
         }
 
     def _parse_company(self, html: str, url: str) -> dict:
@@ -277,7 +266,7 @@ class LightweightLinkedInScraper:
             "url": url,
             "html": html,
             "raw_text": html[:1000],  # Sample for now
-            "auth_status": self._check_auth_status(html)
+            "auth_status": self._check_auth_status(html),
         }
 
     def _check_auth_status(self, html: str) -> str:
@@ -297,6 +286,8 @@ class LightweightLinkedInScraper:
 
 
 # Convenience function for quick usage
-def create_lightweight_scraper(browser: Literal["obscura", "lightpanda"] = "obscura") -> LightweightLinkedInScraper:
+def create_lightweight_scraper(
+    browser: Literal["obscura", "lightpanda"] = "obscura",
+) -> LightweightLinkedInScraper:
     """Create a lightweight LinkedIn scraper."""
     return LightweightLinkedInScraper(browser)

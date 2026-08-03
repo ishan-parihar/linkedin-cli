@@ -128,9 +128,7 @@ def get_runtime_policy() -> RuntimePolicy:
     if _state.runtime_policy is not None:
         return _state.runtime_policy
     return (
-        RuntimePolicy.DOCKER
-        if get_runtime_id().endswith("-container")
-        else RuntimePolicy.MANAGED
+        RuntimePolicy.DOCKER if get_runtime_id().endswith("-container") else RuntimePolicy.MANAGED
     )
 
 
@@ -182,9 +180,7 @@ def _patchright_install_targets() -> dict[str, str] | None:
     try:
         import patchright
 
-        registry = (
-            Path(patchright.__file__).parent / "driver" / "package" / "browsers.json"
-        )
+        registry = Path(patchright.__file__).parent / "driver" / "package" / "browsers.json"
         payload = json.loads(registry.read_text())
     except (ImportError, OSError, json.JSONDecodeError):
         return None
@@ -378,14 +374,10 @@ async def _run_patchright_install(extra_arg: str) -> None:
         output = "\n".join(
             text for text in (stderr.decode().strip(), stdout.decode().strip()) if text
         )
-        raise BrowserSetupFailedError(
-            output or "Patchright Chromium browser setup failed."
-        )
+        raise BrowserSetupFailedError(output or "Patchright Chromium browser setup failed.")
 
 
-def _write_install_metadata(
-    browser_dir: Path, installed_targets: dict[str, bool]
-) -> None:
+def _write_install_metadata(browser_dir: Path, installed_targets: dict[str, bool]) -> None:
     """Record the install state, including which binaries are present on disk."""
     metadata = {
         "version": _INSTALL_METADATA_SCHEMA,
@@ -546,9 +538,7 @@ async def _refresh_background_task_state() -> None:
             _state.auth_completed_at = utcnow_iso()
 
 
-async def ensure_tool_ready_or_raise(
-    tool_name: str, ctx: Context | None = None
-) -> None:
+async def ensure_tool_ready_or_raise(tool_name: str, ctx: Context | None = None) -> None:
     """Gate scrape/search tools on browser setup and authentication readiness."""
     initialize_bootstrap()
     await _refresh_background_task_state()
@@ -666,9 +656,7 @@ def _auto_import_allowed() -> bool:
     # type: a streamable-http server on a loopback host is the documented local
     # dev / verify flow and IS a desktop case; only a non-loopback bind is the
     # service case.
-    if config.server.transport == "streamable-http" and not is_loopback_host(
-        config.server.host
-    ):
+    if config.server.transport == "streamable-http" and not is_loopback_host(config.server.host):
         return False
     return True
 
@@ -766,10 +754,7 @@ async def _try_auto_import_session(ctx: Context | None = None) -> bool:
             # Reached only when a live li_at decrypted but LinkedIn rejected the
             # session (orchestrate.py:254). The "no live session" and "could not
             # decrypt" cases RAISE and are handled below.
-            logger.info(
-                "Auto-import found no usable browser session; "
-                "falling back to manual login"
-            )
+            logger.info("Auto-import found no usable browser session; falling back to manual login")
         return result
     except TimeoutError:
         logger.info("Auto-import timed out after 60s; falling back to manual login")
@@ -875,9 +860,7 @@ async def _start_login_if_needed(ctx: Context | None = None) -> None:
                 _state.auth_started_at = utcnow_iso()
                 _state.last_error = None
                 _state.auth_completed_at = None
-                _state.login_task = asyncio.create_task(
-                    _run_login_flow(), name="linkedin-login"
-                )
+                _state.login_task = asyncio.create_task(_run_login_flow(), name="linkedin-login")
                 login_task = _state.login_task
 
     # ---- #535 inline wait: unchanged logic ----
@@ -957,9 +940,7 @@ async def invalidate_auth_and_trigger_relogin(
         _state.auth_started_at = utcnow_iso()
         _state.last_error = None
         _state.auth_completed_at = None
-        _state.login_task = asyncio.create_task(
-            _run_login_flow(), name="linkedin-login"
-        )
+        _state.login_task = asyncio.create_task(_run_login_flow(), name="linkedin-login")
 
     if ctx is not None:
         await ctx.report_progress(
@@ -994,9 +975,7 @@ def _move_auth_state_aside(*, force: bool = False) -> None:
     try:
         rotate_source_profile(get_profile_dir())
     except RuntimeError as exc:
-        raise AuthenticationBootstrapFailedError(
-            f"{exc} No login was started."
-        ) from exc
+        raise AuthenticationBootstrapFailedError(f"{exc} No login was started.") from exc
     except OSError as exc:
         raise AuthenticationBootstrapFailedError(
             f"Could not retire the stale session: {exc}. No login was started."

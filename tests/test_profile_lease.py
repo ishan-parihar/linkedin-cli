@@ -69,8 +69,7 @@ def _await_line(process: subprocess.Popen[str], expected: str) -> None:
             break
     stderr = process.stderr.read() if process.stderr else ""
     raise AssertionError(
-        f"worker exited (status {process.poll()}) without reporting "
-        f"{expected!r}: {stderr}"
+        f"worker exited (status {process.poll()}) without reporting {expected!r}: {stderr}"
     )
 
 
@@ -107,9 +106,7 @@ class TestSingleProcess:
             assert lease.held
         assert not lease.held
 
-    def test_a_hold_released_twice_drops_only_one_reference(
-        self, tmp_path: Path
-    ) -> None:
+    def test_a_hold_released_twice_drops_only_one_reference(self, tmp_path: Path) -> None:
         """Explicit release plus context-manager exit must not double-count.
 
         Otherwise a handle released early would take a *second* caller's
@@ -288,9 +285,7 @@ class TestHandoff:
                 waiter.wait(timeout=10)
             lease.release()
 
-    def test_an_announcement_reports_whether_it_took_the_lock(
-        self, tmp_path: Path
-    ) -> None:
+    def test_an_announcement_reports_whether_it_took_the_lock(self, tmp_path: Path) -> None:
         """The signal the worker relies on, pinned in-process too."""
         lease = ProfileLease(tmp_path)
         with lease.announce() as announcement:
@@ -329,9 +324,7 @@ class TestAsyncAcquire:
             holder.wait(timeout=10)
             lease.release()
 
-    async def test_a_free_lease_is_taken_without_announcing(
-        self, tmp_path: Path
-    ) -> None:
+    async def test_a_free_lease_is_taken_without_announcing(self, tmp_path: Path) -> None:
         """The uncontended path must not touch the handoff file at all.
 
         Asserted by counting calls, not by inspecting the aftermath: an
@@ -447,9 +440,7 @@ class TestCrossProcess:
             time.sleep(0.05)
         raise AssertionError(message)
 
-    def test_kernel_releases_the_lease_when_the_holder_dies(
-        self, tmp_path: Path
-    ) -> None:
+    def test_kernel_releases_the_lease_when_the_holder_dies(self, tmp_path: Path) -> None:
         """No stale-lock recovery needed, unlike Chromium's SingletonLock."""
         victim = _spawn("die-holding", str(tmp_path))
         _await_line(victim, "HELD")
@@ -520,9 +511,7 @@ class TestRegistry:
 
     @_posix_fork
     @pytest.mark.filterwarnings("ignore:This process .* is multi-threaded")
-    def test_the_reset_does_not_drop_the_living_parents_lock(
-        self, tmp_path: Path
-    ) -> None:
+    def test_the_reset_does_not_drop_the_living_parents_lock(self, tmp_path: Path) -> None:
         """A child clearing its inherited state must not unlock for the parent.
 
         Both descriptions refer to the same open file, so unlocking in the child
@@ -658,9 +647,7 @@ class TestRegistry:
                 with contextlib.suppress(ProcessLookupError, PermissionError):
                     os.kill(child_pid, signal.SIGKILL)
 
-    def test_stale_ownership_from_another_pid_is_discarded(
-        self, tmp_path: Path
-    ) -> None:
+    def test_stale_ownership_from_another_pid_is_discarded(self, tmp_path: Path) -> None:
         """The fork reset, observable without forking.
 
         The child of a fork exercises this, but its coverage is invisible and
@@ -679,9 +666,7 @@ class TestRegistry:
         assert lease._fd is None
         assert lease._refs == 0
 
-    def test_an_already_closed_inherited_descriptor_is_tolerated(
-        self, tmp_path: Path
-    ) -> None:
+    def test_an_already_closed_inherited_descriptor_is_tolerated(self, tmp_path: Path) -> None:
         """The reset runs on paths where the descriptor may already be gone.
 
         Raising here would surface as a failure in whatever ordinary call
@@ -963,9 +948,7 @@ class TestDegradedSignals:
         try:
             monkeypatch.setattr(module, "_HAS_FCNTL", False)
             monkeypatch.setattr(module, "_HAS_WINDOWS_LOCKS", False)
-            with pytest.raises(
-                ProfileLeaseUnavailableError, match="no usable file locking"
-            ):
+            with pytest.raises(ProfileLeaseUnavailableError, match="no usable file locking"):
                 module.try_lock(fd, exclusive=True)
             # Unlocking has nothing to undo and must stay silent, or a cleanup
             # path would raise on top of the original failure.

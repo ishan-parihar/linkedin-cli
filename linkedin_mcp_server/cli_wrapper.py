@@ -3,16 +3,17 @@
 import sys
 import os
 
+
 def main() -> None:
     """Handle tool interception or delegate to MCP server mode."""
-    # ── Direct tool invocation: linkedin-cli <tool_name> [args...] ──────
+    # ── Direct tool invocation: linkedin-lyr <tool_name> [args...] ──────
     if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
         # Set environment variable early before any imports
         os.environ["LINKEDIN_MCP_TOOL_MODE"] = "1"
-        
+
         # Import only what we need for early interception
         from linkedin_mcp_server.tool_registry import TOOLS, axi_error, run_tool_direct
-        
+
         tool_name = sys.argv[1]
         tool_names = [t[0] for t in TOOLS]
         if tool_name in tool_names:
@@ -26,10 +27,12 @@ def main() -> None:
             f"Unknown tool: '{tool_name}'",
             f"Valid tools: {', '.join(tool_names)}",
         )
-    
+
     # MCP server mode - delegate to cli_main
     from linkedin_mcp_server.cli_main import main as cli_main
+
     cli_main()
+
 
 if __name__ == "__main__":
     main()

@@ -98,8 +98,7 @@ class SequentialToolExecutionMiddleware(Middleware):
             await self._report_progress(
                 context,
                 message=(
-                    "Another LinkedIn MCP client is using the browser; "
-                    "waiting for it to hand over"
+                    "Another LinkedIn MCP client is using the browser; waiting for it to hand over"
                 ),
             )
             budget = get_config().browser.browser_wait_seconds

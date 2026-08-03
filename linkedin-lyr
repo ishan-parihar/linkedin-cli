@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Wrapper script for linkedin-cli that ensures module-level interception executes."""
+"""Wrapper script for linkedin-lyr that ensures module-level interception executes."""
 
 import sys
 import os

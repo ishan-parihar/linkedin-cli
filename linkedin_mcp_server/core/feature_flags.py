@@ -48,7 +48,7 @@ FEATURE_FLAGS = {
 
 def get_feature_flag(flag_name: str) -> bool:
     """Get the value of a feature flag.
-    
+
     Priority:
     1. Environment variable
     2. Configuration file (if available)
@@ -57,10 +57,10 @@ def get_feature_flag(flag_name: str) -> bool:
     if flag_name not in FEATURE_FLAGS:
         logger.warning("Unknown feature flag: %s", flag_name)
         return False
-    
+
     flag_config = FEATURE_FLAGS[flag_name]
     env_var = flag_config["env_var"]
-    
+
     # Check environment variable
     env_value = os.getenv(env_var, "").strip().lower()
     if env_value in ("1", "true", "yes", "on"):
@@ -69,19 +69,20 @@ def get_feature_flag(flag_name: str) -> bool:
     elif env_value in ("0", "false", "no", "off"):
         logger.info("Feature flag %s disabled via environment variable %s", flag_name, env_var)
         return False
-    
+
     # Check rollout percentage (for future use)
     # This would enable percentage-based rollouts
     rollout_percentage = flag_config.get("rollout_percentage", 0)
     if rollout_percentage > 0:
         # Simple hash-based rollout for consistent user experience
         import hashlib
+
         user_id = os.getenv("USER", "default")
         hash_value = int(hashlib.md5(user_id.encode()).hexdigest(), 16)
         if (hash_value % 100) < rollout_percentage:
             logger.info("Feature flag %s enabled via rollout (%d%%)", flag_name, rollout_percentage)
             return True
-    
+
     # Use default value
     default_value = flag_config["default"]
     logger.debug("Feature flag %s using default value: %s", flag_name, default_value)
@@ -90,24 +91,21 @@ def get_feature_flag(flag_name: str) -> bool:
 
 def set_feature_flag(flag_name: str, value: bool) -> None:
     """Set a feature flag value programmatically.
-    
+
     This is primarily for testing and debugging. In production,
     feature flags should be controlled via environment variables.
     """
     if flag_name not in FEATURE_FLAGS:
         logger.warning("Cannot set unknown feature flag: %s", flag_name)
         return
-    
+
     FEATURE_FLAGS[flag_name]["default"] = value
     logger.info("Feature flag %s set to %s programmatically", flag_name, value)
 
 
 def get_all_feature_flags() -> dict[str, bool]:
     """Get all feature flag values."""
-    return {
-        flag_name: get_feature_flag(flag_name)
-        for flag_name in FEATURE_FLAGS.keys()
-    }
+    return {flag_name: get_feature_flag(flag_name) for flag_name in FEATURE_FLAGS.keys()}
 
 
 def is_obscura_enabled() -> bool:
@@ -132,11 +130,11 @@ def log_feature_flag_status() -> None:
 
 class FeatureFlagContext:
     """Context manager for temporarily overriding feature flags."""
-    
+
     def __init__(self, **overrides: bool):
         self.overrides = overrides
         self.original_values = {}
-    
+
     def __enter__(self) -> "FeatureFlagContext":
         # Store original values
         for flag_name, value in self.overrides.items():
@@ -145,7 +143,7 @@ class FeatureFlagContext:
                 FEATURE_FLAGS[flag_name]["default"] = value
                 logger.info("Temporarily set feature flag %s to %s", flag_name, value)
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         # Restore original values
         for flag_name, original_value in self.original_values.items():

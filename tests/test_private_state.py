@@ -99,9 +99,7 @@ class TestExtendedAcls:
     mode is not checking who has access.
     """
 
-    @pytest.mark.skipif(
-        sys.platform != "darwin", reason="extended ACLs are a macOS mechanism here"
-    )
+    @pytest.mark.skipif(sys.platform != "darwin", reason="extended ACLs are a macOS mechanism here")
     def test_an_inherited_acl_does_not_survive_hardening(self, tmp_path: Path):
         # Measured before the fix: an auth root carrying an inheritable
         # everyone entry produced a token reporting exactly 0600 that everyone
@@ -134,9 +132,7 @@ class TestExtendedAcls:
             ]
             assert entries == [], f"{path} still grants access outside its mode"
 
-    @pytest.mark.skipif(
-        sys.platform != "darwin", reason="extended ACLs are a macOS mechanism here"
-    )
+    @pytest.mark.skipif(sys.platform != "darwin", reason="extended ACLs are a macOS mechanism here")
     def test_an_acl_that_cannot_be_cleared_refuses(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):
@@ -156,9 +152,7 @@ class TestExtendedAcls:
         with pytest.raises(PrivateStateError, match="access control list"):
             harden_directory(target)
 
-    @pytest.mark.skipif(
-        sys.platform != "darwin", reason="extended ACLs are a macOS mechanism here"
-    )
+    @pytest.mark.skipif(sys.platform != "darwin", reason="extended ACLs are a macOS mechanism here")
     def test_hardening_does_not_depend_on_an_executable_being_findable(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):
@@ -189,15 +183,11 @@ class TestExtendedAcls:
             ["/bin/ls", "-lde", str(token)], capture_output=True, text=True, check=True
         ).stdout
         entries = [
-            line
-            for line in listing.splitlines()[1:]
-            if line.strip() and line.strip()[0].isdigit()
+            line for line in listing.splitlines()[1:] if line.strip() and line.strip()[0].isdigit()
         ]
         assert entries == [], "the token is still readable outside this account"
 
-    @pytest.mark.skipif(
-        sys.platform != "darwin", reason="extended ACLs are a macOS mechanism here"
-    )
+    @pytest.mark.skipif(sys.platform != "darwin", reason="extended ACLs are a macOS mechanism here")
     def test_concurrent_first_use_does_not_skip_the_access_list(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):
@@ -392,9 +382,7 @@ class TestRefusals:
         with pytest.raises(PrivateStateError, match="Not a directory"):
             harden_directory(occupied)
 
-    @pytest.mark.skipif(
-        sys.platform != "darwin", reason="macOS is where an access list needs libc"
-    )
+    @pytest.mark.skipif(sys.platform != "darwin", reason="macOS is where an access list needs libc")
     def test_missing_access_list_functions_refuse(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):

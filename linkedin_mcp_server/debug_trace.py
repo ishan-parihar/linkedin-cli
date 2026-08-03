@@ -38,10 +38,7 @@ def _trace_root() -> Path:
 
 
 def trace_enabled() -> bool:
-    return (
-        bool(os.getenv("LINKEDIN_DEBUG_TRACE_DIR", "").strip())
-        or _trace_mode() != "off"
-    )
+    return bool(os.getenv("LINKEDIN_DEBUG_TRACE_DIR", "").strip()) or _trace_mode() != "off"
 
 
 def get_trace_dir() -> Path | None:
@@ -114,9 +111,7 @@ def _safe_source_profile_dir() -> Path:
         return Path("~/.linkedin-lyr/profile").expanduser()
 
 
-async def record_page_trace(
-    page: Any, step: str, *, extra: dict[str, Any] | None = None
-) -> None:
+async def record_page_trace(page: Any, step: str, *, extra: dict[str, Any] | None = None) -> None:
     """Persist a screenshot and basic page state when trace capture is enabled."""
     trace_dir = get_trace_dir()
     if trace_dir is None:
@@ -151,13 +146,9 @@ async def record_page_trace(
     except Exception:  # pragma: no cover - best effort diagnostics
         cookies = []
 
-    linkedin_cookie_names = sorted(
-        {
-            cookie["name"]
-            for cookie in cookies
-            if "linkedin.com" in cookie.get("domain", "")
-        }
-    )
+    linkedin_cookie_names = sorted({
+        cookie["name"] for cookie in cookies if "linkedin.com" in cookie.get("domain", "")
+    })
 
     screenshot_path = screenshot_dir / f"{step_id:03d}-{slug}.png"
     screenshot: str | None = None

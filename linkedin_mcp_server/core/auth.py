@@ -23,7 +23,7 @@ _AUTH_BLOCKER_URL_PATTERNS = (
 async def is_logged_in(page: Any) -> bool:
     """Check if the user is logged in to LinkedIn."""
     try:
-        url = page.url if hasattr(page, 'url') else page.current_url
+        url = page.url if hasattr(page, "url") else page.current_url
         if url:
             for pattern in _AUTH_BLOCKER_URL_PATTERNS:
                 if pattern in url:
@@ -37,7 +37,7 @@ async def is_logged_in(page: Any) -> bool:
 async def detect_auth_barrier(page: Any) -> str | None:
     """Detect authentication barriers on LinkedIn."""
     try:
-        url = page.url if hasattr(page, 'url') else page.current_url
+        url = page.url if hasattr(page, "url") else page.current_url
         for pattern in _AUTH_BLOCKER_URL_PATTERNS:
             if pattern in url:
                 return pattern

@@ -77,7 +77,7 @@ fi
 
 # Set installation directory
 INSTALL_DIR="${HOME}/.linkedin-lyr"
-REPO_DIR="${INSTALL_DIR}/linkedin-cli"
+REPO_DIR="${INSTALL_DIR}/linkedin-lyr"
 
 info "Installation directory: $INSTALL_DIR"
 

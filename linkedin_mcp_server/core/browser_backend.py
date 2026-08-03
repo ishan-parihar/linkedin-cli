@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class BackendConfig:
     """Configuration for browser backend."""
-    
+
     def __init__(
         self,
         backend: str = "obscura",
@@ -31,7 +31,7 @@ class BackendConfig:
 
 def get_backend_config() -> BackendConfig:
     """Get the current backend configuration.
-    
+
     Always returns Obscura configuration as Playwright has been removed.
     """
     return BackendConfig(

@@ -295,9 +295,11 @@ _ACL_TYPE_EXTENDED = 0x00000100
 #: returns for a perfectly ordinary directory without one, measured. The other
 #: two are how a filesystem says it does not implement access lists at all,
 #: which is equally an answer: there is no list to worry about.
-_NO_EXTENDED_ACL_ERRNOS = frozenset(
-    {errno.ENOENT, errno.ENOTSUP, getattr(errno, "EOPNOTSUPP", errno.ENOTSUP)}
-)
+_NO_EXTENDED_ACL_ERRNOS = frozenset({
+    errno.ENOENT,
+    errno.ENOTSUP,
+    getattr(errno, "EOPNOTSUPP", errno.ENOTSUP),
+})
 
 #: Resolved once, on first use. Two variables rather than a sentinel value, so
 #: "not looked up yet" and "looked up and unavailable" stay distinguishable
@@ -339,9 +341,7 @@ def _libc() -> ctypes.CDLL | None:
             name = ctypes.util.find_library("c")
             if name is not None:
                 candidate = ctypes.CDLL(name, use_errno=True)
-                if hasattr(candidate, "acl_get_file") and hasattr(
-                    candidate, "acl_set_file"
-                ):
+                if hasattr(candidate, "acl_get_file") and hasattr(candidate, "acl_set_file"):
                     candidate.acl_get_file.argtypes = [ctypes.c_char_p, ctypes.c_uint]
                     candidate.acl_get_file.restype = ctypes.c_void_p
                     candidate.acl_set_file.argtypes = [
@@ -394,9 +394,7 @@ def _has_extended_acl_fd(fd: int, path: Path) -> bool:
     return _has_extended_acl_via(lambda library: library.acl_get_fd(fd), path)
 
 
-def _has_extended_acl_via(
-    read: Callable[[ctypes.CDLL], int | None], path: Path
-) -> bool:
+def _has_extended_acl_via(read: Callable[[ctypes.CDLL], int | None], path: Path) -> bool:
     library = _libc()
     if library is None:  # pragma: no cover - no ACL support to report on
         return False
@@ -429,9 +427,7 @@ def _drop_extended_acl(path: Path) -> None:
     clamps the mask so the extra entries grant nothing.
     """
     _drop_extended_acl_via(
-        lambda library, empty: library.acl_set_file(
-            str(path).encode(), _ACL_TYPE_EXTENDED, empty
-        ),
+        lambda library, empty: library.acl_set_file(str(path).encode(), _ACL_TYPE_EXTENDED, empty),
         path,
     )
 
@@ -444,26 +440,21 @@ def _drop_extended_acl_fd(fd: int, path: Path) -> None:
     )
 
 
-def _drop_extended_acl_via(
-    apply_empty: Callable[[ctypes.CDLL, int], int], path: Path
-) -> None:
+def _drop_extended_acl_via(apply_empty: Callable[[ctypes.CDLL, int], int], path: Path) -> None:
     library = _libc()
     if library is None:  # pragma: no cover - nothing to clear
         return
 
     empty = library.acl_init(0)
     if not empty:
-        raise PrivateStateError(
-            f"Could not build an empty access list to apply to {path}"
-        )
+        raise PrivateStateError(f"Could not build an empty access list to apply to {path}")
     try:
         if apply_empty(library, empty) != 0:
             # Not swallowed. The verification below would catch a list that is
             # still there, but a failure here is worth reporting on its own
             # terms rather than as a mysterious refusal one step later.
             raise PrivateStateError(
-                f"Could not clear the access list on {path}: "
-                f"{os.strerror(ctypes.get_errno())}"
+                f"Could not clear the access list on {path}: {os.strerror(ctypes.get_errno())}"
             )
     finally:
         library.acl_free(empty)

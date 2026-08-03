@@ -49,14 +49,10 @@ def register_messaging_tools(
             Dict with url, sections (inbox -> raw text), and optional references.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="get_inbox"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="get_inbox")
             logger.info("Fetching inbox (limit=%d)", limit)
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Loading messaging inbox"
-            )
+            await ctx.report_progress(progress=0, total=100, message="Loading messaging inbox")
 
             result = await extractor.get_inbox(limit=limit)
 
@@ -112,16 +108,12 @@ def register_messaging_tools(
         """
         if not linkedin_username and not thread_id:
             raise_tool_error(
-                LinkedInScraperException(
-                    "Provide at least one of linkedin_username or thread_id"
-                ),
+                LinkedInScraperException("Provide at least one of linkedin_username or thread_id"),
                 "get_conversation",
             )
 
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="get_conversation"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="get_conversation")
             logger.info(
                 "Fetching conversation: username=%s, thread_id=%s, index=%d",
                 linkedin_username,
@@ -129,9 +121,7 @@ def register_messaging_tools(
                 index,
             )
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Loading conversation"
-            )
+            await ctx.report_progress(progress=0, total=100, message="Loading conversation")
 
             result = await extractor.get_conversation(
                 linkedin_username=linkedin_username,
@@ -182,13 +172,9 @@ def register_messaging_tools(
             extractor = extractor or await get_ready_extractor(
                 ctx, tool_name="search_conversations"
             )
-            logger.info(
-                "Searching conversations: keywords='%s', limit=%d", keywords, limit
-            )
+            logger.info("Searching conversations: keywords='%s', limit=%d", keywords, limit)
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Searching messages"
-            )
+            await ctx.report_progress(progress=0, total=100, message="Searching messages")
 
             result = await extractor.search_conversations(keywords, limit=limit)
 
@@ -240,9 +226,7 @@ def register_messaging_tools(
             Dict with url, status, message, recipient_selected, and sent.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="send_message"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="send_message")
             logger.info(
                 "Sending message to %s (confirm_send=%s)",
                 linkedin_username,

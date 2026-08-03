@@ -35,15 +35,13 @@ class TestPendingUpdateNotice:
         assert notice is not None
         assert "4.18.0" in notice
         assert "4.16.1" in notice
-        assert "uvx mcp-server-linkedin@latest" in notice
+        assert "uvx linkedin-lyr@latest" in notice
         assert ".mcpb" not in notice
 
     def test_notice_for_docker_targets_the_image(self, monkeypatch):
         monkeypatch.setattr(update_check, "__version__", "4.16.1")
         monkeypatch.setattr(update_check, "_latest_known", "4.18.0")
-        monkeypatch.setattr(
-            bootstrap, "get_runtime_policy", lambda: bootstrap.RuntimePolicy.DOCKER
-        )
+        monkeypatch.setattr(bootstrap, "get_runtime_policy", lambda: bootstrap.RuntimePolicy.DOCKER)
 
         notice = pending_update_notice()
 
@@ -169,9 +167,7 @@ class TestRefreshLatestVersion:
         monkeypatch.delenv("CI", raising=False)
         monkeypatch.setattr(update_check, "__version__", "4.16.1")
         monkeypatch.setattr(update_check, "_latest_known", None)
-        monkeypatch.setattr(
-            update_check, "_read_cache", lambda: (time.time(), "4.17.0")
-        )
+        monkeypatch.setattr(update_check, "_read_cache", lambda: (time.time(), "4.17.0"))
         fetch = MagicMock()
         monkeypatch.setattr(update_check, "_fetch_latest_from_pypi", fetch)
 
@@ -189,9 +185,7 @@ class TestPrimeFromCache:
         monkeypatch.delenv("CI", raising=False)
         monkeypatch.setattr(update_check, "__version__", "4.16.1")
         monkeypatch.setattr(update_check, "_latest_known", None)
-        monkeypatch.setattr(
-            update_check, "_read_cache", lambda: (time.time(), "4.18.0")
-        )
+        monkeypatch.setattr(update_check, "_read_cache", lambda: (time.time(), "4.18.0"))
 
         prime_from_cache()
 

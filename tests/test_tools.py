@@ -38,9 +38,7 @@ def _make_mock_extractor(scrape_result: dict) -> MagicMock:
     mock.search_companies = AsyncMock(return_value=scrape_result)
     mock.search_posts = AsyncMock(return_value=scrape_result)
     mock.get_company_employees = AsyncMock(return_value=scrape_result)
-    mock.extract_page = AsyncMock(
-        return_value=ExtractedSection(text="some text", references=[])
-    )
+    mock.extract_page = AsyncMock(return_value=ExtractedSection(text="some text", references=[]))
     mock.extract_feed = AsyncMock(return_value=ExtractedSection(text="", references=[]))
     return mock
 
@@ -276,9 +274,7 @@ class TestPersonTool:
                 "?keywords=engineer&network=%5B%22F%22%5D"
                 "&currentCompany=%5B%221115%22%5D"
             ),
-            "sections": {
-                "search_results": "Jennifer Bonuso\nPresident Americas at SAP"
-            },
+            "sections": {"search_results": "Jennifer Bonuso\nPresident Americas at SAP"},
         }
         mock_extractor = _make_mock_extractor(expected)
 
@@ -303,9 +299,7 @@ class TestPersonTool:
             current_company="1115",
         )
 
-    async def test_search_people_validation_error_surfaced_as_tool_error(
-        self, mock_context
-    ):
+    async def test_search_people_validation_error_surfaced_as_tool_error(self, mock_context):
         """A FilterValidationError raised by the extractor should surface to
         the MCP client as a ToolError carrying the same message, rather than
         being collapsed to the generic "Error calling tool" mask."""
@@ -522,9 +516,7 @@ class TestCompanyTools:
         register_company_tools(mcp)
 
         tool_fn = await get_tool_fn(mcp, "get_company_profile")
-        result = await tool_fn(
-            "testcorp", mock_context, sections="bogus", extractor=mock_extractor
-        )
+        result = await tool_fn("testcorp", mock_context, sections="bogus", extractor=mock_extractor)
         assert result["unknown_sections"] == ["bogus"]
 
     async def test_get_company_posts(self, mock_context):
@@ -639,9 +631,7 @@ class TestJobTools:
         register_job_tools(mcp)
 
         tool_fn = await get_tool_fn(mcp, "search_jobs")
-        result = await tool_fn(
-            "python", mock_context, location="Remote", extractor=mock_extractor
-        )
+        result = await tool_fn("python", mock_context, location="Remote", extractor=mock_extractor)
         assert "search_results" in result["sections"]
         assert "pages_visited" not in result
 
@@ -710,9 +700,7 @@ class TestGetSidebarProfilesTool:
         from linkedin_mcp_server.exceptions import SessionExpiredError
 
         mock_extractor = MagicMock()
-        mock_extractor.get_sidebar_profiles = AsyncMock(
-            side_effect=SessionExpiredError()
-        )
+        mock_extractor.get_sidebar_profiles = AsyncMock(side_effect=SessionExpiredError())
 
         from linkedin_mcp_server.tools.person import register_person_tools
 
@@ -756,9 +744,7 @@ class TestMessagingTools:
         register_messaging_tools(mcp)
 
         tool_fn = await get_tool_fn(mcp, "get_conversation")
-        result = await tool_fn(
-            mock_context, linkedin_username="testuser", extractor=mock_extractor
-        )
+        result = await tool_fn(mock_context, linkedin_username="testuser", extractor=mock_extractor)
 
         assert result["sections"]["conversation"] == "Hello!\nHi there!"
         mock_extractor.get_conversation.assert_awaited_once_with(
@@ -899,9 +885,7 @@ class TestGetMyProfileTool:
         register_person_tools(mcp)
 
         tool_fn = await get_tool_fn(mcp, "get_my_profile")
-        result = await tool_fn(
-            mock_context, sections="experience", extractor=mock_extractor
-        )
+        result = await tool_fn(mock_context, sections="experience", extractor=mock_extractor)
         assert "main_profile" in result["sections"]
         assert "experience" in result["sections"]
         call_kwargs = mock_extractor.get_my_profile.call_args.kwargs
@@ -939,9 +923,7 @@ class TestGetMyProfileTool:
         register_person_tools(mcp)
 
         tool_fn = await get_tool_fn(mcp, "get_my_profile")
-        result = await tool_fn(
-            mock_context, sections="bogus_section", extractor=mock_extractor
-        )
+        result = await tool_fn(mock_context, sections="bogus_section", extractor=mock_extractor)
         assert result["unknown_sections"] == ["bogus_section"]
 
     async def test_get_my_profile_error(self, mock_context):
@@ -1014,9 +996,7 @@ class TestGetCompanyEmployeesTool:
         tool_fn = await get_tool_fn(mcp, "get_company_employees")
         result = await tool_fn("anthropic", mock_context, extractor=mock_extractor)
         assert "employees" in result["sections"]
-        mock_extractor.get_company_employees.assert_awaited_once_with(
-            "anthropic", keywords=None
-        )
+        mock_extractor.get_company_employees.assert_awaited_once_with("anthropic", keywords=None)
 
     async def test_get_company_employees_with_keywords(self, mock_context):
         expected = {
@@ -1045,9 +1025,7 @@ class TestGetCompanyEmployeesTool:
         from linkedin_mcp_server.exceptions import SessionExpiredError
 
         mock_extractor = MagicMock()
-        mock_extractor.get_company_employees = AsyncMock(
-            side_effect=SessionExpiredError()
-        )
+        mock_extractor.get_company_employees = AsyncMock(side_effect=SessionExpiredError())
 
         from linkedin_mcp_server.tools.company import register_company_tools
 
@@ -1208,9 +1186,7 @@ class TestPostTools:
             max_pages=3,
         )
 
-    async def test_search_posts_validation_error_surfaced_as_tool_error(
-        self, mock_context
-    ):
+    async def test_search_posts_validation_error_surfaced_as_tool_error(self, mock_context):
         """A FilterValidationError from the extractor surfaces to the client as
         a ToolError carrying the same message, not the generic mask."""
         from fastmcp.exceptions import ToolError

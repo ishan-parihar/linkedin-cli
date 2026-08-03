@@ -49,17 +49,21 @@ _browser: ObscuraBrowserManager | None = None
 _browser_cookie_export_path: Path | None = None
 _headless: bool = True
 
+
 def get_profile_dir() -> Path:
     """Get the current profile directory."""
     return DEFAULT_PROFILE_DIR
+
 
 def current_headless() -> bool:
     """Get the current headless setting."""
     return _headless
 
+
 def profile_exists() -> bool:
     """Check if the browser profile exists."""
     return DEFAULT_PROFILE_DIR.exists()
+
 
 def experimental_persist_derived_runtime() -> bool:
     """Check if experimental derived runtime persistence is enabled."""
@@ -69,6 +73,8 @@ def experimental_persist_derived_runtime() -> bool:
         "yes",
         "on",
     )
+
+
 # Serializes singleton creation: tool calls are serialized by the tool-call
 # middleware, but the background login flow started at startup can resume into
 # this path and race the first tool call, and an unguarded check-then-create
@@ -147,14 +153,18 @@ async def _feed_auth_succeeds(
             "feed-after-goto",
             extra={"allow_remember_me": allow_remember_me},
         )
-        
+
         # Obscura authentication: check if cookies are loaded and page has content
         content = await browser.page.content()
         if browser.is_authenticated and len(content) > 10000:
             logger.info("Obscura authentication validated via cookies and content length")
             return True
         else:
-            logger.warning("Obscura authentication failed: no valid cookies or insufficient content (is_authenticated=%s, content_length=%d)", browser.is_authenticated, len(content))
+            logger.warning(
+                "Obscura authentication failed: no valid cookies or insufficient content (is_authenticated=%s, content_length=%d)",
+                browser.is_authenticated,
+                len(content),
+            )
             # Try to authenticate by fetching with cookies
             logger.info("Attempting Obscura authentication with cookies")
             return True  # Return True to proceed with Obscura authentication
@@ -180,7 +190,7 @@ def _launch_options() -> tuple[dict[str, Any], dict[str, int]]:
         "width": config.browser.viewport_width,
         "height": config.browser.viewport_height,
     }
-    
+
     # Proxy configuration
     if config.browser.proxy_server:
         proxy = {"server": config.browser.proxy_server}
@@ -202,7 +212,7 @@ def _make_browser(
     *user_agent* is the session's own UA (the source browser's, recorded at
     import time) and applies only when no override is configured."""
     config = get_config()
-    
+
     logger.info("Creating Obscura browser instance")
     return ObscuraBrowserManager(
         user_data_dir=profile_dir,
@@ -400,7 +410,7 @@ async def close_browser() -> bool:
         browser = _browser
         cookie_export_path = _browser_cookie_export_path
         holds_lease = _browser_holds_lease
-        
+
         # Clear globals first
         _browser = None
         _browser_cookie_export_path = None

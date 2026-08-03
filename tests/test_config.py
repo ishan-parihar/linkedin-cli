@@ -45,16 +45,12 @@ class TestBrowserConfig:
     def test_validate_login_inline_wait_zero_allowed(self):
         BrowserConfig(login_inline_wait_seconds=0).validate()  # No error
 
-    @pytest.mark.parametrize(
-        "bad_value", [-1.0, float("nan"), float("inf"), float("-inf")]
-    )
+    @pytest.mark.parametrize("bad_value", [-1.0, float("nan"), float("inf"), float("-inf")])
     def test_validate_invalid_login_timeout(self, bad_value):
         with pytest.raises(ConfigurationError):
             BrowserConfig(login_timeout_seconds=bad_value).validate()
 
-    @pytest.mark.parametrize(
-        "bad_value", [-1.0, float("nan"), float("inf"), float("-inf")]
-    )
+    @pytest.mark.parametrize("bad_value", [-1.0, float("nan"), float("inf"), float("-inf")])
     def test_validate_invalid_login_inline_wait(self, bad_value):
         with pytest.raises(ConfigurationError):
             BrowserConfig(login_inline_wait_seconds=bad_value).validate()
@@ -77,9 +73,7 @@ class TestProfileSharingConfig:
         config = BrowserConfig()
         assert config.browser_wait_seconds == DEFAULT_BROWSER_WAIT_SECONDS
         assert config.browser_min_hold_seconds == DEFAULT_BROWSER_MIN_HOLD_SECONDS
-        assert (
-            config.browser_idle_timeout_seconds == DEFAULT_BROWSER_IDLE_TIMEOUT_SECONDS
-        )
+        assert config.browser_idle_timeout_seconds == DEFAULT_BROWSER_IDLE_TIMEOUT_SECONDS
 
     def test_defaults_leave_room_for_a_handover(self):
         """The shipped defaults must satisfy their own clamp, unchanged."""
@@ -105,23 +99,17 @@ class TestProfileSharingConfig:
             browser_idle_timeout_seconds=0,
         ).validate()  # No error
 
-    @pytest.mark.parametrize(
-        "bad_value", [-1.0, float("nan"), float("inf"), float("-inf")]
-    )
+    @pytest.mark.parametrize("bad_value", [-1.0, float("nan"), float("inf"), float("-inf")])
     def test_rejects_a_negative_or_non_finite_wait(self, bad_value):
         with pytest.raises(ConfigurationError, match="browser_wait_seconds"):
             BrowserConfig(browser_wait_seconds=bad_value).validate()
 
-    @pytest.mark.parametrize(
-        "bad_value", [-1.0, float("nan"), float("inf"), float("-inf")]
-    )
+    @pytest.mark.parametrize("bad_value", [-1.0, float("nan"), float("inf"), float("-inf")])
     def test_rejects_a_negative_or_non_finite_hold(self, bad_value):
         with pytest.raises(ConfigurationError, match="browser_min_hold_seconds"):
             BrowserConfig(browser_min_hold_seconds=bad_value).validate()
 
-    @pytest.mark.parametrize(
-        "bad_value", [-1.0, float("nan"), float("inf"), float("-inf")]
-    )
+    @pytest.mark.parametrize("bad_value", [-1.0, float("nan"), float("inf"), float("-inf")])
     def test_rejects_a_negative_or_non_finite_idle_timeout(self, bad_value):
         with pytest.raises(ConfigurationError, match="browser_idle_timeout_seconds"):
             BrowserConfig(browser_idle_timeout_seconds=bad_value).validate()
@@ -196,9 +184,7 @@ class TestServerConfig:
     def test_validate_passes(self):
         ServerConfig().validate()  # No error
 
-    @pytest.mark.parametrize(
-        "bad_value", [-1.0, 0.0, float("nan"), float("inf"), float("-inf")]
-    )
+    @pytest.mark.parametrize("bad_value", [-1.0, 0.0, float("nan"), float("inf"), float("-inf")])
     def test_validate_invalid_tool_timeout(self, bad_value):
         with pytest.raises(ConfigurationError):
             ServerConfig(tool_timeout_seconds=bad_value).validate()
@@ -225,9 +211,7 @@ class TestExposedBindWarning:
         config = AppConfig()
         config.server.transport = "streamable-http"
         config.server.host = host
-        with caplog.at_level(
-            logging.WARNING, logger="linkedin_mcp_server.config.schema"
-        ):
+        with caplog.at_level(logging.WARNING, logger="linkedin_mcp_server.config.schema"):
             config.validate()
         return caplog.text
 
@@ -445,9 +429,7 @@ class TestLoaders:
             load_from_env(AppConfig())
 
     def test_load_from_args_tool_timeout(self, monkeypatch):
-        monkeypatch.setattr(
-            "sys.argv", ["linkedin-mcp-server", "--tool-timeout", "7.5"]
-        )
+        monkeypatch.setattr("sys.argv", ["linkedin-mcp-server", "--tool-timeout", "7.5"])
         from linkedin_mcp_server.config.loaders import load_from_args
 
         config = load_from_args(AppConfig())
@@ -455,9 +437,7 @@ class TestLoaders:
 
     @pytest.mark.parametrize("bad_value", ["0", "-1", "abc", "nan", "inf"])
     def test_load_from_args_invalid_tool_timeout(self, monkeypatch, bad_value):
-        monkeypatch.setattr(
-            "sys.argv", ["linkedin-mcp-server", "--tool-timeout", bad_value]
-        )
+        monkeypatch.setattr("sys.argv", ["linkedin-mcp-server", "--tool-timeout", bad_value])
         from linkedin_mcp_server.config.loaders import load_from_args
 
         with pytest.raises(SystemExit):
@@ -519,27 +499,21 @@ class TestLoaders:
             load_from_env(AppConfig())
 
     def test_load_from_args_login_timeout(self, monkeypatch):
-        monkeypatch.setattr(
-            "sys.argv", ["linkedin-mcp-server", "--login-timeout", "900"]
-        )
+        monkeypatch.setattr("sys.argv", ["linkedin-mcp-server", "--login-timeout", "900"])
         from linkedin_mcp_server.config.loaders import load_from_args
 
         config = load_from_args(AppConfig())
         assert config.browser.login_timeout_seconds == 900.0
 
     def test_load_from_args_login_inline_wait(self, monkeypatch):
-        monkeypatch.setattr(
-            "sys.argv", ["linkedin-mcp-server", "--login-inline-wait", "12"]
-        )
+        monkeypatch.setattr("sys.argv", ["linkedin-mcp-server", "--login-inline-wait", "12"])
         from linkedin_mcp_server.config.loaders import load_from_args
 
         config = load_from_args(AppConfig())
         assert config.browser.login_inline_wait_seconds == 12.0
 
     def test_load_from_args_login_inline_wait_zero(self, monkeypatch):
-        monkeypatch.setattr(
-            "sys.argv", ["linkedin-mcp-server", "--login-inline-wait", "0"]
-        )
+        monkeypatch.setattr("sys.argv", ["linkedin-mcp-server", "--login-inline-wait", "0"])
         from linkedin_mcp_server.config.loaders import load_from_args
 
         config = load_from_args(AppConfig())
@@ -592,9 +566,7 @@ class TestLoaders:
         "env_key", ["BROWSER_WAIT", "BROWSER_MIN_HOLD", "BROWSER_IDLE_TIMEOUT"]
     )
     @pytest.mark.parametrize("bad_value", ["abc", "-5", "nan", "inf", "-inf"])
-    def test_load_from_env_invalid_profile_sharing(
-        self, monkeypatch, env_key, bad_value
-    ):
+    def test_load_from_env_invalid_profile_sharing(self, monkeypatch, env_key, bad_value):
         monkeypatch.setenv(env_key, bad_value)
         from linkedin_mcp_server.config.loaders import load_from_env
 
@@ -700,18 +672,14 @@ class TestLoaders:
         assert config.browser.eager_full_chromium is expected
 
     def test_load_from_args_eager_full_chromium(self, monkeypatch):
-        monkeypatch.setattr(
-            "sys.argv", ["linkedin-mcp-server", "--eager-full-chromium"]
-        )
+        monkeypatch.setattr("sys.argv", ["linkedin-mcp-server", "--eager-full-chromium"])
         from linkedin_mcp_server.config.loaders import load_from_args
 
         config = load_from_args(AppConfig())
         assert config.browser.eager_full_chromium is True
 
     def test_load_from_args_no_eager_full_chromium(self, monkeypatch):
-        monkeypatch.setattr(
-            "sys.argv", ["linkedin-mcp-server", "--no-eager-full-chromium"]
-        )
+        monkeypatch.setattr("sys.argv", ["linkedin-mcp-server", "--no-eager-full-chromium"])
         from linkedin_mcp_server.config.loaders import load_from_args
 
         config = AppConfig()
@@ -721,9 +689,7 @@ class TestLoaders:
 
     def test_no_eager_flag_overrides_env_true(self, monkeypatch):
         monkeypatch.setenv("EAGER_FULL_CHROMIUM", "true")
-        monkeypatch.setattr(
-            "sys.argv", ["linkedin-mcp-server", "--no-eager-full-chromium"]
-        )
+        monkeypatch.setattr("sys.argv", ["linkedin-mcp-server", "--no-eager-full-chromium"])
         from linkedin_mcp_server.config import load_config
 
         config = load_config()
@@ -831,27 +797,21 @@ class TestLoaders:
         assert config.server.import_from_browser == "brave"
 
     def test_load_from_args_import_from_browser_value(self, monkeypatch):
-        monkeypatch.setattr(
-            "sys.argv", ["linkedin-mcp-server", "--import-from-browser", "chrome"]
-        )
+        monkeypatch.setattr("sys.argv", ["linkedin-mcp-server", "--import-from-browser", "chrome"])
         from linkedin_mcp_server.config.loaders import load_from_args
 
         config = load_from_args(AppConfig())
         assert config.server.import_from_browser == "chrome"
 
     def test_load_from_args_import_from_browser_bare_flag_is_auto(self, monkeypatch):
-        monkeypatch.setattr(
-            "sys.argv", ["linkedin-mcp-server", "--import-from-browser"]
-        )
+        monkeypatch.setattr("sys.argv", ["linkedin-mcp-server", "--import-from-browser"])
         from linkedin_mcp_server.config.loaders import load_from_args
 
         config = load_from_args(AppConfig())
         assert config.server.import_from_browser == "auto"
 
     def test_load_from_args_import_from_browser_empty_is_auto(self, monkeypatch):
-        monkeypatch.setattr(
-            "sys.argv", ["linkedin-mcp-server", "--import-from-browser="]
-        )
+        monkeypatch.setattr("sys.argv", ["linkedin-mcp-server", "--import-from-browser="])
         from linkedin_mcp_server.config.loaders import load_from_args
 
         config = load_from_args(AppConfig())
@@ -973,9 +933,7 @@ class TestProxyConfig:
     def test_rejection_never_echoes_the_secret(self):
         # Validation errors reach the console, so they must not quote the value.
         with pytest.raises(ConfigurationError) as excinfo:
-            BrowserConfig(
-                proxy_server=f"socks5://user:{self.SECRET}@host:1080"
-            ).validate()
+            BrowserConfig(proxy_server=f"socks5://user:{self.SECRET}@host:1080").validate()
         assert self.SECRET not in str(excinfo.value)
 
     def test_password_never_appears_in_repr(self):
@@ -1118,9 +1076,7 @@ class TestProxyEncodedUserinfo:
         assert "user%3Apass" not in str(excinfo.value)
 
     def test_cli_rejects_it(self, monkeypatch, capsys):
-        monkeypatch.setattr(
-            "sys.argv", ["linkedin-mcp-server", "--proxy-server", self.ENCODED]
-        )
+        monkeypatch.setattr("sys.argv", ["linkedin-mcp-server", "--proxy-server", self.ENCODED])
         from linkedin_mcp_server.config.loaders import load_from_args
 
         with pytest.raises(SystemExit):

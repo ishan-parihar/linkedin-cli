@@ -204,9 +204,7 @@ class TestRefusals:
         with pytest.raises(DescriptorError, match="different daemon generations"):
             read_token(tmp_path, loaded)
 
-    @pytest.mark.skipif(
-        os.name == "nt", reason="symlinks need a privilege this test cannot assume"
-    )
+    @pytest.mark.skipif(os.name == "nt", reason="symlinks need a privilege this test cannot assume")
     def test_a_dangling_descriptor_symlink_is_not_read_as_absence(self, tmp_path: Path):
         # Measured: a dead symlink made read() return None, so a client would
         # have taken it for a first start and elected a second owner while the
@@ -218,12 +216,8 @@ class TestRefusals:
         with pytest.raises(DescriptorError, match="symbolic link"):
             read(tmp_path)
 
-    @pytest.mark.skipif(
-        os.name == "nt", reason="symlinks need a privilege this test cannot assume"
-    )
-    def test_a_descriptor_symlink_pointing_somewhere_real_is_refused(
-        self, tmp_path: Path
-    ):
+    @pytest.mark.skipif(os.name == "nt", reason="symlinks need a privilege this test cannot assume")
+    def test_a_descriptor_symlink_pointing_somewhere_real_is_refused(self, tmp_path: Path):
         # Following it would read a file this never published, chosen by
         # whoever could write the link.
         elsewhere = tmp_path / "planted.json"
@@ -234,12 +228,8 @@ class TestRefusals:
         with pytest.raises(DescriptorError, match="symbolic link"):
             read(tmp_path)
 
-    @pytest.mark.skipif(
-        not hasattr(os, "mkfifo"), reason="named pipes are a POSIX mechanism"
-    )
-    def test_a_descriptor_that_is_not_a_regular_file_does_not_hang(
-        self, tmp_path: Path
-    ):
+    @pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="named pipes are a POSIX mechanism")
+    def test_a_descriptor_that_is_not_a_regular_file_does_not_hang(self, tmp_path: Path):
         # Discovery runs on every cold start, so a named pipe left at this path
         # would stall it inside open() with no timeout and no error, rather
         # than being reported as something the daemon did not write.
@@ -293,9 +283,7 @@ class TestRefusals:
         with pytest.raises(DescriptorError, match="protocol"):
             read(tmp_path)
 
-    @pytest.mark.skipif(
-        os.name == "nt", reason="symlinks need a privilege this test cannot assume"
-    )
+    @pytest.mark.skipif(os.name == "nt", reason="symlinks need a privilege this test cannot assume")
     def test_a_token_symlink_is_not_followed(self, tmp_path: Path):
         # Confining the filename to the daemon directory is not enough on its
         # own: a link sitting at that name still points wherever it likes, so
@@ -314,9 +302,7 @@ class TestRefusals:
         with pytest.raises(DescriptorError, match="could not be read"):
             read_token(tmp_path, loaded)
 
-    @pytest.mark.skipif(
-        not hasattr(os, "mkfifo"), reason="named pipes are a POSIX mechanism"
-    )
+    @pytest.mark.skipif(not hasattr(os, "mkfifo"), reason="named pipes are a POSIX mechanism")
     def test_a_token_that_is_not_a_regular_file_is_refused(self, tmp_path: Path):
         # A named pipe at that path would otherwise block the client inside
         # open(), before any check could run, so the read is opened
@@ -384,9 +370,7 @@ class TestStateLocation:
 
         assert daemon_dir(direct) == daemon_dir(indirect)
 
-    def test_different_auth_roots_have_different_state_directories(
-        self, tmp_path: Path
-    ):
+    def test_different_auth_roots_have_different_state_directories(self, tmp_path: Path):
         one = tmp_path / "one"
         two = tmp_path / "two"
         one.mkdir()
@@ -409,9 +393,7 @@ class TestStateLocation:
     ):
         # Launchers and services can override these per process. Election scope
         # follows the OS account, so the same absolute profile cannot split.
-        monkeypatch.setattr(
-            daemon_descriptor_module, "_account_home", _REAL_ACCOUNT_HOME
-        )
+        monkeypatch.setattr(daemon_descriptor_module, "_account_home", _REAL_ACCOUNT_HOME)
         auth_root = tmp_path / "shared-parent"
         auth_root.mkdir()
         before = daemon_dir(auth_root)
@@ -450,7 +432,7 @@ class TestStateLocation:
             home.symlink_to(real, target_is_directory=True)
         else:
             home.mkdir()
-            application = home / ".mcp-server-linkedin"
+            application = home / ".linkedin-lyr"
             if depth == "application":
                 application.symlink_to(real, target_is_directory=True)
             else:
@@ -471,38 +453,36 @@ class TestStateLocation:
         # the daemon that did so would key its state under that empty directory
         # while everything started after the mount keys it under the real one.
         missing = tmp_path / "not-mounted" / "user"
-        monkeypatch.setattr(
-            daemon_descriptor_module, "_account_home", _REAL_ACCOUNT_HOME
-        )
+        monkeypatch.setattr(daemon_descriptor_module, "_account_home", _REAL_ACCOUNT_HOME)
         monkeypatch.setattr(os, "getuid", lambda: 424242, raising=False)
 
         import pwd
 
-        entry = pwd.struct_passwd(
-            ("nobody", "x", 424242, 424242, "", str(missing), "/usr/bin/false")
-        )
+        entry = pwd.struct_passwd((
+            "nobody",
+            "x",
+            424242,
+            424242,
+            "",
+            str(missing),
+            "/usr/bin/false",
+        ))
         monkeypatch.setattr(pwd, "getpwuid", lambda _uid: entry)
 
         with pytest.raises(DescriptorError, match="does not exist"):
             daemon_state_root()
         assert not missing.exists()
 
-    def test_an_account_without_an_absolute_home_is_refused(
-        self, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_an_account_without_an_absolute_home_is_refused(self, monkeypatch: pytest.MonkeyPatch):
         # Path("") is ".", so an empty entry would key state under whichever
         # directory the process happened to start in and split one account's
         # election between them.
-        monkeypatch.setattr(
-            daemon_descriptor_module, "_account_home", _REAL_ACCOUNT_HOME
-        )
+        monkeypatch.setattr(daemon_descriptor_module, "_account_home", _REAL_ACCOUNT_HOME)
         monkeypatch.setattr(os, "getuid", lambda: 424242, raising=False)
 
         import pwd
 
-        entry = pwd.struct_passwd(
-            ("nobody", "x", 424242, 424242, "", "", "/usr/bin/false")
-        )
+        entry = pwd.struct_passwd(("nobody", "x", 424242, 424242, "", "", "/usr/bin/false"))
         monkeypatch.setattr(pwd, "getpwuid", lambda _uid: entry)
 
         with pytest.raises(DescriptorError, match="absolute home directory"):
@@ -585,20 +565,15 @@ class TestEndpointSpelling:
             socket,
             "getaddrinfo",
             lambda *args, **kwargs: [
-                (socket.AF_INET, socket.SOCK_STREAM, 6, "", answer)
-                for answer in answers
+                (socket.AF_INET, socket.SOCK_STREAM, 6, "", answer) for answer in answers
             ],
         )
 
         with pytest.raises(DescriptorError, match="other than this machine"):
             descriptor.check_endpoint_is_local()
 
-    @pytest.mark.parametrize(
-        "host", ["127.0.0.1", "::1", "[::1]", "localhost", "::ffff:127.0.0.1"]
-    )
-    def test_every_spelling_a_daemon_publishes_is_accepted(
-        self, tmp_path: Path, host: str
-    ):
+    @pytest.mark.parametrize("host", ["127.0.0.1", "::1", "[::1]", "localhost", "::ffff:127.0.0.1"])
+    def test_every_spelling_a_daemon_publishes_is_accepted(self, tmp_path: Path, host: str):
         # The other half: tightening this must not refuse an endpoint the
         # daemon itself would write, which is easy to do by accident.
         import httpx
@@ -642,9 +617,7 @@ class TestUnusablePaths:
 class TestDigestFields:
     @pytest.mark.parametrize("field", ["token_sha256", "config_fingerprint"])
     @pytest.mark.parametrize("value", ["é" * 64, "z" * 64, "abc", "a" * 63, "a" * 65])
-    def test_a_field_that_is_not_a_digest_is_refused(
-        self, tmp_path: Path, field: str, value: str
-    ):
+    def test_a_field_that_is_not_a_digest_is_refused(self, tmp_path: Path, field: str, value: str):
         # compare_digest refuses a string carrying anything outside ASCII and
         # raises TypeError doing so. Measured with an accented character: the
         # descriptor was accepted and the comparison failed later, outside the
@@ -660,9 +633,7 @@ class TestDigestFields:
 
 
 class TestProfileIdentityStability:
-    def test_a_missing_profile_does_not_borrow_a_siblings_identity(
-        self, tmp_path: Path
-    ):
+    def test_a_missing_profile_does_not_borrow_a_siblings_identity(self, tmp_path: Path):
         # The profile does not exist before the first login. Where a sibling
         # differs only in case, folding onto it would give the two the same
         # identity, and on a case-sensitive volume they really are two
@@ -683,9 +654,7 @@ class TestProfileIdentityStability:
         assert profile_identity(profile) == before
 
     @pytest.mark.parametrize("variant", ["case", "unicode"])
-    def test_an_alias_of_the_profile_name_itself_matches(
-        self, tmp_path: Path, variant: str
-    ):
+    def test_an_alias_of_the_profile_name_itself_matches(self, tmp_path: Path, variant: str):
         # The alias tests above vary a parent segment. This varies the profile's
         # own name, which is the part the identity carries as text: measured, a
         # decomposed and a composed accent named one directory and produced two
@@ -847,9 +816,7 @@ class TestConfigFingerprint:
     def test_identical_configuration_matches(self):
         token = new_token()
 
-        assert config_fingerprint(_config(), key=token) == config_fingerprint(
-            _config(), key=token
-        )
+        assert config_fingerprint(_config(), key=token) == config_fingerprint(_config(), key=token)
 
     @pytest.mark.parametrize(
         "field,value",
@@ -862,9 +829,7 @@ class TestConfigFingerprint:
             ("slow_mo", 250),
         ],
     )
-    def test_configuration_that_changes_the_browser_does_not_match(
-        self, field: str, value: object
-    ):
+    def test_configuration_that_changes_the_browser_does_not_match(self, field: str, value: object):
         # Each of these changes what the shared browser is, so a client that
         # disagrees cannot be served by that owner.
         token = new_token()
@@ -897,9 +862,7 @@ class TestConfigFingerprint:
         direct = _config(user_data_dir=str(tmp_path / "profile"))
         indirect = _config(user_data_dir=str(tmp_path / "sub" / ".." / "profile"))
 
-        assert config_fingerprint(direct, key=token) == config_fingerprint(
-            indirect, key=token
-        )
+        assert config_fingerprint(direct, key=token) == config_fingerprint(indirect, key=token)
 
     def test_case_aliases_of_the_same_profile_match(self, tmp_path: Path):
         profile = tmp_path / "MixedRoot" / "Profile"
@@ -935,14 +898,10 @@ class TestConfigFingerprint:
         # what it asked for.
         token = new_token()
         absent = _config(proxy_server="http://p.example:1", proxy_username="u")
-        empty = _config(
-            proxy_server="http://p.example:1", proxy_username="u", proxy_password=""
-        )
+        empty = _config(proxy_server="http://p.example:1", proxy_username="u", proxy_password="")
 
         assert absent.browser.proxy_settings() != empty.browser.proxy_settings()
-        assert config_fingerprint(absent, key=token) != config_fingerprint(
-            empty, key=token
-        )
+        assert config_fingerprint(absent, key=token) != config_fingerprint(empty, key=token)
 
     def test_reordered_proxy_bypass_hosts_match(self):
         # The same hosts bypass the proxy either way, so the order is not a
@@ -951,9 +910,7 @@ class TestConfigFingerprint:
         one = _config(proxy_server="http://p.example:1", proxy_bypass="a.com, b.com")
         other = _config(proxy_server="http://p.example:1", proxy_bypass="b.com,a.com")
 
-        assert config_fingerprint(one, key=token) == config_fingerprint(
-            other, key=token
-        )
+        assert config_fingerprint(one, key=token) == config_fingerprint(other, key=token)
 
     def test_default_auto_import_matches_explicit_enabled(self):
         # None is the enabled default, so spelling that default as True must not
@@ -962,9 +919,7 @@ class TestConfigFingerprint:
         default = _config()
         enabled = _config(auto_import_from_browser=True)
 
-        assert config_fingerprint(default, key=token) == config_fingerprint(
-            enabled, key=token
-        )
+        assert config_fingerprint(default, key=token) == config_fingerprint(enabled, key=token)
         assert mismatched_fields(default, enabled) == ()
 
     def test_disabled_auto_import_remains_a_difference(self):
@@ -972,9 +927,7 @@ class TestConfigFingerprint:
         default = _config()
         disabled = _config(auto_import_from_browser=False)
 
-        assert config_fingerprint(default, key=token) != config_fingerprint(
-            disabled, key=token
-        )
+        assert config_fingerprint(default, key=token) != config_fingerprint(disabled, key=token)
         assert mismatched_fields(default, disabled) == ("auto_import_from_browser",)
 
 

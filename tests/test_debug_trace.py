@@ -98,9 +98,7 @@ async def test_reset_trace_state_resets_step_counter(monkeypatch, tmp_path):
     await record_page_trace(page, "first-again")
     second_trace_dir = get_trace_dir()
     assert second_trace_dir is not None
-    second_payload = json.loads(
-        (second_trace_dir / "trace.jsonl").read_text().splitlines()[0]
-    )
+    second_payload = json.loads((second_trace_dir / "trace.jsonl").read_text().splitlines()[0])
     assert second_payload["step_id"] == 1
 
 

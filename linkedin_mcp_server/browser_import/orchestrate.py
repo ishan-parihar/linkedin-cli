@@ -215,8 +215,7 @@ async def import_session_from_browser(
         raise _no_live_session_error(skipped)
 
     logger.info(
-        "Found %d browser profile(s) with a live LinkedIn session; trying most "
-        "recently used first",
+        "Found %d browser profile(s) with a live LinkedIn session; trying most recently used first",
         len(live),
     )
     cookie_path = portable_cookie_path(user_data_dir)
@@ -242,9 +241,7 @@ async def import_session_from_browser(
         )
     release_profile = True
     try:
-        return await _import_holding_the_profile(
-            live, cookie_path, user_data_dir, lease
-        )
+        return await _import_holding_the_profile(live, cookie_path, user_data_dir, lease)
     except BrowserShutdownUnconfirmedError:
         # A validation browser may still hold the profile, so keep the lease
         # rather than letting the next process launch on top of it. The kernel
@@ -327,9 +324,7 @@ async def _import_first_accepted(
         # runtime session replay the cookie under the fingerprint it was minted
         # with (None keeps the runtime default; file I/O, so off the loop).
         user_agent = await asyncio.to_thread(synthesize_user_agent, profile)
-        if await validate_imported_cookies(
-            cookie_path, user_data_dir, user_agent=user_agent
-        ):
+        if await validate_imported_cookies(cookie_path, user_data_dir, user_agent=user_agent):
             write_source_state(user_data_dir, user_agent=user_agent)
             logger.info(
                 "Imported LinkedIn session from %s/%s",
@@ -343,8 +338,7 @@ async def _import_first_accepted(
         cookie_path.unlink(missing_ok=True)
         _reset_profile_dir(user_data_dir)
         logger.info(
-            "%s/%s had an li_at but LinkedIn rejected the session; trying the "
-            "next browser",
+            "%s/%s had an li_at but LinkedIn rejected the session; trying the next browser",
             profile.browser,
             profile.profile_dir_name,
         )

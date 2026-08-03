@@ -4,15 +4,15 @@
 import sys
 import os
 
-# ── Direct tool invocation: linkedin-cli <tool_name> [args...] ──────
+# ── Direct tool invocation: linkedin-lyr <tool_name> [args...] ──────
 # Intercept BEFORE any imports to avoid argparse conflicts
 if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
     # Set environment variable early before any imports
     os.environ["LINKEDIN_MCP_TOOL_MODE"] = "1"
-    
+
     # Import only what we need for early interception (tool_registry has minimal imports)
     from linkedin_mcp_server.tool_registry import TOOLS, axi_error, run_tool_direct
-    
+
     tool_name = sys.argv[1]
     tool_names = [t[0] for t in TOOLS]
     if tool_name in tool_names:
@@ -27,10 +27,13 @@ if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
         f"Valid tools: {', '.join(tool_names)}",
     )
 
+
 def main() -> None:
     """Main entry point that delegates to cli_main (MCP server mode)."""
     from linkedin_mcp_server.cli_main import main as cli_main
+
     cli_main()
+
 
 if __name__ == "__main__":
     main()

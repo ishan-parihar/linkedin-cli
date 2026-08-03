@@ -77,9 +77,7 @@ PROTECTED_DACL_SECURITY_INFORMATION = 0x80000000
 # straight back. Taking ownership is what makes the entry we just wrote the
 # last word.
 REPLACE_PROTECTED_DACL = (
-    OWNER_SECURITY_INFORMATION
-    | DACL_SECURITY_INFORMATION
-    | PROTECTED_DACL_SECURITY_INFORMATION
+    OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION
 )
 
 SE_DACL_PROTECTED = 0x1000
@@ -330,9 +328,7 @@ def current_user_sid() -> tuple[_PSID, ctypes.Array]:
         needed = wintypes.DWORD(0)
         _clear_last_error()
         # Expected to fail: this asks how large the buffer has to be.
-        if _advapi32.GetTokenInformation(
-            token, TOKEN_USER_CLASS, None, 0, ctypes.byref(needed)
-        ):
+        if _advapi32.GetTokenInformation(token, TOKEN_USER_CLASS, None, 0, ctypes.byref(needed)):
             raise PrivateStateError("GetTokenInformation sizing call succeeded")
         code = _last_error()
         if code != ERROR_INSUFFICIENT_BUFFER:
@@ -558,21 +554,15 @@ def verify_owner_only(path: Path, *, directory: bool) -> None:
 
     described = describe_dacl(path)
     if not described.protected:
-        raise PrivateStateError(
-            f"{path} still inherits permissions from its parent directory"
-        )
+        raise PrivateStateError(f"{path} still inherits permissions from its parent directory")
 
     if len(described.entries) != 1:
         granted = ", ".join(entry.sid for entry in described.entries) or "nobody"
-        raise PrivateStateError(
-            f"{path} grants access to more than this account ({granted})"
-        )
+        raise PrivateStateError(f"{path} grants access to more than this account ({granted})")
 
     entry = described.entries[0]
     if entry.sid != expected_sid:
-        raise PrivateStateError(
-            f"{path} grants access to {entry.sid}, not to this account"
-        )
+        raise PrivateStateError(f"{path} grants access to {entry.sid}, not to this account")
     if entry.type != ACCESS_ALLOWED_ACE_TYPE:
         raise PrivateStateError(f"{path} carries an unexpected permission entry")
     if entry.inherited:
@@ -580,8 +570,7 @@ def verify_owner_only(path: Path, *, directory: bool) -> None:
     expected_flags = CONTAINER_INHERITANCE if directory else 0
     if entry.flags != expected_flags:
         raise PrivateStateError(
-            f"{path} has inheritance flags {entry.flags:#04x}, expected "
-            f"{expected_flags:#04x}"
+            f"{path} has inheritance flags {entry.flags:#04x}, expected {expected_flags:#04x}"
         )
     # The entry names the right account and nobody else, which is half the
     # question; the other half is what it actually grants. A backend that

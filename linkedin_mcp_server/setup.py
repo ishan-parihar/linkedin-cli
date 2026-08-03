@@ -124,9 +124,7 @@ async def _login_holding_the_profile(
     state.browser_opened = True
     state.close_confirmed = False
     try:
-        succeeded = await _login_into_fresh_profile(
-            user_data_dir, config=get_config(), state=state
-        )
+        succeeded = await _login_into_fresh_profile(user_data_dir, config=get_config(), state=state)
         return succeeded
     finally:
         # The retirement happens before the replacement exists, so a login that
@@ -230,9 +228,7 @@ async def _run_login(
 ) -> bool:
     async with manager as browser:
         # Navigate to LinkedIn login
-        await goto_reporting_proxy_errors(
-            browser.page, "https://www.linkedin.com/login"
-        )
+        await goto_reporting_proxy_errors(browser.page, "https://www.linkedin.com/login")
         # Let LinkedIn finish rendering the saved-account chooser, then retry the
         # same exact click target a few times before falling back to the normal
         # manual-login wait loop.
@@ -266,9 +262,7 @@ async def _run_login(
             # replay from a runtime that lacks the override would fall back to
             # its default UA, a fingerprint mismatch. None when no override is
             # set (the runtime default is stable across replays on that runtime).
-            source_state = write_source_state(
-                user_data_dir, user_agent=config.browser.user_agent
-            )
+            source_state = write_source_state(user_data_dir, user_agent=config.browser.user_agent)
             print(f"   Source session generation: {source_state.login_generation}")
         else:
             print(

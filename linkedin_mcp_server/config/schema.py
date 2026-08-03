@@ -148,9 +148,7 @@ class BrowserConfig:
     def validate(self) -> None:
         """Validate browser configuration values."""
         if self.slow_mo < 0:
-            raise ConfigurationError(
-                f"slow_mo must be non-negative, got {self.slow_mo}"
-            )
+            raise ConfigurationError(f"slow_mo must be non-negative, got {self.slow_mo}")
         if self.default_timeout <= 0:
             raise ConfigurationError(
                 f"default_timeout must be positive, got {self.default_timeout}"
@@ -161,17 +159,13 @@ class BrowserConfig:
             )
         # 0 is a valid sentinel for both (unlimited login wait / no inline wait),
         # so these use >= 0 rather than the > 0 check tool_timeout_seconds uses.
-        if not (
-            math.isfinite(self.login_timeout_seconds)
-            and self.login_timeout_seconds >= 0
-        ):
+        if not (math.isfinite(self.login_timeout_seconds) and self.login_timeout_seconds >= 0):
             raise ConfigurationError(
                 "login_timeout_seconds must be a non-negative finite number, "
                 f"got {self.login_timeout_seconds}"
             )
         if not (
-            math.isfinite(self.login_inline_wait_seconds)
-            and self.login_inline_wait_seconds >= 0
+            math.isfinite(self.login_inline_wait_seconds) and self.login_inline_wait_seconds >= 0
         ):
             raise ConfigurationError(
                 "login_inline_wait_seconds must be a non-negative finite number, "
@@ -211,9 +205,7 @@ class BrowserConfig:
         # owner still notices and finishes closing before the waiter gives up.
         # Equal values are not enough: the owner polls on an interval and then
         # has to tear Chromium down, so it would answer just after the deadline.
-        latest_useful_hold = max(
-            0.0, self.browser_wait_seconds - BROWSER_HANDOFF_MARGIN_SECONDS
-        )
+        latest_useful_hold = max(0.0, self.browser_wait_seconds - BROWSER_HANDOFF_MARGIN_SECONDS)
         if self.browser_min_hold_seconds > latest_useful_hold:
             logger.warning(
                 "browser_min_hold_seconds %.1f leaves no room inside the %.1fs "
@@ -227,13 +219,9 @@ class BrowserConfig:
         if self.chrome_path:
             chrome_path = Path(self.chrome_path)
             if not chrome_path.exists():
-                raise ConfigurationError(
-                    f"chrome_path '{self.chrome_path}' does not exist"
-                )
+                raise ConfigurationError(f"chrome_path '{self.chrome_path}' does not exist")
             if not chrome_path.is_file():
-                raise ConfigurationError(
-                    f"chrome_path '{self.chrome_path}' is not a file"
-                )
+                raise ConfigurationError(f"chrome_path '{self.chrome_path}' is not a file")
         self._normalize_proxy()
 
     def _normalize_proxy(self) -> None:
@@ -389,9 +377,7 @@ class ServerConfig:
 
     def validate(self) -> None:
         """Validate server configuration values."""
-        if not (
-            math.isfinite(self.tool_timeout_seconds) and self.tool_timeout_seconds > 0
-        ):
+        if not (math.isfinite(self.tool_timeout_seconds) and self.tool_timeout_seconds > 0):
             raise ConfigurationError(
                 f"tool_timeout_seconds must be a positive finite number, got {self.tool_timeout_seconds}"
             )
@@ -436,16 +422,12 @@ class AppConfig:
     def _validate_port_range(self) -> None:
         """Validate port is in valid range."""
         if not (1 <= self.server.port <= 65535):
-            raise ConfigurationError(
-                f"Port {self.server.port} is not in valid range (1-65535)"
-            )
+            raise ConfigurationError(f"Port {self.server.port} is not in valid range (1-65535)")
 
     def _validate_path_format(self) -> None:
         """Validate path format for HTTP transport."""
         if not self.server.path.startswith("/"):
-            raise ConfigurationError(
-                f"HTTP path '{self.server.path}' must start with '/'"
-            )
+            raise ConfigurationError(f"HTTP path '{self.server.path}' must start with '/'")
         if len(self.server.path) < 2:
             raise ConfigurationError(
                 f"HTTP path '{self.server.path}' must be at least 2 characters"

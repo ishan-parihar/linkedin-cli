@@ -67,9 +67,7 @@ def _cookie(name, value="v"):
 
 def _patch_meta(monkeypatch, mapping):
     """Patch read_li_at_meta to return mapping[profile] (None when absent)."""
-    monkeypatch.setattr(
-        orchestrate, "read_li_at_meta", lambda profile: mapping.get(profile)
-    )
+    monkeypatch.setattr(orchestrate, "read_li_at_meta", lambda profile: mapping.get(profile))
 
 
 def test_rank_drops_profiles_without_li_at(monkeypatch):
@@ -127,16 +125,12 @@ def test_rank_session_cookie_counts_as_live(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_import_writes_full_set_then_persists_source_state(
-    isolate_profile_dir, monkeypatch
-):
+async def test_import_writes_full_set_then_persists_source_state(isolate_profile_dir, monkeypatch):
     user_data_dir = isolate_profile_dir
     profile = _profile("chrome")
     cookies = [_cookie("li_at"), _cookie("li_rm"), _cookie("custom_extra")]
 
-    monkeypatch.setattr(
-        orchestrate, "discover_profiles", lambda browser=None: [profile]
-    )
+    monkeypatch.setattr(orchestrate, "discover_profiles", lambda browser=None: [profile])
     _patch_meta(monkeypatch, {profile: _meta(last_access=10.0)})
     monkeypatch.setattr(orchestrate, "extract_linkedin_cookies", lambda p: cookies)
     monkeypatch.setattr(
@@ -164,18 +158,12 @@ async def test_import_persists_synthesized_user_agent(isolate_profile_dir, monke
     profile = _profile("chrome")
     ua = "Mozilla/5.0 (test) Chrome/148.0.0.0"
 
-    monkeypatch.setattr(
-        orchestrate, "discover_profiles", lambda browser=None: [profile]
-    )
+    monkeypatch.setattr(orchestrate, "discover_profiles", lambda browser=None: [profile])
     _patch_meta(monkeypatch, {profile: _meta(last_access=10.0)})
-    monkeypatch.setattr(
-        orchestrate, "extract_linkedin_cookies", lambda p: [_cookie("li_at")]
-    )
+    monkeypatch.setattr(orchestrate, "extract_linkedin_cookies", lambda p: [_cookie("li_at")])
     monkeypatch.setattr(orchestrate, "synthesize_user_agent", lambda p: ua)
     validate = AsyncMock(return_value=True)
-    monkeypatch.setattr(
-        "linkedin_mcp_server.drivers.browser.validate_imported_cookies", validate
-    )
+    monkeypatch.setattr("linkedin_mcp_server.drivers.browser.validate_imported_cookies", validate)
 
     ok = await import_session_from_browser("chrome", user_data_dir=user_data_dir)
 
@@ -187,16 +175,12 @@ async def test_import_persists_synthesized_user_agent(isolate_profile_dir, monke
 
 
 @pytest.mark.asyncio
-async def test_import_tries_next_browser_when_first_rejected(
-    isolate_profile_dir, monkeypatch
-):
+async def test_import_tries_next_browser_when_first_rejected(isolate_profile_dir, monkeypatch):
     user_data_dir = isolate_profile_dir
     fresh = _profile("chrome", "Fresh")  # most recently used, but rejected
     older = _profile("brave", "Older")  # accepted
 
-    monkeypatch.setattr(
-        orchestrate, "discover_profiles", lambda browser=None: [older, fresh]
-    )
+    monkeypatch.setattr(orchestrate, "discover_profiles", lambda browser=None: [older, fresh])
     _patch_meta(
         monkeypatch,
         {fresh: _meta(last_access=999.0), older: _meta(last_access=1.0)},
@@ -222,9 +206,7 @@ async def test_import_tries_next_browser_when_first_rejected(
 
 
 @pytest.mark.asyncio
-async def test_import_falls_through_on_unexpected_extract_error(
-    isolate_profile_dir, monkeypatch
-):
+async def test_import_falls_through_on_unexpected_extract_error(isolate_profile_dir, monkeypatch):
     # An unexpected error (e.g. a locked/corrupt Cookies DB raising sqlite3.Error
     # or an OSError mid-copy) for one ranked profile must not abort the run; the
     # next-freshest browser is still tried.
@@ -232,9 +214,7 @@ async def test_import_falls_through_on_unexpected_extract_error(
     broken = _profile("chrome", "Broken")  # most recently used, but extract blows up
     good = _profile("brave", "Good")  # accepted
 
-    monkeypatch.setattr(
-        orchestrate, "discover_profiles", lambda browser=None: [good, broken]
-    )
+    monkeypatch.setattr(orchestrate, "discover_profiles", lambda browser=None: [good, broken])
     _patch_meta(
         monkeypatch,
         {broken: _meta(last_access=999.0), good: _meta(last_access=1.0)},
@@ -260,19 +240,13 @@ async def test_import_falls_through_on_unexpected_extract_error(
 
 
 @pytest.mark.asyncio
-async def test_import_validation_failure_removes_cookies(
-    isolate_profile_dir, monkeypatch
-):
+async def test_import_validation_failure_removes_cookies(isolate_profile_dir, monkeypatch):
     user_data_dir = isolate_profile_dir
     profile = _profile("chrome")
 
-    monkeypatch.setattr(
-        orchestrate, "discover_profiles", lambda browser=None: [profile]
-    )
+    monkeypatch.setattr(orchestrate, "discover_profiles", lambda browser=None: [profile])
     _patch_meta(monkeypatch, {profile: _meta(last_access=10.0)})
-    monkeypatch.setattr(
-        orchestrate, "extract_linkedin_cookies", lambda p: [_cookie("li_at")]
-    )
+    monkeypatch.setattr(orchestrate, "extract_linkedin_cookies", lambda p: [_cookie("li_at")])
     monkeypatch.setattr(
         "linkedin_mcp_server.drivers.browser.validate_imported_cookies",
         AsyncMock(return_value=False),
@@ -289,9 +263,7 @@ async def test_import_validation_failure_removes_cookies(
 async def test_import_no_live_session_raises(isolate_profile_dir, monkeypatch):
     user_data_dir = isolate_profile_dir
     profile = _profile("chrome")
-    monkeypatch.setattr(
-        orchestrate, "discover_profiles", lambda browser=None: [profile]
-    )
+    monkeypatch.setattr(orchestrate, "discover_profiles", lambda browser=None: [profile])
     _patch_meta(monkeypatch, {profile: _meta(expires=1.0)})  # expired
 
     with pytest.raises(NoLinkedInSessionFoundError):
@@ -311,9 +283,7 @@ async def test_import_does_not_block_event_loop(isolate_profile_dir, monkeypatch
     profile = _profile("chrome")
     block_window = 0.3
 
-    monkeypatch.setattr(
-        orchestrate, "discover_profiles", lambda browser=None: [profile]
-    )
+    monkeypatch.setattr(orchestrate, "discover_profiles", lambda browser=None: [profile])
     _patch_meta(monkeypatch, {profile: _meta(last_access=10.0)})
 
     def blocking_extract(_profile):
@@ -355,15 +325,11 @@ async def test_import_live_but_undecryptable_raises_decryption_error(
     # so the caller says "couldn't decrypt" instead of "session may be expired".
     user_data_dir = isolate_profile_dir
     profile = _profile("helium")
-    monkeypatch.setattr(
-        orchestrate, "discover_profiles", lambda browser=None: [profile]
-    )
+    monkeypatch.setattr(orchestrate, "discover_profiles", lambda browser=None: [profile])
     _patch_meta(monkeypatch, {profile: _meta(last_access=10.0)})
     monkeypatch.setattr(orchestrate, "_extract_and_stage", lambda p, path: False)
     validate = AsyncMock(return_value=True)
-    monkeypatch.setattr(
-        "linkedin_mcp_server.drivers.browser.validate_imported_cookies", validate
-    )
+    monkeypatch.setattr("linkedin_mcp_server.drivers.browser.validate_imported_cookies", validate)
 
     with pytest.raises(CookieDecryptionError):
         await import_session_from_browser(None, user_data_dir=user_data_dir)
@@ -372,14 +338,10 @@ async def test_import_live_but_undecryptable_raises_decryption_error(
 
 
 @pytest.mark.asyncio
-async def test_import_app_bound_only_raises_decryption_error(
-    isolate_profile_dir, monkeypatch
-):
+async def test_import_app_bound_only_raises_decryption_error(isolate_profile_dir, monkeypatch):
     user_data_dir = isolate_profile_dir
     profile = _profile("brave")
-    monkeypatch.setattr(
-        orchestrate, "discover_profiles", lambda browser=None: [profile]
-    )
+    monkeypatch.setattr(orchestrate, "discover_profiles", lambda browser=None: [profile])
     _patch_meta(monkeypatch, {profile: _meta(app_bound=True)})
 
     with pytest.raises(CookieDecryptionError) as exc:
@@ -397,9 +359,7 @@ async def test_import_retires_the_previous_profile_first(monkeypatch, tmp_path):
     profile = _profile("chrome", "Default")
     order: list[str] = []
 
-    monkeypatch.setattr(
-        orchestrate, "discover_profiles", lambda browser=None: [profile]
-    )
+    monkeypatch.setattr(orchestrate, "discover_profiles", lambda browser=None: [profile])
     _patch_meta(monkeypatch, {profile: _meta(last_access=10.0)})
     monkeypatch.setattr(
         orchestrate,
@@ -423,9 +383,7 @@ async def test_import_retires_the_previous_profile_first(monkeypatch, tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_import_restores_the_session_when_every_candidate_is_rejected(
-    monkeypatch, tmp_path
-):
+async def test_import_restores_the_session_when_every_candidate_is_rejected(monkeypatch, tmp_path):
     """Retirement precedes the replacement, so an import that lands nothing must
     not cost the user the session that was already working."""
     user_data_dir = tmp_path / "profile"
@@ -433,13 +391,9 @@ async def test_import_restores_the_session_when_every_candidate_is_rejected(
     retired = tmp_path / "invalid-state-x"
     restore = MagicMock(return_value=True)
 
-    monkeypatch.setattr(
-        orchestrate, "discover_profiles", lambda browser=None: [profile]
-    )
+    monkeypatch.setattr(orchestrate, "discover_profiles", lambda browser=None: [profile])
     _patch_meta(monkeypatch, {profile: _meta(last_access=10.0)})
-    monkeypatch.setattr(
-        orchestrate, "extract_linkedin_cookies", lambda p: [_cookie("li_at")]
-    )
+    monkeypatch.setattr(orchestrate, "extract_linkedin_cookies", lambda p: [_cookie("li_at")])
     monkeypatch.setattr(orchestrate, "synthesize_user_agent", lambda p: None)
     monkeypatch.setattr(orchestrate, "rotate_shielded", AsyncMock(return_value=retired))
     monkeypatch.setattr(orchestrate, "restore_source_profile", restore)
@@ -448,9 +402,6 @@ async def test_import_restores_the_session_when_every_candidate_is_rejected(
         AsyncMock(return_value=False),
     )
 
-    assert (
-        await import_session_from_browser("chrome", user_data_dir=user_data_dir)
-        is False
-    )
+    assert await import_session_from_browser("chrome", user_data_dir=user_data_dir) is False
 
     restore.assert_called_once_with(retired, user_data_dir)

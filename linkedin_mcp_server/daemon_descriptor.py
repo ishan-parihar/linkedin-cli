@@ -79,7 +79,7 @@ PROTOCOL_VERSION = 1
 
 _DESCRIPTOR_FILE = "daemon.json"
 _DAEMON_DIR = "daemon"
-_APPLICATION_STATE_DIR = ".mcp-server-linkedin"
+_APPLICATION_STATE_DIR = ".linkedin-lyr"
 
 # Enough that guessing is not a strategy. Read straight from the OS source.
 _TOKEN_BYTES = 32
@@ -119,9 +119,7 @@ class DescriptorError(RuntimeError):
 def _text(raw: Mapping[Any, Any], name: str) -> str:
     value = raw.get(name)
     if not isinstance(value, str):
-        raise DescriptorError(
-            f"The daemon descriptor field {name} is missing or not text"
-        )
+        raise DescriptorError(f"The daemon descriptor field {name} is missing or not text")
     return value
 
 
@@ -141,9 +139,7 @@ def _digest_text(raw: Mapping[Any, Any], name: str) -> str:
     """
     value = _text(raw, name)
     if len(value) != 64 or any(character not in _HEX_DIGITS for character in value):
-        raise DescriptorError(
-            f"The daemon descriptor field {name} is not a SHA-256 digest"
-        )
+        raise DescriptorError(f"The daemon descriptor field {name} is not a SHA-256 digest")
     return value
 
 
@@ -152,9 +148,7 @@ def _number(raw: Mapping[Any, Any], name: str, *, default: int | None = None) ->
     # bool is an int as far as isinstance is concerned, and a port of True is
     # not a port.
     if isinstance(value, bool) or not isinstance(value, int):
-        raise DescriptorError(
-            f"The daemon descriptor field {name} is missing or not a number"
-        )
+        raise DescriptorError(f"The daemon descriptor field {name} is missing or not a number")
     return value
 
 
@@ -254,9 +248,7 @@ def _canonical_path(path: Path, label: str) -> Path:
     except DescriptorError:
         raise
     except (OSError, RuntimeError, ValueError) as exc:
-        raise DescriptorError(
-            f"The {label} {path!r} is not a usable path: {exc}"
-        ) from exc
+        raise DescriptorError(f"The {label} {path!r} is not a usable path: {exc}") from exc
 
 
 def _auth_root_identity(auth_root: Path) -> bytes:
@@ -282,9 +274,7 @@ def _auth_root_identity(auth_root: Path) -> bytes:
     # below could then never run: measured, a file where the auth root belongs
     # surfaced as NotADirectoryError.
     if canonical.exists() and not canonical.is_dir():
-        raise DescriptorError(
-            f"The authentication root is not a directory: {canonical}"
-        )
+        raise DescriptorError(f"The authentication root is not a directory: {canonical}")
 
     # Creating and then reading it back are one operation as far as a caller is
     # concerned, and both can fail in ways the operating system describes in its
@@ -300,9 +290,7 @@ def _auth_root_identity(auth_root: Path) -> bytes:
         ) from exc
 
     if not stat.S_ISDIR(info.st_mode):
-        raise DescriptorError(
-            f"The authentication root is not a directory: {canonical}"
-        )
+        raise DescriptorError(f"The authentication root is not a directory: {canonical}")
     if not info.st_ino:
         raise DescriptorError(
             f"The filesystem does not provide a stable identity for {canonical}, "
@@ -524,8 +512,7 @@ def config_fingerprint(config: AppConfig, *, key: str) -> str:
     or compare it.
     """
     material = {
-        name: _normalize(name, getattr(config.browser, name, None))
-        for name in SHARED_CONFIG_FIELDS
+        name: _normalize(name, getattr(config.browser, name, None)) for name in SHARED_CONFIG_FIELDS
     }
     material["tool_timeout_seconds"] = config.server.tool_timeout_seconds
     return hmac.new(
@@ -640,8 +627,7 @@ class DaemonDescriptor:
             )
         if not 1 <= self.port <= 65535:
             raise DescriptorError(
-                f"The daemon descriptor names port {self.port}, which is not a "
-                f"usable port number"
+                f"The daemon descriptor names port {self.port}, which is not a usable port number"
             )
         if not self.path.startswith("/"):
             raise DescriptorError("The daemon descriptor has no usable path")
@@ -751,9 +737,7 @@ class DaemonDescriptor:
         return profile_identity(profile) == self.profile_identity
 
 
-def publish(
-    auth_root: Path, descriptor: DaemonDescriptor, token: str
-) -> tuple[Path, Path]:
+def publish(auth_root: Path, descriptor: DaemonDescriptor, token: str) -> tuple[Path, Path]:
     """Write the token and then the descriptor, in that order.
 
     Order matters. The descriptor is what makes a daemon discoverable, so it is
@@ -843,8 +827,7 @@ def _read_own_file(
             info = os.fstat(fd)
             if not stat.S_ISREG(info.st_mode):
                 raise DescriptorError(
-                    f"{path} is not a regular file, so it is not something this "
-                    f"daemon wrote"
+                    f"{path} is not a regular file, so it is not something this daemon wrote"
                 )
             # Size checked before reading rather than by noticing a full
             # buffer afterwards. Truncating instead would hand the caller a
@@ -901,9 +884,7 @@ def read(auth_root: Path) -> DaemonDescriptor | None:
         # carry one. Measured with a five thousand digit integer: it crossed
         # the boundary as ValueError before anything could call it a bad
         # descriptor. JSONDecodeError is a ValueError, so this covers both.
-        raise DescriptorError(
-            f"The daemon descriptor is not valid JSON: {exc}"
-        ) from exc
+        raise DescriptorError(f"The daemon descriptor is not valid JSON: {exc}") from exc
 
     descriptor = DaemonDescriptor.from_mapping(parsed)
     if descriptor.schema_version != SCHEMA_VERSION:
@@ -949,9 +930,7 @@ def read_token(auth_root: Path, descriptor: DaemonDescriptor) -> str:
         path,
         _MAX_TOKEN_BYTES,
         missing_is_none=False,
-        missing_message=(
-            "The daemon is publishing a descriptor with no token beside it"
-        ),
+        missing_message=("The daemon is publishing a descriptor with no token beside it"),
     )
     if text is None:  # pragma: no cover - unreachable while the flag is False
         raise DescriptorError(f"{path} could not be read")

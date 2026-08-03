@@ -22,7 +22,12 @@ class LinkedInDaemonManager:
     def __init__(self, daemon_url: str = "http://127.0.0.1:9999"):
         self.daemon_url = daemon_url
         self._plugin: Optional[ObscuraPlugin] = None
-        self._use_daemon = os.getenv("LINKEDIN_USE_DAEMON", "true").lower() in ("1", "true", "yes", "on")
+        self._use_daemon = os.getenv("LINKEDIN_USE_DAEMON", "true").lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
 
     async def _get_plugin(self) -> ObscuraPlugin:
         """Get or create the ObscuraPlugin instance."""
@@ -37,6 +42,7 @@ class LinkedInDaemonManager:
             logger.debug("Daemon integration disabled, falling back to local ObscuraCookieManager")
             # Import here to avoid circular imports
             from linkedin_mcp_server.obscura_integration import get_valid_linkedin_cookies
+
             return await get_valid_linkedin_cookies(force_refresh)
 
         try:
@@ -78,6 +84,7 @@ class LinkedInDaemonManager:
             # Fall back to local ObscuraCookieManager
             logger.debug("Falling back to local ObscuraCookieManager")
             from linkedin_mcp_server.obscura_integration import get_valid_linkedin_cookies
+
             return await get_valid_linkedin_cookies(force_refresh)
 
     async def close(self) -> None:
@@ -99,7 +106,9 @@ def get_linkedin_daemon_manager(daemon_url: str = "http://127.0.0.1:9999") -> Li
     return _linkedin_daemon_manager
 
 
-async def get_valid_linkedin_cookies_from_daemon(force_refresh: bool = False) -> CookieValidationResult:
+async def get_valid_linkedin_cookies_from_daemon(
+    force_refresh: bool = False,
+) -> CookieValidationResult:
     """Get valid LinkedIn cookies using Obscura Daemon plugin."""
     manager = get_linkedin_daemon_manager()
     return await manager.get_valid_cookies(force_refresh)

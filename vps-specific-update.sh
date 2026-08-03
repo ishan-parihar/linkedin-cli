@@ -31,7 +31,7 @@ error() {
 # Set paths
 LINKEDIN_MCP_DIR="${HOME}/.linkedin"
 BACKUP_DIR="${HOME}/.linkedin-backup-$(date +%Y%m%d-%H%M%S)"
-NEW_INSTALL_DIR="${HOME}/.linkedin/linkedin-cli"
+NEW_INSTALL_DIR="${HOME}/.linkedin/linkedin-lyr"
 
 info "Starting LinkedIn MCP Server update..."
 info "Backup directory: $BACKUP_DIR"
@@ -77,7 +77,7 @@ if [ -d "$NEW_INSTALL_DIR" ]; then
     success "Repository updated"
 else
     info "Cloning repository..."
-    git clone https://github.com/ishan-parihar/linkedin-cli.git "$NEW_INSTALL_DIR"
+    git clone https://github.com/ishan-parihar/linkedin-lyr.git "$NEW_INSTALL_DIR"
     cd "$NEW_INSTALL_DIR"
     success "Repository cloned"
 fi
@@ -95,12 +95,12 @@ uv sync
 success "Dependencies installed"
 
 # Create symlink for CLI
-CLI_PATH="$NEW_INSTALL_DIR/.venv/bin/linkedin-cli"
+CLI_PATH="$NEW_INSTALL_DIR/.venv/bin/linkedin-lyr"
 if [ -f "$CLI_PATH" ]; then
     info "Creating CLI symlink..."
     mkdir -p "$HOME/.local/bin"
-    rm -f "$HOME/.local/bin/linkedin-cli"
-    ln -s "$CLI_PATH" "$HOME/.local/bin/linkedin-cli"
+    rm -f "$HOME/.local/bin/linkedin-lyr"
+    ln -s "$CLI_PATH" "$HOME/.local/bin/linkedin-lyr"
     success "CLI symlink created"
 else
     error "CLI binary not found at $CLI_PATH"
@@ -163,13 +163,13 @@ success "LinkedIn MCP Server Update Complete"
 success "=========================================="
 echo ""
 info "Quick Start:"
-echo "  1. Check session status: linkedin-cli status"
-echo "  2. Import cookies (if needed): linkedin-cli import [browser]"
-echo "  3. Start MCP server: linkedin-cli mcp"
+echo "  1. Check session status: linkedin-lyr status"
+echo "  2. Import cookies (if needed): linkedin-lyr import [browser]"
+echo "  3. Start MCP server: linkedin-lyr mcp"
 echo ""
 info "Backup location: $BACKUP_DIR"
-info "For more commands: linkedin-cli --help"
-info "Documentation: https://github.com/ishan-parihar/linkedin-cli"
+info "For more commands: linkedin-lyr --help"
+info "Documentation: https://github.com/ishan-parihar/linkedin-lyr"
 echo ""
 
 success "Update complete!"

@@ -184,9 +184,7 @@ class TestIncomingActionRowFingerprint:
         assert data["hasIncomingActionRow"] is True
 
     async def test_video_player_bar_not_detected(self, dom_page):
-        data = await _signals(
-            dom_page, _page_html(CONNECTED_TOP_CARD, VIDEO_PLAYER_BAR)
-        )
+        data = await _signals(dom_page, _page_html(CONNECTED_TOP_CARD, VIDEO_PLAYER_BAR))
         assert data["hasIncomingActionRow"] is False
 
     async def test_expander_first_order_guard(self, dom_page):
@@ -203,9 +201,7 @@ class TestIncomingActionRowFingerprint:
     async def test_matching_widget_outside_top_card_not_detected(self, dom_page):
         # F1 regression: a widget with the exact incoming-row shape in a
         # later section must not match — the scan is scoped to the top card.
-        data = await _signals(
-            dom_page, _page_html(CONNECTED_TOP_CARD, UNRELATED_MATCHING_WIDGET)
-        )
+        data = await _signals(dom_page, _page_html(CONNECTED_TOP_CARD, UNRELATED_MATCHING_WIDGET))
         assert data["hasIncomingActionRow"] is False
 
     async def test_extra_unlabeled_button_fails_count_guard(self, dom_page):

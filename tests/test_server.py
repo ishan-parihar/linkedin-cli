@@ -161,20 +161,18 @@ class TestSequentialToolExecutionMiddleware:
 
         await middleware.on_call_tool(context, call_next)
 
-        fastmcp_context.report_progress.assert_has_awaits(
-            [
-                call(
-                    progress=0,
-                    total=100,
-                    message="Queued waiting for scraper lock",
-                ),
-                call(
-                    progress=0,
-                    total=100,
-                    message="Scraper lock acquired, starting tool",
-                ),
-            ]
-        )
+        fastmcp_context.report_progress.assert_has_awaits([
+            call(
+                progress=0,
+                total=100,
+                message="Queued waiting for scraper lock",
+            ),
+            call(
+                progress=0,
+                total=100,
+                message="Scraper lock acquired, starting tool",
+            ),
+        ])
 
 
 class TestBrowserLifespan:
@@ -192,9 +190,7 @@ class TestBrowserLifespan:
 
         monkeypatch.setattr(server_module, "initialize_bootstrap", MagicMock())
         monkeypatch.setattr(server_module, "get_runtime_policy", MagicMock())
-        monkeypatch.setattr(
-            server_module, "start_background_browser_setup_if_needed", AsyncMock()
-        )
+        monkeypatch.setattr(server_module, "start_background_browser_setup_if_needed", AsyncMock())
         monkeypatch.setattr(server_module, "watch_for_handoff_requests", watcher)
         close_browser = AsyncMock()
         monkeypatch.setattr(server_module, "close_browser", close_browser)

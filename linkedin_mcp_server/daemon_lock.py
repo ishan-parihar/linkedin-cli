@@ -258,15 +258,12 @@ class DaemonLock:
         try:
             inherited = os.fstat(fd)
         except OSError as exc:
-            raise DaemonLockError(
-                f"The inherited descriptor cannot be used: {exc}"
-            ) from exc
+            raise DaemonLockError(f"The inherited descriptor cannot be used: {exc}") from exc
         try:
             expected = self._path.stat()
         except OSError as exc:
             raise DaemonLockError(
-                f"There is no lock file at {self._path} for the inherited "
-                f"descriptor to belong to"
+                f"There is no lock file at {self._path} for the inherited descriptor to belong to"
             ) from exc
         if (inherited.st_dev, inherited.st_ino) != (expected.st_dev, expected.st_ino):
             raise DaemonLockError(

@@ -209,9 +209,7 @@ class TestBuildReferences:
         target = "https://example.com/report"
         href = target
         for _ in range(7):
-            href = "https://www.linkedin.com/redir/redirect/?url=" + quote(
-                href, safe=""
-            )
+            href = "https://www.linkedin.com/redir/redirect/?url=" + quote(href, safe="")
 
         assert normalize_url(href) is None
 
@@ -570,21 +568,19 @@ class TestBuildReferences:
         ]
 
     def test_cross_page_dedupe_keeps_better_reference(self):
-        references = dedupe_references(
-            [
-                {
-                    "kind": "job",
-                    "url": "/jobs/view/123/",
-                    "text": "Job",
-                },
-                {
-                    "kind": "job",
-                    "url": "/jobs/view/123/",
-                    "text": "Senior Software Engineer",
-                    "context": "job result",
-                },
-            ]
-        )
+        references = dedupe_references([
+            {
+                "kind": "job",
+                "url": "/jobs/view/123/",
+                "text": "Job",
+            },
+            {
+                "kind": "job",
+                "url": "/jobs/view/123/",
+                "text": "Senior Software Engineer",
+                "context": "job result",
+            },
+        ])
 
         assert references == [
             {
@@ -702,8 +698,7 @@ class TestBuildReferences:
         references = build_references(
             [
                 {
-                    "href": "https://www.linkedin.com/search/results/people/"
-                    "?keywords=engineer",
+                    "href": "https://www.linkedin.com/search/results/people/?keywords=engineer",
                     "text": "engineer",
                 }
             ],
@@ -715,9 +710,7 @@ class TestBuildReferences:
 
 class TestClassifyLink:
     def test_messaging_thread_url(self):
-        result = classify_link(
-            "https://www.linkedin.com/messaging/thread/2-NjAwMDAyMDEtZWVh/"
-        )
+        result = classify_link("https://www.linkedin.com/messaging/thread/2-NjAwMDAyMDEtZWVh/")
         assert result == (
             "conversation",
             "/messaging/thread/2-NjAwMDAyMDEtZWVh/",

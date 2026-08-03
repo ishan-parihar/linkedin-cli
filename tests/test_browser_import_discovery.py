@@ -16,9 +16,7 @@ from linkedin_mcp_server.browser_import.discovery import (
 
 def _write_local_state(root, info_cache):
     root.mkdir(parents=True, exist_ok=True)
-    (root / "Local State").write_text(
-        json.dumps({"profile": {"info_cache": info_cache}})
-    )
+    (root / "Local State").write_text(json.dumps({"profile": {"info_cache": info_cache}}))
 
 
 def _make_profile_dir(root, name, *, network=False, flat=True, preferences=True):
@@ -95,9 +93,7 @@ def test_discover_profiles_filters_to_resolvable_cookies_db(tmp_path, monkeypatc
     p1.mkdir(parents=True)
     (p1 / "Preferences").write_text("{}")
 
-    monkeypatch.setattr(
-        discovery, "browser_roots", lambda browser=None: [("chrome", root)]
-    )
+    monkeypatch.setattr(discovery, "browser_roots", lambda browser=None: [("chrome", root)])
 
     profiles = discover_profiles()
 
@@ -124,9 +120,7 @@ def test_browser_roots_only_returns_existing(tmp_path, monkeypatch):
     assert edge_roots == []
 
 
-def test_browser_roots_discovers_sibling_channel_without_duplicates(
-    tmp_path, monkeypatch
-):
+def test_browser_roots_discovers_sibling_channel_without_duplicates(tmp_path, monkeypatch):
     base = tmp_path / "Application Support"
     exact = base / SUPPORTED_BROWSERS["chrome"]["mac_subpath"]  # Google/Chrome
     sibling = exact.with_name(exact.name + " Beta")  # Google/Chrome Beta
@@ -420,7 +414,4 @@ def test_opera_windows_path_under_appdata():
     # Windows Opera lives under %APPDATA% (Roaming); pin the Roaming path against
     # a regression that would point it at LOCALAPPDATA.
     assert SUPPORTED_BROWSERS["opera"]["win_subpath"] == "Opera Software/Opera Stable"
-    assert (
-        SUPPORTED_BROWSERS["opera_gx"]["win_subpath"]
-        == "Opera Software/Opera GX Stable"
-    )
+    assert SUPPORTED_BROWSERS["opera_gx"]["win_subpath"] == "Opera Software/Opera GX Stable"

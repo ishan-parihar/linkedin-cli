@@ -19,9 +19,11 @@ logger = logging.getLogger(__name__)
 # LinkedIn domains to match
 _LINKEDIN_DOMAINS = {"linkedin.com", ".linkedin.com", "www.linkedin.com", ".www.linkedin.com"}
 
+
 def _is_linkedin_domain(domain: str) -> bool:
     """Check if domain is LinkedIn-related."""
     return domain in _LINKEDIN_DOMAINS or domain.endswith(".linkedin.com")
+
 
 # Base directories for Chromium-based browsers
 _CHROMIUM_BASE_DIRS: dict[str, str] = {
@@ -46,7 +48,19 @@ _FIREFOX_BASE_DIRS: dict[str, str] = {
 }
 
 # Default browser order for cookie extraction
-_DEFAULT_BROWSER_ORDER = ["chrome", "edge", "firefox", "brave", "brave-origin", "chromium", "opera", "vivaldi", "zen", "zen-browser"]
+_DEFAULT_BROWSER_ORDER = [
+    "chrome",
+    "edge",
+    "firefox",
+    "brave",
+    "brave-origin",
+    "chromium",
+    "opera",
+    "vivaldi",
+    "zen",
+    "zen-browser",
+]
+
 
 def _get_browser_order() -> list[str]:
     """Return browser extraction order, respecting LINKEDIN_BROWSER env var."""
@@ -58,6 +72,7 @@ def _get_browser_order() -> list[str]:
         return _DEFAULT_BROWSER_ORDER
     return [env] + [b for b in _DEFAULT_BROWSER_ORDER if b != env]
 
+
 def _iter_chrome_cookie_files(browser_name: str) -> list[str]:
     """Return cookie file paths for all Chrome profiles."""
     base_dir = _CHROMIUM_BASE_DIRS.get(browser_name)
@@ -68,16 +83,22 @@ def _iter_chrome_cookie_files(browser_name: str) -> list[str]:
         root = os.path.join(os.path.expanduser("~"), "Library", "Application Support", base_dir)
     elif sys.platform == "win32":
         if browser_name == "edge":
-            root = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Microsoft", "Edge", "User Data")
+            root = os.path.join(
+                os.environ.get("LOCALAPPDATA", ""), "Microsoft", "Edge", "User Data"
+            )
         elif browser_name == "brave-origin":
-            root = os.path.join(os.environ.get("LOCALAPPDATA", ""), "BraveSoftware", "Brave-Origin-Beta")
+            root = os.path.join(
+                os.environ.get("LOCALAPPDATA", ""), "BraveSoftware", "Brave-Origin-Beta"
+            )
         else:
             root = os.path.join(os.environ.get("LOCALAPPDATA", ""), base_dir)
     else:
         if browser_name == "edge":
             root = os.path.join(os.path.expanduser("~"), ".config", "microsoft-edge")
         elif browser_name == "brave-origin":
-            root = os.path.join(os.path.expanduser("~"), ".config", "BraveSoftware", "Brave-Origin-Beta")
+            root = os.path.join(
+                os.path.expanduser("~"), ".config", "BraveSoftware", "Brave-Origin-Beta"
+            )
         else:
             root = os.path.join(os.path.expanduser("~"), ".config", base_dir)
 
@@ -91,6 +112,7 @@ def _iter_chrome_cookie_files(browser_name: str) -> list[str]:
         paths.append(default_cookies)
 
     import glob
+
     profile_dirs = sorted(glob.glob(os.path.join(root, "Profile *")))
     for profile_dir in profile_dirs:
         cookie_file = os.path.join(profile_dir, "Cookies")
@@ -98,6 +120,7 @@ def _iter_chrome_cookie_files(browser_name: str) -> list[str]:
             paths.append(cookie_file)
 
     return paths
+
 
 def _get_firefox_cookie_path(browser_name: str) -> str | None:
     """Return cookie database path for Firefox-based browsers."""
@@ -117,25 +140,27 @@ def _get_firefox_cookie_path(browser_name: str) -> str | None:
 
     # Find the default profile
     import glob
+
     profiles = sorted(glob.glob(os.path.join(root, "*/")))
-    
+
     # Look for default-release or similar
     for profile in profiles:
         cookies_file = os.path.join(profile, "cookies.sqlite")
         if os.path.exists(cookies_file):
             return cookies_file
-    
+
     return None
+
 
 def extract_cookies_from_file(cookie_file_path: str) -> dict[str, Any] | None:
     """Extract LinkedIn cookies from a direct cookie file path.
-    
+
     Supports JSON cookie files in LinkedIn MCP format.
     For SQLite databases, use browser_cookie3's built-in decryption instead.
-    
+
     Args:
         cookie_file_path: Path to cookie file (cookies.json)
-        
+
     Returns:
         Dictionary with cookies data or None if extraction failed
     """
@@ -143,35 +168,35 @@ def extract_cookies_from_file(cookie_file_path: str) -> dict[str, Any] | None:
     if not cookie_path.exists():
         logger.error(f"Cookie file not found: {cookie_file_path}")
         return None
-    
+
     # Only support JSON format for direct file import
     # For SQLite databases, use browser extraction with cookie_file parameter
-    if cookie_path.suffix == '.json':
+    if cookie_path.suffix == ".json":
         try:
             with open(cookie_path) as f:
                 cookies_data = json.load(f)
-            
+
             # If it's already in LinkedIn MCP format, return it
             if isinstance(cookies_data, list) and all(isinstance(c, dict) for c in cookies_data):
-                all_cookies = {c.get("name"): c.get("value") for c in cookies_data if c.get("value")}
-                return {
-                    "all_cookies": all_cookies,
-                    "source": f"file:{cookie_file_path}"
+                all_cookies = {
+                    c.get("name"): c.get("value") for c in cookies_data if c.get("value")
                 }
+                return {"all_cookies": all_cookies, "source": f"file:{cookie_file_path}"}
         except Exception as e:
             logger.error(f"Failed to read JSON cookie file: {e}")
             return None
-    
+
     logger.error(f"Unsupported cookie file format for direct import: {cookie_path.suffix}")
     logger.error("For SQLite databases, use browser extraction instead")
     return None
+
 
 def _extract_cookies_from_jar(jar: Any, source: str = "unknown") -> dict[str, Any] | None:
     """Extract LinkedIn cookies from a cookie jar."""
     result: dict[str, str] = {}
     all_cookies: dict[str, str] = {}
     linkedin_cookie_count = 0
-    
+
     for cookie in jar:
         domain = cookie.domain or ""
         if _is_linkedin_domain(domain):
@@ -181,24 +206,22 @@ def _extract_cookies_from_jar(jar: Any, source: str = "unknown") -> dict[str, An
                 # Store specific important cookies
                 if cookie.name in ["li_at", "bscookie", "bcookie"]:
                     result[cookie.name] = cookie.value
-    
+
     # Accept any LinkedIn cookies, not just specific ones
     if all_cookies:
-        cookies = {
-            "all_cookies": all_cookies,
-            "source": source
-        }
+        cookies = {"all_cookies": all_cookies, "source": source}
         # Add important cookies if present
         if result:
             cookies.update(result)
         logger.info("Extracted %d total LinkedIn cookies from %s", len(all_cookies), source)
         return cookies
-    
+
     logger.debug(
         "Cookie jar %s did not contain any LinkedIn cookies",
         source,
     )
     return None
+
 
 def _extract_in_process() -> tuple[dict[str, Any] | None, list[str]]:
     """Extract cookies in the main process (required on macOS for Keychain access)."""
@@ -220,7 +243,7 @@ def _extract_in_process() -> tuple[dict[str, Any] | None, list[str]]:
         "zen": browser_cookie3.firefox,  # Zen Browser (Firefox-based)
         "zen-browser": browser_cookie3.firefox,  # Zen Browser (Firefox-based)
     }
-    
+
     attempts: list[str] = []
     diagnostics: list[str] = []
 
@@ -228,7 +251,7 @@ def _extract_in_process() -> tuple[dict[str, Any] | None, list[str]]:
         fn = browser_fns.get(name)
         if not fn:
             continue
-            
+
         if name in _CHROMIUM_BASE_DIRS:
             # Chromium-based: iterate all profiles
             cookie_files = _iter_chrome_cookie_files(name)
@@ -257,7 +280,9 @@ def _extract_in_process() -> tuple[dict[str, Any] | None, list[str]]:
                     attempts.append("%s[%s]=%s" % (name, profile_name, type(e).__name__))
                     diagnostics.append("%s[%s]: %s" % (name, profile_name, e))
                     continue
-                cookies = _extract_cookies_from_jar(jar, source="%s[%s](in-process)" % (name, profile_name))
+                cookies = _extract_cookies_from_jar(
+                    jar, source="%s[%s](in-process)" % (name, profile_name)
+                )
                 if cookies:
                     logger.info("Found cookies in %s profile '%s' (in-process)", name, profile_name)
                     return cookies, diagnostics
@@ -281,9 +306,10 @@ def _extract_in_process() -> tuple[dict[str, Any] | None, list[str]]:
         logger.debug("In-process extraction attempts: %s", ", ".join(attempts))
     return None, diagnostics
 
+
 def _extract_via_subprocess() -> tuple[dict[str, Any] | None, list[str]]:
     """Extract cookies via subprocess (fallback if in-process fails)."""
-    extract_script = '''
+    extract_script = """
 import glob, json, os, sys
 try:
     import browser_cookie3
@@ -473,7 +499,7 @@ print(json.dumps({
     "attempts": attempts,
 }))
 sys.exit(1)
-'''
+"""
 
     diagnostics: list[str] = []
 
@@ -524,70 +550,71 @@ sys.exit(1)
 
     # Fallback to subprocess extraction
     data, success = _run_extract_command(
-        [sys.executable, "-c", extract_script],
-        timeout=30,
-        label="subprocess"
+        [sys.executable, "-c", extract_script], timeout=30, label="subprocess"
     )
-    
+
     if data and success:
         return data, diagnostics
 
     return None, diagnostics
 
+
 def extract_linkedin_cookies(browser: str = None, cookie_file: str = None) -> dict[str, Any] | None:
     """
     Extract LinkedIn cookies from browsers using browser_cookie3 or direct file.
-    
+
     Args:
         browser: Specific browser to extract from (auto-detect if None)
         cookie_file: Direct path to cookie file (takes precedence over browser)
-        
+
     Returns:
         Dictionary with cookies data or None if extraction failed
     """
     # If direct file path provided, use that
     if cookie_file:
         return extract_cookies_from_file(cookie_file)
-    
+
     # Set browser preference if specified
     if browser:
         os.environ["LINKEDIN_BROWSER"] = browser
-    
+
     # Otherwise use browser extraction
     cookies, diagnostics = _extract_in_process()
     if cookies:
         return cookies
-    
+
     # Fallback to subprocess
     cookies, diagnostics = _extract_via_subprocess()
     if cookies:
         return cookies
-    
+
     logger.warning("Failed to extract LinkedIn cookies from any browser")
     if diagnostics:
         logger.warning("Diagnostics: %s", ", ".join(diagnostics))
     return None
 
+
 def format_cookies_for_linkedin_mcp(cookie_data: dict[str, Any]) -> list[dict[str, Any]]:
     """
     Format extracted cookies for LinkedIn MCP format.
-    
+
     Args:
         cookie_data: Raw cookie data from browser_cookie3
-        
+
     Returns:
         List of cookie dictionaries in LinkedIn MCP format
     """
     all_cookies = cookie_data.get("all_cookies", {})
     formatted_cookies = []
-    
+
     from datetime import datetime, timedelta
+
     current_time = datetime.now()
-    
+
     for name, value in all_cookies.items():
         if not value:
             continue
-            
+
         # LinkedIn MCP cookie format
         cookie_dict = {
             "name": name,
@@ -597,8 +624,8 @@ def format_cookies_for_linkedin_mcp(cookie_data: dict[str, Any]) -> list[dict[st
             "expires": int((current_time + timedelta(days=30)).timestamp()),
             "secure": True,
             "httpOnly": name in ["li_at", "bscookie"],
-            "sameSite": "None"
+            "sameSite": "None",
         }
         formatted_cookies.append(cookie_dict)
-    
+
     return formatted_cookies

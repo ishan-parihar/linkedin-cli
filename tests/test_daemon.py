@@ -238,9 +238,7 @@ class TestWaitingForAStartingOwner:
         starter = threading.Thread(target=publish_after_a_moment)
         starter.start()
         try:
-            lookup = look_up_owner(
-                tmp_path, profile, _config(profile), wait_seconds=5.0
-            )
+            lookup = look_up_owner(tmp_path, profile, _config(profile), wait_seconds=5.0)
         finally:
             starter.join()
 
@@ -343,9 +341,7 @@ class TestTellingTheRefusalsApart:
         assert lookup.state is OwnerState.ABSENT
         assert not lookup.worth_connecting
 
-    def test_an_incompatible_descriptor_does_not_block_an_attempt_either(
-        self, tmp_path: Path
-    ):
+    def test_an_incompatible_descriptor_does_not_block_an_attempt_either(self, tmp_path: Path):
         # A valid descriptor is no more proof of a living owner than a corrupt
         # one. An owner for a sibling profile that crashed leaves exactly this
         # behind with the lock free, so refusing here strands the profile for
@@ -367,9 +363,7 @@ class TestTellingTheRefusalsApart:
         assert lock_is_free, "a crashed owner leaves the descriptor, not the lock"
         assert not lookup.worth_connecting
 
-    def test_an_untrusted_descriptor_is_kept_but_does_not_block_an_attempt(
-        self, tmp_path: Path
-    ):
+    def test_an_untrusted_descriptor_is_kept_but_does_not_block_an_attempt(self, tmp_path: Path):
         # Two things that look alike and are not. The file must survive — beside
         # a held lock it belongs to a live daemon. But a crashed owner leaves
         # exactly this file behind with the lock free, so refusing to even try
@@ -412,9 +406,7 @@ class TestTellingTheRefusalsApart:
             contender.release()
         assert after_a_crash.state is OwnerState.UNTRUSTED
 
-    def test_a_replacement_owner_is_seen_through_a_dead_descriptor(
-        self, tmp_path: Path
-    ):
+    def test_a_replacement_owner_is_seen_through_a_dead_descriptor(self, tmp_path: Path):
         # The tempting rule is that only ABSENT can become ATTACHABLE, because
         # a starting owner publishes late. It is wrong: a descriptor outlives
         # the owner that wrote it, so a fresh owner starting right now is read
@@ -455,9 +447,7 @@ class TestTellingTheRefusalsApart:
         assert lookup.state is OwnerState.INCOMPATIBLE
         assert time.monotonic() - started >= 0.3
 
-    def test_a_matching_descriptor_from_a_dead_owner_is_still_only_a_file(
-        self, tmp_path: Path
-    ):
+    def test_a_matching_descriptor_from_a_dead_owner_is_still_only_a_file(self, tmp_path: Path):
         # The state this module was most likely to over-read. An owner that
         # crashes *after* publishing leaves a descriptor and token that pass
         # every check, so the reading is ATTACHABLE while the lock is free and

@@ -48,9 +48,7 @@ def test_read_engine_version_prefers_last_version(tmp_path):
     profile = _profile(tmp_path)
     (profile.user_data_root / "Last Version").write_text("148.0.7778.179")
     profile.local_state_path.write_text(
-        json.dumps(
-            {"user_experience_metrics": {"stability": {"stats_version": "9.9.9.9-64"}}}
-        )
+        json.dumps({"user_experience_metrics": {"stability": {"stats_version": "9.9.9.9-64"}}})
     )
     assert read_engine_version(profile) == "148.0.7778.179"
 
@@ -58,13 +56,9 @@ def test_read_engine_version_prefers_last_version(tmp_path):
 def test_read_engine_version_falls_back_to_stats_version(tmp_path):
     profile = _profile(tmp_path)
     profile.local_state_path.write_text(
-        json.dumps(
-            {
-                "user_experience_metrics": {
-                    "stability": {"stats_version": "149.0.7827.200-64-devel"}
-                }
-            }
-        )
+        json.dumps({
+            "user_experience_metrics": {"stability": {"stats_version": "149.0.7827.200-64-devel"}}
+        })
     )
     # The -64/-devel suffix is stripped to the bare version.
     assert read_engine_version(profile) == "149.0.7827.200"

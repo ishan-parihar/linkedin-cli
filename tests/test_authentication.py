@@ -23,16 +23,14 @@ def _write_source_metadata(profile_dir, *, runtime_id="macos-arm64-host"):
         json.dumps([{"name": "li_at", "domain": ".linkedin.com"}])
     )
     source_state_path(profile_dir).write_text(
-        json.dumps(
-            {
-                "version": 1,
-                "source_runtime_id": runtime_id,
-                "login_generation": "gen-1",
-                "created_at": "2026-03-12T17:00:00Z",
-                "profile_path": str(profile_dir),
-                "cookies_path": str(portable_cookie_path(profile_dir)),
-            }
-        )
+        json.dumps({
+            "version": 1,
+            "source_runtime_id": runtime_id,
+            "login_generation": "gen-1",
+            "created_at": "2026-03-12T17:00:00Z",
+            "profile_path": str(profile_dir),
+            "cookies_path": str(portable_cookie_path(profile_dir)),
+        })
     )
 
 
@@ -82,25 +80,21 @@ def test_clear_auth_state_removes_source_and_runtime_files(profile_dir):
     _write_source_metadata(profile_dir)
     runtime_profile = runtime_profile_dir("linux-amd64-container", profile_dir)
     runtime_profile.mkdir(parents=True)
-    storage_state_path = runtime_storage_state_path(
-        "linux-amd64-container", profile_dir
-    )
+    storage_state_path = runtime_storage_state_path("linux-amd64-container", profile_dir)
     storage_state_path.parent.mkdir(parents=True, exist_ok=True)
     storage_state_path.write_text("{}")
     runtime_state_path("linux-amd64-container", profile_dir).write_text(
-        json.dumps(
-            {
-                "version": 1,
-                "runtime_id": "linux-amd64-container",
-                "source_runtime_id": "macos-arm64-host",
-                "source_login_generation": "gen-1",
-                "created_at": "2026-03-12T17:10:00Z",
-                "committed_at": "2026-03-12T17:10:05Z",
-                "profile_path": str(runtime_profile),
-                "storage_state_path": str(storage_state_path),
-                "commit_method": "checkpoint_restart",
-            }
-        )
+        json.dumps({
+            "version": 1,
+            "runtime_id": "linux-amd64-container",
+            "source_runtime_id": "macos-arm64-host",
+            "source_login_generation": "gen-1",
+            "created_at": "2026-03-12T17:10:00Z",
+            "committed_at": "2026-03-12T17:10:05Z",
+            "profile_path": str(runtime_profile),
+            "storage_state_path": str(storage_state_path),
+            "commit_method": "checkpoint_restart",
+        })
     )
 
     assert clear_auth_state(profile_dir) is True

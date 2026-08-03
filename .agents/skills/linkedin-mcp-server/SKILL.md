@@ -16,25 +16,25 @@ Use this skill when:
 ### Check Session Status
 
 ```bash
-linkedin-cli status
+linkedin-lyr status
 ```
 
 ### Import LinkedIn Session from Browser
 
 ```bash
 # Auto-detect browser
-linkedin-cli import
+linkedin-lyr import
 
 # Specific browser
-linkedin-cli import brave
-linkedin-cli import chrome
-linkedin-cli import firefox
+linkedin-lyr import brave
+linkedin-lyr import chrome
+linkedin-lyr import firefox
 ```
 
 ### Start MCP Server
 
 ```bash
-linkedin-cli mcp
+linkedin-lyr mcp
 ```
 
 ## Available Commands
@@ -44,8 +44,8 @@ linkedin-cli mcp
 Show current LinkedIn authentication session status.
 
 ```bash
-linkedin-cli status          # Basic status
-linkedin-cli status --full   # Full details with cookie names
+linkedin-lyr status          # Basic status
+linkedin-lyr status --full   # Full details with cookie names
 ```
 
 **Output fields:**
@@ -58,7 +58,7 @@ linkedin-cli status --full   # Full details with cookie names
 List all supported browsers and their installation status.
 
 ```bash
-linkedin-cli browsers
+linkedin-lyr browsers
 ```
 
 **Output fields:**
@@ -73,9 +73,9 @@ linkedin-cli browsers
 Import LinkedIn authentication cookies from your browser.
 
 ```bash
-linkedin-cli import           # Auto-detect browser
-linkedin-cli import brave    # Specific browser
-linkedin-cli import chrome   # Specific browser
+linkedin-lyr import           # Auto-detect browser
+linkedin-lyr import brave    # Specific browser
+linkedin-lyr import chrome   # Specific browser
 ```
 
 **Output fields:**
@@ -90,7 +90,7 @@ linkedin-cli import chrome   # Specific browser
 Clear stored LinkedIn authentication session.
 
 ```bash
-linkedin-cli logout
+linkedin-lyr logout
 ```
 
 **Output fields:**
@@ -102,9 +102,9 @@ linkedin-cli logout
 Start the LinkedIn MCP server with optional arguments.
 
 ```bash
-linkedin-cli mcp                        # Start with defaults
-linkedin-cli mcp --transport stdio     # Specific transport
-linkedin-cli mcp --log-level DEBUG     # Debug logging
+linkedin-lyr mcp                        # Start with defaults
+linkedin-lyr mcp --transport stdio     # Specific transport
+linkedin-lyr mcp --log-level DEBUG     # Debug logging
 ```
 
 ### `setup-session` - Install Session Hooks
@@ -112,7 +112,7 @@ linkedin-cli mcp --log-level DEBUG     # Debug logging
 Install session hooks for agent integrations (Claude Code, Codex).
 
 ```bash
-linkedin-cli setup-session
+linkedin-lyr setup-session
 ```
 
 ## Session Context
@@ -120,13 +120,13 @@ linkedin-cli setup-session
 When properly integrated, agents receive live session context at startup:
 
 ```
-bin: ~/.local/bin/linkedin-cli
+bin: ~/.local/bin/linkedin-lyr
 description: LinkedIn MCP Server - Manage LinkedIn authentication and scraping
 session: valid (4 cookies)
 
 help[2]:
-  Run 'linkedin-cli status' for session details
-  Run 'linkedin-cli mcp' to start the MCP server
+  Run 'linkedin-lyr status' for session details
+  Run 'linkedin-lyr mcp' to start the MCP server
 ```
 
 ## MCP Tools
@@ -175,7 +175,7 @@ Cookies are stored in `~/.linkedin/cookies.json` in Obscura-compatible format.
 ### Session Validation Failed
 
 If session validation fails:
-1. Re-import cookies: `linkedin-cli import`
+1. Re-import cookies: `linkedin-lyr import`
 2. Ensure you're logged into LinkedIn in your browser
 3. Try a different browser if encryption issues occur
 
@@ -189,9 +189,9 @@ If no browsers are detected:
 ### MCP Server Connection Issues
 
 If MCP server fails to connect:
-1. Check session status: `linkedin-cli status`
-2. Verify cookies are valid: `linkedin-cli status --full`
-3. Check logs with debug logging: `linkedin-cli mcp --log-level DEBUG`
+1. Check session status: `linkedin-lyr status`
+2. Verify cookies are valid: `linkedin-lyr status --full`
+3. Check logs with debug logging: `linkedin-lyr mcp --log-level DEBUG`
 
 ## Best Practices
 

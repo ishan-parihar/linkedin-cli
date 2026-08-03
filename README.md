@@ -2,7 +2,7 @@
 
 **Give AI assistants like Claude access to LinkedIn profiles, companies, jobs, and messaging through your own browser session.**
 
-[![PyPI](https://img.shields.io/pypi/v/mcp-server-linkedin?color=blue)](https://pypi.org/project/mcp-server-linkedin/)
+[![PyPI](https://img.shields.io/pypi/v/linkedin-lyr?color=blue)](https://pypi.org/project/linkedin-lyr/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 > **Disclaimer:** This is an independent, community project. It is not affiliated with, authorized by, endorsed by, or sponsored by LinkedIn Corporation or Microsoft. "LinkedIn" is a registered trademark of LinkedIn Corporation and is used here only descriptively to identify the third-party service this software interoperates with.
@@ -22,7 +22,7 @@ This MCP server and CLI lets AI assistants read LinkedIn data through your own l
 ## How It Works
 
 1. **Import cookies** from your browser (Chrome, Brave, Firefox, Edge, and more)
-2. **Start the MCP server** using the `linkedin-cli` command
+2. **Start the MCP server** using the `linkedin-lyr` command
 3. **Configure Claude Desktop** to connect to the MCP server
 4. **Use LinkedIn data** through Claude with natural language queries
 
@@ -33,18 +33,18 @@ This MCP server and CLI lets AI assistants read LinkedIn data through your own l
 ### 1. Install
 
 ```bash
-pip install mcp-server-linkedin
+pip install linkedin-lyr
 ```
 
 ### 2. Import Your LinkedIn Session
 
 ```bash
 # Auto-detect browser
-linkedin-cli --import-from-browser auto
+linkedin-lyr --import-from-browser auto
 
 # Or specify a browser
-linkedin-cli --import-from-browser brave
-linkedin-cli --import-from-browser chrome
+linkedin-lyr --import-from-browser brave
+linkedin-lyr --import-from-browser chrome
 ```
 
 **Output:**
@@ -59,7 +59,7 @@ linkedin-cli --import-from-browser chrome
 ### 3. Verify Session
 
 ```bash
-linkedin-cli --status
+linkedin-lyr --status
 ```
 
 **Output:**
@@ -82,7 +82,7 @@ Add to your Claude Desktop configuration file:
 {
   "mcpServers": {
     "linkedin": {
-      "command": "linkedin-cli",
+      "command": "linkedin-lyr",
       "args": []
     }
   }
@@ -122,28 +122,28 @@ Restart Claude Desktop and you're ready to use LinkedIn data through Claude.
 ### Global Installation (Recommended)
 
 ```bash
-pip install mcp-server-linkedin
+pip install linkedin-lyr
 ```
 
-This installs both `linkedin-cli` (CLI) and `mcp-server-linkedin` (MCP server).
+This installs both `linkedin-lyr` (CLI) and `linkedin-lyr` (MCP server).
 
 ### Using pipx
 
 ```bash
-pipx install mcp-server-linkedin
+pipx install linkedin-lyr
 ```
 
 ### Using uvx (No Installation)
 
 ```bash
-uvx mcp-server-linkedin@latest --status
-uvx mcp-server-linkedin@latest --import-from-browser brave
+uvx linkedin-lyr@latest --status
+uvx linkedin-lyr@latest --import-from-browser brave
 ```
 
 ### One-Line Install Script
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/ishan-parihar/linkedin-cli/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/ishan-parihar/linkedin-lyr/main/install.sh | bash
 ```
 
 ---
@@ -153,9 +153,9 @@ curl -sSL https://raw.githubusercontent.com/ishan-parihar/linkedin-cli/main/inst
 ### Session Management
 
 ```bash
-linkedin-cli --status                           # Check session status
-linkedin-cli --import-from-browser [browser]   # Import cookies from browser
-linkedin-cli --logout                          # Clear LinkedIn session
+linkedin-lyr --status                           # Check session status
+linkedin-lyr --import-from-browser [browser]   # Import cookies from browser
+linkedin-lyr --logout                          # Clear LinkedIn session
 ```
 
 ### Browser Options
@@ -175,8 +175,8 @@ Supported browsers for cookie import:
 ### MCP Server
 
 ```bash
-linkedin-cli                                    # Start MCP server with defaults
-linkedin-cli --transport streamable-http --host 127.0.0.1 --port 8080
+linkedin-lyr                                    # Start MCP server with defaults
+linkedin-lyr --transport streamable-http --host 127.0.0.1 --port 8080
 ```
 
 ---
@@ -219,7 +219,7 @@ Alternative MCP server configurations:
   "mcpServers": {
     "linkedin": {
       "command": "pipx",
-      "args": ["run", "mcp-server-linkedin"],
+      "args": ["run", "linkedin-lyr"],
       "env": { "UV_HTTP_TIMEOUT": "300" }
     }
   }
@@ -232,7 +232,7 @@ Alternative MCP server configurations:
   "mcpServers": {
     "linkedin": {
       "command": "uvx",
-      "args": ["mcp-server-linkedin@latest"],
+      "args": ["linkedin-lyr@latest"],
       "env": { "UV_HTTP_TIMEOUT": "300" }
     }
   }
@@ -263,32 +263,32 @@ Most users should not use a proxy. LinkedIn's own guidance for reducing security
 
 ```bash
 # Check session status
-linkedin-cli --status
+linkedin-lyr --status
 
 # Clear and re-import
-linkedin-cli --logout
-linkedin-cli --import-from-browser brave
+linkedin-lyr --logout
+linkedin-lyr --import-from-browser brave
 ```
 
 ### MCP Connection Issues
 
 ```bash
 # Start with debug logging
-linkedin-cli --log-level DEBUG
+linkedin-lyr --log-level DEBUG
 
 # Check Claude Desktop configuration
-# Verify the path to linkedin-cli is correct
+# Verify the path to linkedin-lyr is correct
 ```
 
 ### Cookie Import Issues
 
 ```bash
 # Try auto-detection
-linkedin-cli --import-from-browser auto
+linkedin-lyr --import-from-browser auto
 
 # Check browser installation
-linkedin-cli --import-from-browser chrome
-linkedin-cli --import-from-browser firefox
+linkedin-lyr --import-from-browser chrome
+linkedin-lyr --import-from-browser firefox
 ```
 
 ---
@@ -298,7 +298,7 @@ linkedin-cli --import-from-browser firefox
 ### Local Setup
 
 ```bash
-git clone https://github.com/ishan-parihar/linkedin-cli
+git clone https://github.com/ishan-parihar/linkedin-lyr
 cd linkedin-mcp-server
 uv sync
 uv sync --group dev

@@ -157,9 +157,7 @@ def _inspect(auth_root: Path, profile: Path, config: AppConfig) -> OwnerLookup:
     token = daemon_descriptor.read_token(auth_root, descriptor)
 
     # Keyed with the token, so this can only run once the token is in hand.
-    if descriptor.config_fingerprint != daemon_descriptor.config_fingerprint(
-        config, key=token
-    ):
+    if descriptor.config_fingerprint != daemon_descriptor.config_fingerprint(config, key=token):
         return OwnerLookup(
             state=OwnerState.INCOMPATIBLE,
             # Names no values: the shared fields include a proxy password and

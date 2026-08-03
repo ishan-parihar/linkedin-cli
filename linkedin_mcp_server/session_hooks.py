@@ -32,7 +32,7 @@ class SessionHookManager:
     def get_session_context(self) -> dict[str, Any]:
         """Get current session context for agents."""
         validation = self.validator.validate_session()
-        
+
         context = {
             "bin": self._get_bin_path(),
             "description": "LinkedIn MCP Server - Manage LinkedIn authentication and scraping",
@@ -40,14 +40,14 @@ class SessionHookManager:
                 "valid": validation["valid"],
                 "reason": validation.get("reason"),
                 "message": validation.get("message"),
-            }
+            },
         }
-        
+
         if validation["valid"]:
             cookies = self.cookie_manager.load_cookies()
             context["session"]["cookies"] = len(cookies)
             context["session"]["path"] = str(self.cookie_manager.cookie_path)
-        
+
         return context
 
     def _get_bin_path(self) -> str:
@@ -59,27 +59,27 @@ class SessionHookManager:
     def output_toon_context(self) -> None:
         """Output session context in TOON format."""
         context = self.get_session_context()
-        
+
         # Output in TOON format
         print(f"bin: {context['bin']}")
         print(f"description: {context['description']}")
-        
+
         session = context["session"]
         if session["valid"]:
             print(f"session: valid ({session['cookies']} cookies)")
         else:
             print(f"session: {session['reason']}")
             print(f"message: {session['message']}")
-        
+
         # Add help suggestions
         if not session["valid"]:
             print("\nhelp[2]:")
-            print("  Run 'linkedin-cli import' to set up authentication")
-            print("  Run 'linkedin-cli browsers' to list supported browsers")
+            print("  Run 'linkedin-lyr import' to set up authentication")
+            print("  Run 'linkedin-lyr browsers' to list supported browsers")
         else:
             print("\nhelp[2]:")
-            print("  Run 'linkedin-cli status' for session details")
-            print("  Run 'linkedin-cli mcp' to start the MCP server")
+            print("  Run 'linkedin-lyr status' for session details")
+            print("  Run 'linkedin-lyr mcp' to start the MCP server")
 
 
 def setup_claude_code_hook() -> bool:
@@ -87,38 +87,38 @@ def setup_claude_code_hook() -> bool:
     try:
         claude_config_dir = Path.home() / ".claude"
         claude_config_file = claude_config_dir / "settings.json"
-        
+
         claude_config_dir.mkdir(exist_ok=True)
-        
+
         # Read existing config
         config = {}
         if claude_config_file.exists():
             with open(claude_config_file) as f:
                 config = json.load(f)
-        
+
         # Add session start hook
         if "sessionStart" not in config:
             config["sessionStart"] = []
-        
+
         # Ensure sessionStart is a list
         if not isinstance(config["sessionStart"], list):
             config["sessionStart"] = []
-        
-        hook_command = "linkedin-cli status"
-        
+
+        hook_command = "linkedin-lyr status"
+
         # Check if hook already exists
         if not any(hook_command in str(hook) for hook in config["sessionStart"]):
             config["sessionStart"].append({
                 "command": hook_command,
-                "description": "LinkedIn MCP Server session context"
+                "description": "LinkedIn MCP Server session context",
             })
-            
+
             with open(claude_config_file, "w") as f:
                 json.dump(config, f, indent=2)
-            
+
             logger.info("Claude Code hook installed")
             return True
-        
+
         return False
     except Exception as e:
         logger.error("Failed to install Claude Code hook: %s", e)
@@ -130,43 +130,43 @@ def setup_codex_hook() -> bool:
     try:
         codex_config_dir = Path.home() / ".codex"
         codex_config_file = codex_config_dir / "hooks.json"
-        
+
         codex_config_dir.mkdir(exist_ok=True)
-        
+
         # Read existing config
         config = {}
         if codex_config_file.exists():
             with open(codex_config_file) as f:
                 config = json.load(f)
-        
+
         # Ensure hooks feature is enabled
         if "features" not in config:
             config["features"] = {}
         config["features"]["hooks"] = True
-        
+
         # Add session start hook
         if "SessionStart" not in config:
             config["SessionStart"] = []
-        
+
         # Ensure SessionStart is a list
         if not isinstance(config["SessionStart"], list):
             config["SessionStart"] = []
-        
-        hook_command = "linkedin-cli status"
-        
+
+        hook_command = "linkedin-lyr status"
+
         # Check if hook already exists
         if not any(hook_command in str(hook) for hook in config["SessionStart"]):
             config["SessionStart"].append({
                 "command": hook_command,
-                "description": "LinkedIn MCP Server session context"
+                "description": "LinkedIn MCP Server session context",
             })
-            
+
             with open(codex_config_file, "w") as f:
                 json.dump(config, f, indent=2)
-            
+
             logger.info("Codex hook installed")
             return True
-        
+
         return False
     except Exception as e:
         logger.error("Failed to install Codex hook: %s", e)
@@ -176,13 +176,13 @@ def setup_codex_hook() -> bool:
 def install_hooks(agent: str = "all") -> dict[str, bool]:
     """Install session hooks for specified agents."""
     results = {}
-    
+
     if agent in ("all", "claude"):
         results["claude"] = setup_claude_code_hook()
-    
+
     if agent in ("all", "codex"):
         results["codex"] = setup_codex_hook()
-    
+
     return results
 
 

@@ -120,9 +120,7 @@ class TestScope:
         assert second.parent.parent == daemon_state_root()
         assert first != second
 
-    @pytest.mark.skipif(
-        os.name == "nt", reason="POSIX permission bits do not exist on Windows"
-    )
+    @pytest.mark.skipif(os.name == "nt", reason="POSIX permission bits do not exist on Windows")
     def test_acquiring_does_not_harden_the_configured_auth_root(self, tmp_path: Path):
         # Measured before the fix: acquiring changed any existing auth root from
         # 0755 to 0700. A custom profile directly under /tmp would try to chmod
@@ -375,9 +373,7 @@ class TestHandoff:
         successor.release()
 
     @posix_handoff
-    def test_adopting_a_descriptor_that_holds_no_lock_still_excludes(
-        self, tmp_path: Path
-    ):
+    def test_adopting_a_descriptor_that_holds_no_lock_still_excludes(self, tmp_path: Path):
         # A supervisor launched with a descriptor that was never locked, or
         # whose lock was already released. Measured before the fix: it reported
         # ownership while daemon_is_running said no daemon was there and a
@@ -434,9 +430,7 @@ class TestRegistry:
         gc.collect()
 
         assert daemon_is_running(tmp_path)
-        held = [
-            lock for lock in _held_locks if lock.path.parent == daemon_dir(tmp_path)
-        ]
+        held = [lock for lock in _held_locks if lock.path.parent == daemon_dir(tmp_path)]
         assert held, "a held lock must stay reachable"
 
         for lock in held:
@@ -476,9 +470,7 @@ class TestPlatformDifference:
 
 
 class TestFork:
-    @pytest.mark.skipif(
-        not hasattr(os, "fork"), reason="fork does not exist on Windows"
-    )
+    @pytest.mark.skipif(not hasattr(os, "fork"), reason="fork does not exist on Windows")
     def test_a_child_that_never_touches_the_lock_does_not_hold_it(self, tmp_path: Path):
         # Measured before the fix: an untouched fork child kept the lock held
         # after the owner released, so every other process saw a daemon that

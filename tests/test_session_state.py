@@ -52,9 +52,7 @@ def test_source_state_round_trips_user_agent(monkeypatch, isolate_profile_dir):
     assert load_source_state(isolate_profile_dir) == state
 
 
-def test_load_source_state_defaults_user_agent_for_old_files(
-    monkeypatch, isolate_profile_dir
-):
+def test_load_source_state_defaults_user_agent_for_old_files(monkeypatch, isolate_profile_dir):
     """A pre-existing source-state.json without user_agent still loads."""
     monkeypatch.setattr(
         "linkedin_mcp_server.session_state.get_runtime_id",
@@ -99,10 +97,7 @@ def test_write_runtime_state_tracks_source_generation(monkeypatch, isolate_profi
     assert runtime_state.profile_path == str(
         runtime_profile_dir("linux-amd64-container", isolate_profile_dir).resolve()
     )
-    assert (
-        load_runtime_state("linux-amd64-container", isolate_profile_dir)
-        == runtime_state
-    )
+    assert load_runtime_state("linux-amd64-container", isolate_profile_dir) == runtime_state
 
 
 def test_load_source_state_ignores_unknown_fields(monkeypatch, isolate_profile_dir):
@@ -112,9 +107,7 @@ def test_load_source_state_ignores_unknown_fields(monkeypatch, isolate_profile_d
     )
     state = write_source_state(isolate_profile_dir)
     payload = source_state_path(isolate_profile_dir)
-    payload.write_text(
-        payload.read_text().replace("}", ', "future_field": "keep calm"}', 1)
-    )
+    payload.write_text(payload.read_text().replace("}", ', "future_field": "keep calm"}', 1))
 
     assert load_source_state(isolate_profile_dir) == state
 
@@ -139,19 +132,12 @@ def test_load_runtime_state_ignores_unknown_fields(monkeypatch, isolate_profile_
         isolate_profile_dir,
     )
     payload = runtime_state_path("linux-amd64-container", isolate_profile_dir)
-    payload.write_text(
-        payload.read_text().replace("}", ', "future_field": "still fine"}', 1)
-    )
+    payload.write_text(payload.read_text().replace("}", ', "future_field": "still fine"}', 1))
 
-    assert (
-        load_runtime_state("linux-amd64-container", isolate_profile_dir)
-        == runtime_state
-    )
+    assert load_runtime_state("linux-amd64-container", isolate_profile_dir) == runtime_state
 
 
-def test_write_runtime_state_accepts_explicit_created_at(
-    monkeypatch, isolate_profile_dir
-):
+def test_write_runtime_state_accepts_explicit_created_at(monkeypatch, isolate_profile_dir):
     monkeypatch.setattr(
         "linkedin_mcp_server.session_state.get_runtime_id",
         lambda: "macos-arm64-host",
@@ -190,12 +176,8 @@ def test_runtime_storage_state_path_uses_runtime_dir(isolate_profile_dir):
 
 
 def test_get_runtime_id_marks_container(monkeypatch):
-    monkeypatch.setattr(
-        "linkedin_mcp_server.session_state.platform.system", lambda: "Linux"
-    )
-    monkeypatch.setattr(
-        "linkedin_mcp_server.session_state.platform.machine", lambda: "x86_64"
-    )
+    monkeypatch.setattr("linkedin_mcp_server.session_state.platform.system", lambda: "Linux")
+    monkeypatch.setattr("linkedin_mcp_server.session_state.platform.machine", lambda: "x86_64")
     monkeypatch.setattr(
         "linkedin_mcp_server.session_state.Path.exists",
         lambda self: str(self) == "/.dockerenv",
@@ -205,12 +187,8 @@ def test_get_runtime_id_marks_container(monkeypatch):
 
 
 def test_get_runtime_id_marks_container_from_cgroup_v2_mountinfo(monkeypatch):
-    monkeypatch.setattr(
-        "linkedin_mcp_server.session_state.platform.system", lambda: "Linux"
-    )
-    monkeypatch.setattr(
-        "linkedin_mcp_server.session_state.platform.machine", lambda: "x86_64"
-    )
+    monkeypatch.setattr("linkedin_mcp_server.session_state.platform.system", lambda: "Linux")
+    monkeypatch.setattr("linkedin_mcp_server.session_state.platform.machine", lambda: "x86_64")
     monkeypatch.setattr(
         "linkedin_mcp_server.session_state.Path.exists",
         lambda self: str(self) == "/proc/1/mountinfo",
@@ -218,8 +196,7 @@ def test_get_runtime_id_marks_container_from_cgroup_v2_mountinfo(monkeypatch):
     monkeypatch.setattr(
         "linkedin_mcp_server.session_state.Path.read_text",
         lambda self, *args, **kwargs: (
-            "257 248 0:61 / / rw,relatime - overlay overlay "
-            "rw,lowerdir=/var/lib/docker/overlay2/l"
+            "257 248 0:61 / / rw,relatime - overlay overlay rw,lowerdir=/var/lib/docker/overlay2/l"
         ),
     )
 
@@ -227,12 +204,8 @@ def test_get_runtime_id_marks_container_from_cgroup_v2_mountinfo(monkeypatch):
 
 
 def test_get_runtime_id_ignores_non_root_overlay_mounts(monkeypatch):
-    monkeypatch.setattr(
-        "linkedin_mcp_server.session_state.platform.system", lambda: "Linux"
-    )
-    monkeypatch.setattr(
-        "linkedin_mcp_server.session_state.platform.machine", lambda: "x86_64"
-    )
+    monkeypatch.setattr("linkedin_mcp_server.session_state.platform.system", lambda: "Linux")
+    monkeypatch.setattr("linkedin_mcp_server.session_state.platform.machine", lambda: "x86_64")
     monkeypatch.setattr(
         "linkedin_mcp_server.session_state.Path.exists",
         lambda self: str(self) == "/proc/1/mountinfo",
@@ -257,16 +230,14 @@ def _seed_session(profile_dir, *, machine_id: str = "4663753") -> None:
     )
     portable_cookie_path(profile_dir).write_text('[{"name": "li_at"}]')
     source_state_path(profile_dir).write_text(
-        json.dumps(
-            {
-                "version": 1,
-                "source_runtime_id": "macos-arm64-host",
-                "login_generation": "gen-1",
-                "created_at": "2026-07-25T00:00:00Z",
-                "profile_path": str(profile_dir),
-                "cookies_path": str(portable_cookie_path(profile_dir)),
-            }
-        )
+        json.dumps({
+            "version": 1,
+            "source_runtime_id": "macos-arm64-host",
+            "login_generation": "gen-1",
+            "created_at": "2026-07-25T00:00:00Z",
+            "profile_path": str(profile_dir),
+            "cookies_path": str(portable_cookie_path(profile_dir)),
+        })
     )
     (runtime_profiles_root(profile_dir) / "macos-arm64-host").mkdir(parents=True)
 
@@ -313,9 +284,7 @@ class TestRotateSourceProfile:
         profile_dir = isolate_profile_dir
         _seed_session(profile_dir)
         # Chromium encodes the owning <host>-<pid> in the lock's symlink target.
-        (profile_dir / "SingletonLock").symlink_to(
-            f"{socket.gethostname()}-{os.getpid()}"
-        )
+        (profile_dir / "SingletonLock").symlink_to(f"{socket.gethostname()}-{os.getpid()}")
 
         with pytest.raises(RuntimeError, match="in use by another process"):
             rotate_source_profile(profile_dir)
@@ -345,9 +314,7 @@ class TestRotateSourceProfile:
         assert first != second
         assert len(quarantine_dirs(profile_dir)) == 2
 
-    def test_move_failure_raises_instead_of_half_rotating(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    def test_move_failure_raises_instead_of_half_rotating(self, isolate_profile_dir, monkeypatch):
         """A swallowed failure would leave one session split across two
         quarantines the next time around, so a partial move must be rolled
         back before the error propagates."""
@@ -362,9 +329,7 @@ class TestRotateSourceProfile:
                 raise OSError("device busy")
             return real_move(src, dst)
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.session_state.shutil.move", explode_on_second
-        )
+        monkeypatch.setattr("linkedin_mcp_server.session_state.shutil.move", explode_on_second)
 
         with pytest.raises(OSError):
             rotate_source_profile(profile_dir)

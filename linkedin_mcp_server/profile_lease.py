@@ -244,9 +244,7 @@ if not _HAS_FCNTL and _HAS_WINDOWS_LOCKS:  # pragma: no cover - Windows
         # Zero-initialised by ctypes, so the lock starts at offset 0 and hEvent
         # is NULL, which LockFileEx accepts for a synchronous call.
         overlapped = _Overlapped()
-        if _lock_file_ex(
-            _handle(fd), flags, 0, _LOCK_BYTES, 0, ctypes.byref(overlapped)
-        ):
+        if _lock_file_ex(_handle(fd), flags, 0, _LOCK_BYTES, 0, ctypes.byref(overlapped)):
             return True
         error = _get_last_error()
         if _windows_failure_is_contention(error):
@@ -258,9 +256,7 @@ if not _HAS_FCNTL and _HAS_WINDOWS_LOCKS:  # pragma: no cover - Windows
 
     def _windows_unlock(fd: int) -> None:
         overlapped = _Overlapped()
-        if not _unlock_file_ex(
-            _handle(fd), 0, _LOCK_BYTES, 0, ctypes.byref(overlapped)
-        ):
+        if not _unlock_file_ex(_handle(fd), 0, _LOCK_BYTES, 0, ctypes.byref(overlapped)):
             raise _win_error(_get_last_error())
 
 

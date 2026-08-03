@@ -76,9 +76,7 @@ def register_person_tools(
             The LLM should parse the raw text in each section.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="get_person_profile"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="get_person_profile")
             requested, unknown = parse_person_sections(sections)
 
             logger.info(
@@ -151,9 +149,7 @@ def register_person_tools(
             The LLM should parse the raw text to extract individual people and their profiles.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="search_people"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="search_people")
             logger.info(
                 "Searching people: keywords='%s', location='%s', network=%s, current_company='%s'",
                 keywords,
@@ -162,9 +158,7 @@ def register_person_tools(
                 current_company,
             )
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Starting people search"
-            )
+            await ctx.report_progress(progress=0, total=100, message="Starting people search")
 
             try:
                 result = await extractor.search_people(
@@ -237,9 +231,7 @@ def register_person_tools(
             text read from LinkedIn.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="connect_with_person"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="connect_with_person")
             logger.info(
                 "Connecting with person: %s (note=%s)",
                 linkedin_username,
@@ -304,9 +296,7 @@ def register_person_tools(
             )
             logger.info("Getting sidebar profiles for: %s", linkedin_username)
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Extracting sidebar profiles"
-            )
+            await ctx.report_progress(progress=0, total=100, message="Extracting sidebar profiles")
 
             result = await extractor.get_sidebar_profiles(linkedin_username)
 
@@ -356,9 +346,7 @@ def register_person_tools(
             The url field reflects the resolved profile URL, revealing the real username.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="get_my_profile"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="get_my_profile")
             requested, unknown = parse_person_sections(sections)
 
             logger.info("Scraping own profile (sections=%s)", sections)

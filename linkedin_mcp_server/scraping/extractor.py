@@ -56,7 +56,9 @@ _NAV_DELAY = 2.0
 _RATE_LIMIT_RETRY_DELAY = 5.0
 
 # Returned as section text when LinkedIn rate-limits the page
-_RATE_LIMITED_MSG = "[Rate limited] LinkedIn blocked this section. Try again later or request fewer sections."
+_RATE_LIMITED_MSG = (
+    "[Rate limited] LinkedIn blocked this section. Try again later or request fewer sections."
+)
 
 # LinkedIn shows 25 results per page
 _PAGE_SIZE = 25
@@ -499,11 +501,7 @@ def _build_feed_references(
     consumers should treat ``feed_post`` as polymorphic on URL form;
     URN-based equivalence is left to the consumer.
     """
-    refs = [
-        ref
-        for ref in build_references(raw_references, "feed")
-        if ref["kind"] == "feed_post"
-    ]
+    refs = [ref for ref in build_references(raw_references, "feed") if ref["kind"] == "feed_post"]
     existing = {r["url"] for r in refs}
     for sdui_url in captured_urls:
         # AGENTS.md mandates relative paths for LinkedIn references.
@@ -681,9 +679,7 @@ def strip_conversation_chrome(text: str, locale: str = "en") -> str:
     # sidebar omits the pagination control when there are few conversations —
     # then fall back to the last options line before the composer.
     start = 0
-    sidebar_end = next(
-        (i for i in range(end) if lines[i].strip() == table.sidebar_end), None
-    )
+    sidebar_end = next((i for i in range(end) if lines[i].strip() == table.sidebar_end), None)
     if sidebar_end is not None:
         header = next(
             (
@@ -787,9 +783,7 @@ class LinkedInExtractor:
             wait_until,
             # Redacted like the traces above: a driver error can quote the
             # proxy URL, and this log is what users paste into issue reports.
-            redact_proxy_credentials(
-                f"{type(navigation_error).__name__}: {navigation_error}"
-            ),
+            redact_proxy_credentials(f"{type(navigation_error).__name__}: {navigation_error}"),
             self._page.url,
             title,
             auth_barrier,
@@ -866,18 +860,14 @@ class LinkedInExtractor:
                 # outage from being reported as a LinkedIn navigation problem.
                 raise_if_proxy_error(exc)
                 if allow_remember_me and await resolve_remember_me_prompt(self._page):
-                    await stabilize_navigation(
-                        f"remember-me resolution for {url}", logger
-                    )
+                    await stabilize_navigation(f"remember-me resolution for {url}", logger)
                     await record_page_trace(
                         self._page,
                         "extractor-navigation-error-before-remember-me-retry",
                         extra={
                             "target_url": url,
                             "wait_until": wait_until,
-                            "error": redact_proxy_credentials(
-                                f"{type(exc).__name__}: {exc}"
-                            ),
+                            "error": redact_proxy_credentials(f"{type(exc).__name__}: {exc}"),
                             "hops": hops,
                         },
                     )
@@ -886,9 +876,7 @@ class LinkedInExtractor:
                         "extractor-after-remember-me",
                         extra={
                             "target_url": url,
-                            "error": redact_proxy_credentials(
-                                f"{type(exc).__name__}: {exc}"
-                            ),
+                            "error": redact_proxy_credentials(f"{type(exc).__name__}: {exc}"),
                         },
                     )
                     unregister_navigation_listener()
@@ -904,9 +892,7 @@ class LinkedInExtractor:
                     extra={
                         "target_url": url,
                         "wait_until": wait_until,
-                        "error": redact_proxy_credentials(
-                            f"{type(exc).__name__}: {exc}"
-                        ),
+                        "error": redact_proxy_credentials(f"{type(exc).__name__}: {exc}"),
                         "hops": hops,
                     },
                 )
@@ -978,7 +964,8 @@ class LinkedInExtractor:
         Returns True if clicked, False if no match found.
         """
         matches = (
-            self._page.locator(scope)
+            self._page
+            .locator(scope)
             .locator("button, a, [role='button']")
             .filter(has_text=re.compile(rf"^{re.escape(text)}$"))
         )
@@ -1045,9 +1032,7 @@ class LinkedInExtractor:
         """Dismiss any open dialog via Escape key (structural)."""
         await self._page.keyboard.press("Escape")
         try:
-            await self._page.wait_for_selector(
-                _DIALOG_SELECTOR, state="hidden", timeout=3000
-            )
+            await self._page.wait_for_selector(_DIALOG_SELECTOR, state="hidden", timeout=3000)
         except PlaywrightTimeoutError:
             pass
 
@@ -1281,9 +1266,7 @@ class LinkedInExtractor:
 
         self._page.on("response", _handle_response)
         try:
-            return await self._extract_feed_body(
-                url, num_posts, captured_urls, pending_reads
-            )
+            return await self._extract_feed_body(url, num_posts, captured_urls, pending_reads)
         finally:
             try:
                 self._page.remove_listener("response", _handle_response)
@@ -1351,18 +1334,14 @@ class LinkedInExtractor:
                 # sleeps and re-checks before _read() finishes appending —
                 # producing false-stale verdicts.
                 if pending_reads:
-                    done, _still = await asyncio.wait(
-                        pending_reads, timeout=_IN_LOOP_DRAIN_TIMEOUT
-                    )
+                    done, _still = await asyncio.wait(pending_reads, timeout=_IN_LOOP_DRAIN_TIMEOUT)
                     if done:
                         # Surface unexpected exceptions. _read() catches
                         # expected playwright errors, but a parser bug
                         # would otherwise vanish into the loop. Log them
                         # rather than raising so a single bad response
                         # doesn't abort the whole scroll session.
-                        for result in await asyncio.gather(
-                            *done, return_exceptions=True
-                        ):
+                        for result in await asyncio.gather(*done, return_exceptions=True):
                             if isinstance(result, BaseException):
                                 logger.warning(
                                     "Unhandled error in feed _read task: %r",
@@ -1397,9 +1376,7 @@ class LinkedInExtractor:
             return ExtractedSection(text="", references=[])
         truncated = _truncate_linkedin_noise(raw)
         if not truncated and raw.strip():
-            logger.warning(
-                "Page %s returned only LinkedIn chrome (likely rate-limited)", url
-            )
+            logger.warning("Page %s returned only LinkedIn chrome (likely rate-limited)", url)
             return ExtractedSection(text=_RATE_LIMITED_MSG, references=[])
         cleaned = _filter_linkedin_noise_lines(truncated)
         return ExtractedSection(
@@ -1603,9 +1580,7 @@ class LinkedInExtractor:
             return ExtractedSection(text="", references=[])
         truncated = _truncate_linkedin_noise(raw)
         if not truncated and raw.strip():
-            logger.warning(
-                "Page %s returned only LinkedIn chrome (likely rate-limited)", url
-            )
+            logger.warning("Page %s returned only LinkedIn chrome (likely rate-limited)", url)
             return ExtractedSection(text=_RATE_LIMITED_MSG, references=[])
         cleaned = _filter_linkedin_noise_lines(truncated)
         return ExtractedSection(
@@ -1741,8 +1716,7 @@ class LinkedInExtractor:
                     can_reuse_main = (
                         section_name == "main_profile"
                         and main_profile_already_loaded
-                        and urlparse(self._page.url).path.rstrip("/")
-                        == f"/in/{username}"
+                        and urlparse(self._page.url).path.rstrip("/") == f"/in/{username}"
                     )
                     if can_reuse_main:
                         extracted = await self._extract_loaded_section(
@@ -1761,9 +1735,7 @@ class LinkedInExtractor:
                                 max_scrolls=max_scrolls,
                             )
                     elif is_overlay:
-                        extracted = await self._extract_overlay(
-                            url, section_name=section_name
-                        )
+                        extracted = await self._extract_overlay(url, section_name=section_name)
                     else:
                         extracted = await self.extract_page(
                             url,
@@ -1881,9 +1853,7 @@ class LinkedInExtractor:
             has_incoming_action_row=bool(data.get("hasIncomingActionRow")),
         )
 
-    async def _submit_invite_dialog(
-        self, note: str | None
-    ) -> tuple[bool, bool, str | None]:
+    async def _submit_invite_dialog(self, note: str | None) -> tuple[bool, bool, str | None]:
         """Submit the invite dialog opened by the custom-invite deeplink.
 
         Returns ``(submitted, note_sent, note_limit_message)``.
@@ -1978,9 +1948,7 @@ class LinkedInExtractor:
                 if note:
                     note_limit_message = await self._get_premium_upsell_message()
                     if note_limit_message is not None:
-                        logger.info(
-                            "Premium upsell modal intercepted invite submit click"
-                        )
+                        logger.info("Premium upsell modal intercepted invite submit click")
                         await self._dismiss_dialog()
                         return False, False, note_limit_message
                 await self._dismiss_dialog()
@@ -1997,9 +1965,7 @@ class LinkedInExtractor:
                 return False, False, note_limit_message
 
         try:
-            await self._page.wait_for_selector(
-                _DIALOG_SELECTOR, state="hidden", timeout=5000
-            )
+            await self._page.wait_for_selector(_DIALOG_SELECTOR, state="hidden", timeout=5000)
         except PlaywrightTimeoutError:
             logger.debug("Invite dialog did not close after submit")
 
@@ -2085,15 +2051,11 @@ class LinkedInExtractor:
         profile = await self.scrape_person(username, {"main_profile"})
         page_text = profile.get("sections", {}).get("main_profile", "")
         if not page_text:
-            return _connection_result(
-                url, "unavailable", "Could not read profile page."
-            )
+            return _connection_result(url, "unavailable", "Could not read profile page.")
 
         signals = await self._read_action_signals(username)
         state = detect_connection_state(signals)
-        logger.info(
-            "Connection signals for %s: state=%s signals=%s", username, state, signals
-        )
+        logger.info("Connection signals for %s: state=%s signals=%s", username, state, signals)
 
         if state == "self_profile":
             return _connection_result(
@@ -2182,8 +2144,7 @@ class LinkedInExtractor:
                 logger.info("Post-More signals for %s: signals=%s", username, signals)
 
         invite_url = (
-            "https://www.linkedin.com/preload/custom-invite/"
-            f"?vanityName={quote_plus(username)}"
+            f"https://www.linkedin.com/preload/custom-invite/?vanityName={quote_plus(username)}"
         )
 
         # Write-gate: submit only when LinkedIn exposed the vanityName invite
@@ -2217,9 +2178,7 @@ class LinkedInExtractor:
 
         await self._navigate_to_page(invite_url)
 
-        submitted, note_sent, note_limit_message = await self._submit_invite_dialog(
-            note
-        )
+        submitted, note_sent, note_limit_message = await self._submit_invite_dialog(note)
         if note_limit_message is not None:
             return _connection_result(
                 url,
@@ -2516,9 +2475,7 @@ class LinkedInExtractor:
         quickly to the composer check, which uses the page-level default
         (``BrowserConfig.default_timeout``, configurable via ``--timeout``).
         """
-        if await self._locator_is_visible(
-            _MESSAGING_RECIPIENT_PICKER_SELECTOR, timeout=2000
-        ):
+        if await self._locator_is_visible(_MESSAGING_RECIPIENT_PICKER_SELECTOR, timeout=2000):
             return "recipient_picker"
         if await self._wait_for_message_composer():
             return "composer"
@@ -2766,9 +2723,7 @@ class LinkedInExtractor:
         await detect_rate_limit(self._page)
         await self._wait_for_main_text(log_context="Messaging inbox")
         await handle_modal_close(self._page)
-        await self._scroll_main_scrollable_region(
-            position="bottom", attempts=2, pause_time=0.5
-        )
+        await self._scroll_main_scrollable_region(position="bottom", attempts=2, pause_time=0.5)
         urls = _match(
             await self._extract_conversation_thread_refs(
                 limit=None, context="inbox", name_filter=display_name
@@ -2793,9 +2748,7 @@ class LinkedInExtractor:
             )
         )
 
-    async def _open_conversation_by_username(
-        self, linkedin_username: str, index: int = 0
-    ) -> None:
+    async def _open_conversation_by_username(self, linkedin_username: str, index: int = 0) -> None:
         """Open the ``index``-th conversation thread for the named participant.
 
         ``index`` is 0-based and orders threads as the search-results sidebar
@@ -2873,13 +2826,9 @@ class LinkedInExtractor:
                 url = base_url + suffix
                 try:
                     if is_overlay:
-                        extracted = await self._extract_overlay(
-                            url, section_name=section_name
-                        )
+                        extracted = await self._extract_overlay(url, section_name=section_name)
                     else:
-                        extracted = await self.extract_page(
-                            url, section_name=section_name
-                        )
+                        extracted = await self.extract_page(url, section_name=section_name)
 
                     if extracted.text and extracted.text != _RATE_LIMITED_MSG:
                         sections[section_name] = extracted.text
@@ -3218,16 +3167,10 @@ class LinkedInExtractor:
             if page_num > 0:
                 await asyncio.sleep(_NAV_DELAY)
 
-            url = (
-                base_url
-                if page_num == 0
-                else f"{base_url}&start={page_num * _PAGE_SIZE}"
-            )
+            url = base_url if page_num == 0 else f"{base_url}&start={page_num * _PAGE_SIZE}"
 
             try:
-                extracted = await self._extract_search_page(
-                    url, section_name="search_results"
-                )
+                extracted = await self._extract_search_page(url, section_name="search_results")
 
                 if not extracted.text or extracted.text == _RATE_LIMITED_MSG:
                     if extracted.error:
@@ -3247,12 +3190,9 @@ class LinkedInExtractor:
                             logger.debug("LinkedIn reports %d total pages", total_pages)
 
                 # Extract job IDs from hrefs (page is already loaded)
-                if not self._page.url.startswith(
-                    "https://www.linkedin.com/jobs/search/"
-                ):
+                if not self._page.url.startswith("https://www.linkedin.com/jobs/search/"):
                     logger.debug(
-                        "Unexpected page URL after extraction: %s — "
-                        "skipping job ID extraction",
+                        "Unexpected page URL after extraction: %s — skipping job ID extraction",
                         self._page.url,
                     )
                     page_texts.append(extracted.text)
@@ -3291,15 +3231,11 @@ class LinkedInExtractor:
 
         result: dict[str, Any] = {
             "url": base_url,
-            "sections": {"search_results": "\n---\n".join(page_texts)}
-            if page_texts
-            else {},
+            "sections": {"search_results": "\n---\n".join(page_texts)} if page_texts else {},
             "job_ids": all_job_ids,
         }
         if page_references:
-            result["references"] = {
-                "search_results": dedupe_references(page_references, cap=15)
-            }
+            result["references"] = {"search_results": dedupe_references(page_references, cap=15)}
         if section_errors:
             result["section_errors"] = section_errors
         return result
@@ -3451,9 +3387,7 @@ class LinkedInExtractor:
             )
 
             try:
-                extracted = await self._extract_saved_jobs_page(
-                    url, section_name="saved_jobs"
-                )
+                extracted = await self._extract_saved_jobs_page(url, section_name="saved_jobs")
 
                 if not extracted.text or extracted.text == _RATE_LIMITED_MSG:
                     if extracted.error:
@@ -3468,9 +3402,7 @@ class LinkedInExtractor:
                         logger.debug("Could not read saved-jobs page count: %s", e)
                     else:
                         if total_pages is not None:
-                            logger.debug(
-                                "LinkedIn reports %d saved-jobs pages", total_pages
-                            )
+                            logger.debug("LinkedIn reports %d saved-jobs pages", total_pages)
 
                 if "/my-items/saved-jobs" not in self._page.url:
                     logger.debug(
@@ -3490,9 +3422,7 @@ class LinkedInExtractor:
                     page_texts.append(extracted.text)
                     if extracted.references:
                         page_references.extend(extracted.references)
-                    logger.debug(
-                        "No new saved job IDs on page %d, stopping", page_num + 1
-                    )
+                    logger.debug("No new saved job IDs on page %d, stopping", page_num + 1)
                     break
 
                 for jid in new_ids:
@@ -3517,15 +3447,11 @@ class LinkedInExtractor:
 
         result: dict[str, Any] = {
             "url": base_url,
-            "sections": {"saved_jobs": "\n---\n".join(page_texts)}
-            if page_texts
-            else {},
+            "sections": {"saved_jobs": "\n---\n".join(page_texts)} if page_texts else {},
             "job_ids": all_job_ids,
         }
         if page_references:
-            result["references"] = {
-                "saved_jobs": dedupe_references(page_references, cap=15)
-            }
+            result["references"] = {"saved_jobs": dedupe_references(page_references, cap=15)}
         if section_errors:
             result["section_errors"] = section_errors
         return result
@@ -3656,9 +3582,7 @@ class LinkedInExtractor:
         """
         params = f"keywords={quote_plus(keywords)}&origin=FACETED_SEARCH"
         if date_posted and date_posted.strip():
-            token = _CONTENT_DATE_POSTED_MAP.get(
-                date_posted.strip(), date_posted.strip()
-            )
+            token = _CONTENT_DATE_POSTED_MAP.get(date_posted.strip(), date_posted.strip())
             params += f"&datePosted={_encode_list_facet([token])}"
         return f"https://www.linkedin.com/search/results/content/?{params}"
 
@@ -3891,9 +3815,7 @@ class LinkedInExtractor:
     # succeeds; the regex falls through silently for any other locale, in
     # which case the full aria-label flows into the ref's text field rather
     # than a stripped name.
-    _SELECT_CONVERSATION_PREFIX_RE = re.compile(
-        r"^Select conversation with\s+", re.IGNORECASE
-    )
+    _SELECT_CONVERSATION_PREFIX_RE = re.compile(r"^Select conversation with\s+", re.IGNORECASE)
 
     @classmethod
     def _strip_select_conversation_prefix(cls, aria_label: str) -> str:
@@ -3921,25 +3843,17 @@ class LinkedInExtractor:
         to skip this enumeration.
         """
         if not linkedin_username and not thread_id:
-            raise LinkedInScraperException(
-                "Provide at least one of linkedin_username or thread_id"
-            )
+            raise LinkedInScraperException("Provide at least one of linkedin_username or thread_id")
 
         if thread_id:
-            await self._navigate_to_page(
-                f"https://www.linkedin.com/messaging/thread/{thread_id}/"
-            )
+            await self._navigate_to_page(f"https://www.linkedin.com/messaging/thread/{thread_id}/")
         else:
-            await self._open_conversation_by_username(
-                linkedin_username or "", index=index
-            )
+            await self._open_conversation_by_username(linkedin_username or "", index=index)
 
         await detect_rate_limit(self._page)
         await self._wait_for_main_text(log_context="Conversation")
         await handle_modal_close(self._page)
-        await self._scroll_main_scrollable_region(
-            position="top", attempts=3, pause_time=0.5
-        )
+        await self._scroll_main_scrollable_region(position="top", attempts=3, pause_time=0.5)
 
         raw_result = await self._extract_root_content(["main"])
         raw = raw_result["text"]
@@ -3948,11 +3862,7 @@ class LinkedInExtractor:
         # markers are ever seen.
         cleaned = strip_conversation_chrome(raw) if raw else ""
         cleaned = strip_linkedin_noise(cleaned) if cleaned else ""
-        references = (
-            build_references(raw_result["references"], "conversation")
-            if cleaned
-            else []
-        )
+        references = build_references(raw_result["references"], "conversation") if cleaned else []
         return self._single_section_result(
             self._page.url,
             "conversation",
@@ -3960,9 +3870,7 @@ class LinkedInExtractor:
             references=references,
         )
 
-    async def search_conversations(
-        self, keywords: str, limit: int = 20
-    ) -> dict[str, Any]:
+    async def search_conversations(self, keywords: str, limit: int = 20) -> dict[str, Any]:
         """Search messages by keyword.
 
         Uses LinkedIn's ``?searchTerm=`` URL parameter to drive the search
@@ -3975,9 +3883,7 @@ class LinkedInExtractor:
         visits. Each visit selects the row in LinkedIn's UI (and may mark it
         as read), so a low cap is preferable for noisy queries.
         """
-        search_url = (
-            f"https://www.linkedin.com/messaging/?searchTerm={quote_plus(keywords)}"
-        )
+        search_url = f"https://www.linkedin.com/messaging/?searchTerm={quote_plus(keywords)}"
         await self._navigate_to_page(search_url)
         await detect_rate_limit(self._page)
         await handle_modal_close(self._page)
@@ -3987,9 +3893,7 @@ class LinkedInExtractor:
         raw = raw_result["text"]
         cleaned = strip_linkedin_noise(raw) if raw else ""
         references: list[Reference] = (
-            build_references(raw_result["references"], "search_results")
-            if cleaned
-            else []
+            build_references(raw_result["references"], "search_results") if cleaned else []
         )
 
         # Same click-to-capture path as get_inbox: LinkedIn's search sidebar

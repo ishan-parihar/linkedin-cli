@@ -14,14 +14,17 @@ from linkedin_mcp_server.config.schema import DEFAULT_TOOL_TIMEOUT_SECONDS
 from linkedin_mcp_server.core.exceptions import AuthenticationError
 from linkedin_mcp_server.dependencies import get_ready_extractor, handle_auth_error
 from linkedin_mcp_server.error_handler import raise_tool_error
-from linkedin_mcp_server.output_utils import JOB_HINTS, add_next_step, add_result_counts, apply_section_truncation
+from linkedin_mcp_server.output_utils import (
+    JOB_HINTS,
+    add_next_step,
+    add_result_counts,
+    apply_section_truncation,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def register_job_tools(
-    mcp: FastMCP, *, tool_timeout: float = DEFAULT_TOOL_TIMEOUT_SECONDS
-) -> None:
+def register_job_tools(mcp: FastMCP, *, tool_timeout: float = DEFAULT_TOOL_TIMEOUT_SECONDS) -> None:
     """Register all job-related tools with the MCP server."""
 
     @mcp.tool(
@@ -48,14 +51,10 @@ def register_job_tools(
             The LLM should parse the raw text to extract job details.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="get_job_details"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="get_job_details")
             logger.info("Scraping job: %s", job_id)
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Starting job scrape"
-            )
+            await ctx.report_progress(progress=0, total=100, message="Starting job scrape")
 
             result = await extractor.scrape_job(job_id)
 
@@ -117,9 +116,7 @@ def register_job_tools(
             numeric job ID strings usable with get_job_details), and optional references.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="search_jobs"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="search_jobs")
             logger.info(
                 "Searching jobs: keywords='%s', location='%s', max_pages=%d",
                 keywords,
@@ -127,9 +124,7 @@ def register_job_tools(
                 max_pages,
             )
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Starting job search"
-            )
+            await ctx.report_progress(progress=0, total=100, message="Starting job search")
 
             result = await extractor.search_jobs(
                 keywords,
@@ -186,14 +181,10 @@ def register_job_tools(
             numeric job ID strings usable with get_job_details), and optional references.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="get_saved_jobs"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="get_saved_jobs")
             logger.info("Fetching saved jobs (max_pages=%d)", max_pages)
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Loading saved jobs"
-            )
+            await ctx.report_progress(progress=0, total=100, message="Loading saved jobs")
 
             result = await extractor.get_saved_jobs(max_pages=max_pages)
 

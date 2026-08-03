@@ -38,18 +38,18 @@ class ObscuraCookieManager:
         """Load cookies from storage."""
         if not self.cookie_path.exists():
             return {}
-        
+
         try:
             with open(self.cookie_path) as f:
                 cookie_list = json.load(f)
-            
+
             cookies = {}
             for cookie in cookie_list:
                 name = cookie.get("name")
                 value = cookie.get("value")
                 if name and value:
                     cookies[name] = value
-            
+
             self._cookies = cookies
             return cookies
         except Exception as e:
@@ -68,13 +68,13 @@ class ObscuraCookieManager:
                 "expires": -1,  # Session cookie
                 "httpOnly": name in ["li_at", "jsessionid", "bscookie"],
                 "secure": True,
-                "sameSite": "None"
+                "sameSite": "None",
             })
-        
+
         self.cookie_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.cookie_path, "w") as f:
             json.dump(cookie_list, f, indent=2)
-        
+
         self._cookies = cookies
         logger.info("Saved %d cookies to %s", len(cookies), self.cookie_path)
 
@@ -84,17 +84,17 @@ class ObscuraCookieManager:
             cookies = extract_cookies_from_browser(browser_id)
         else:
             cookies = auto_extract_cookies()
-        
+
         if not cookies:
             logger.error("No cookies extracted from browser")
             return None
-        
+
         # Validate required cookies
         missing = _REQUIRED_COOKIES - set(cookies.keys())
         if missing:
             logger.error("Missing required cookies: %s", missing)
             return None
-        
+
         self.save_cookies(cookies)
         return cookies
 
@@ -102,17 +102,17 @@ class ObscuraCookieManager:
         """Validate cookies by making a test request to LinkedIn."""
         if not self._cookies:
             self._cookies = self.load_cookies()
-        
+
         if not self._cookies:
             logger.error("No cookies to validate")
             return False
-        
+
         # Check required cookies
         missing = _REQUIRED_COOKIES - set(self._cookies.keys())
         if missing:
             logger.error("Missing required cookies: %s", missing)
             return False
-        
+
         try:
             # Make a test request to LinkedIn feed
             headers = {
@@ -123,36 +123,37 @@ class ObscuraCookieManager:
                 "Connection": "keep-alive",
                 "Upgrade-Insecure-Requests": "1",
             }
-            
+
             cookies = self._format_cookies_for_http()
-            
+
             # curl_cffi impersonates a real Chrome TLS fingerprint; raw httpx
             # (Python TLS) replaying a browser-minted li_at is a bot-detection tell.
             # Reusing the same bundle the session was minted under keeps the probe
             # fingerprint-coherent with the rest of the stack.
             with cffi_req.Client(impersonate="chrome", timeout=10.0) as client:
                 response = client.get(
-                    _TEST_URL,
-                    headers=headers,
-                    cookies=cookies,
-                    follow_redirects=True
+                    _TEST_URL, headers=headers, cookies=cookies, follow_redirects=True
                 )
-            
+
             # Check if response indicates successful authentication
             # LinkedIn redirects to login page if not authenticated
             is_authenticated = (
-                response.status_code == 200 and
-                "login" not in response.url.lower() and
-                "checkpoint" not in response.url.lower()
+                response.status_code == 200
+                and "login" not in response.url.lower()
+                and "checkpoint" not in response.url.lower()
             )
-            
+
             if is_authenticated:
                 logger.info("Cookie validation successful")
                 return True
             else:
-                logger.error("Cookie validation failed: status=%d, url=%s", response.status_code, response.url)
+                logger.error(
+                    "Cookie validation failed: status=%d, url=%s",
+                    response.status_code,
+                    response.url,
+                )
                 return False
-                
+
         except Exception as e:
             logger.error("Cookie validation error: %s", e)
             return False
@@ -165,11 +166,11 @@ class ObscuraCookieManager:
         """Get cookie arguments for Obscura CLI."""
         if not self._cookies:
             self._cookies = self.load_cookies()
-        
+
         args = []
         for name, value in self._cookies.items():
             args.extend(["--cookie", f"{name}={value}"])
-        
+
         return args
 
     def clear_cookies(self) -> None:
@@ -189,14 +190,10 @@ class ObscuraSessionValidator:
     def validate_session(self) -> dict[str, Any]:
         """Validate the current session and return status."""
         cookies = self.cookie_manager.load_cookies()
-        
+
         if not cookies:
-            return {
-                "valid": False,
-                "reason": "no_cookies",
-                "message": "No cookies found"
-            }
-        
+            return {"valid": False, "reason": "no_cookies", "message": "No cookies found"}
+
         # Check required cookies
         missing = _REQUIRED_COOKIES - set(cookies.keys())
         if missing:
@@ -204,62 +201,61 @@ class ObscuraSessionValidator:
                 "valid": False,
                 "reason": "missing_cookies",
                 "message": f"Missing required cookies: {missing}",
-                "missing": list(missing)
+                "missing": list(missing),
             }
-        
+
         # Validate with test request
         is_valid = self.cookie_manager.validate_cookies()
-        
+
         if is_valid:
             return {
                 "valid": True,
                 "reason": "authenticated",
                 "message": "Session is valid and authenticated",
-                "cookies": len(cookies)
+                "cookies": len(cookies),
             }
         else:
             return {
                 "valid": False,
                 "reason": "authentication_failed",
-                "message": "Cookie validation failed - session may be expired"
+                "message": "Cookie validation failed - session may be expired",
             }
 
 
 def import_and_validate_browser_session(
-    browser_id: str | None = None,
-    auth_root: Path | None = None
+    browser_id: str | None = None, auth_root: Path | None = None
 ) -> dict[str, Any]:
     """Import and validate a browser session in one step."""
     manager = ObscuraCookieManager(auth_root)
     validator = ObscuraSessionValidator(manager)
-    
+
     # Import cookies
     cookies = manager.import_from_browser(browser_id)
     if not cookies:
         return {
             "success": False,
             "reason": "import_failed",
-            "message": "Failed to import cookies from browser"
+            "message": "Failed to import cookies from browser",
         }
-    
+
     # Validate session
     validation = validator.validate_session()
-    
+
     return {
         "success": validation["valid"],
         "reason": validation.get("reason"),
         "message": validation.get("message"),
         "cookies_imported": len(cookies),
-        "validation": validation
+        "validation": validation,
     }
 
 
 if __name__ == "__main__":
     # Test cookie import and validation
     import sys
-    
+
     manager = ObscuraCookieManager()
-    
+
     if len(sys.argv) > 1 and sys.argv[1] == "import":
         browser = sys.argv[2] if len(sys.argv) > 2 else None
         result = import_and_validate_browser_session(browser)

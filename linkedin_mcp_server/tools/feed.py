@@ -18,7 +18,12 @@ from linkedin_mcp_server.config.schema import DEFAULT_TOOL_TIMEOUT_SECONDS
 from linkedin_mcp_server.core.exceptions import AuthenticationError
 from linkedin_mcp_server.dependencies import get_ready_extractor, handle_auth_error
 from linkedin_mcp_server.error_handler import raise_tool_error
-from linkedin_mcp_server.output_utils import FEED_HINTS, add_next_step, add_result_counts, apply_section_truncation
+from linkedin_mcp_server.output_utils import (
+    FEED_HINTS,
+    add_next_step,
+    add_result_counts,
+    apply_section_truncation,
+)
 from linkedin_mcp_server.scraping.extractor import _RATE_LIMITED_MSG
 from linkedin_mcp_server.scraping.link_metadata import Reference
 
@@ -66,14 +71,10 @@ def register_feed_tools(
             should parse sections["feed"] for post bodies.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="get_feed"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="get_feed")
             logger.info("Scraping feed (num_posts=%d)", num_posts)
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Starting feed scrape"
-            )
+            await ctx.report_progress(progress=0, total=100, message="Starting feed scrape")
 
             extracted = await extractor.extract_feed(num_posts=num_posts)
 

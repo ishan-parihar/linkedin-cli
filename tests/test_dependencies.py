@@ -36,9 +36,7 @@ class TestHandleAuthError:
             ) as mock_relogin,
         ):
             with pytest.raises(AuthenticationStartedError):
-                await handle_auth_error(
-                    AuthenticationError("Session expired"), ctx=None
-                )
+                await handle_auth_error(AuthenticationError("Session expired"), ctx=None)
 
             mock_close.assert_awaited_once()
             mock_relogin.assert_awaited_once_with(None)
@@ -50,9 +48,7 @@ class TestHandleAuthError:
             return_value="docker",
         ):
             with pytest.raises(DockerHostLoginRequiredError, match="host machine"):
-                await handle_auth_error(
-                    AuthenticationError("Session expired"), ctx=None
-                )
+                await handle_auth_error(AuthenticationError("Session expired"), ctx=None)
 
 
 class TestGetReadyExtractor:
@@ -152,13 +148,9 @@ class TestGetReadyExtractor:
                 new_callable=AsyncMock,
                 side_effect=err,
             ),
-            patch(
-                "linkedin_mcp_server.dependencies.invalidate_browser_setup"
-            ) as mock_invalidate,
+            patch("linkedin_mcp_server.dependencies.invalidate_browser_setup") as mock_invalidate,
         ):
-            with pytest.raises(
-                ToolError, match="Patchright Chromium browser is missing"
-            ):
+            with pytest.raises(ToolError, match="Patchright Chromium browser is missing"):
                 await get_ready_extractor(ctx=None, tool_name="test_tool")
 
             mock_invalidate.assert_called_once()
@@ -176,9 +168,7 @@ class TestGetReadyExtractor:
                 new_callable=AsyncMock,
                 side_effect=err,
             ),
-            patch(
-                "linkedin_mcp_server.dependencies.invalidate_browser_setup"
-            ) as mock_invalidate,
+            patch("linkedin_mcp_server.dependencies.invalidate_browser_setup") as mock_invalidate,
         ):
             with pytest.raises(ToolError, match="Network error"):
                 await get_ready_extractor(ctx=None, tool_name="test_tool")

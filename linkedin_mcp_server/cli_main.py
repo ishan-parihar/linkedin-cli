@@ -39,11 +39,7 @@ def _toon_quote(val: str) -> str:
         return '""'
     needs_quote = (
         val in ("true", "false", "null")
-        or val.lstrip("-")
-        .replace(".", "", 1)
-        .replace("e", "", 1)
-        .replace("+", "", 1)
-        .isdigit()
+        or val.lstrip("-").replace(".", "", 1).replace("e", "", 1).replace("+", "", 1).isdigit()
         or any(c in val for c in (":", ",", '"', "[", "]", "{", "}", "#"))
         or val.startswith("-")
         or val.startswith("#")
@@ -109,13 +105,13 @@ def _truncate(s: str, max_chars: int = 500) -> str:
 def _get_bin_path() -> str:
     """Get executable path with home dir collapsed to ~ (AXI §10)."""
     try:
-        exe = sys.argv[0] if sys.argv else "linkedin-cli"
+        exe = sys.argv[0] if sys.argv else "linkedin-lyr"
         home = os.environ.get("HOME", "")
         if home and exe.startswith(home):
             return exe.replace(home, "~", 1)
         return exe
     except Exception:
-        return "linkedin-cli"
+        return "linkedin-lyr"
 
 
 def clear_profile_and_exit() -> None:
@@ -143,7 +139,9 @@ def clear_profile_and_exit() -> None:
 
     if not config.server.yes:
         print(_toon_kv("error", "Confirmation required"))
-        print(_toon_kv("help", "Use --yes to confirm, or --logout --yes to clear without prompting"))
+        print(
+            _toon_kv("help", "Use --yes to confirm, or --logout --yes to clear without prompting")
+        )
         sys.exit(2)
 
     if clear_auth_state(get_profile_dir()):
@@ -195,9 +193,7 @@ def import_from_browser_and_exit() -> None:
 
     # Get browser selector from config
     browser = (
-        None
-        if config.server.import_from_browser == "auto"
-        else config.server.import_from_browser
+        None if config.server.import_from_browser == "auto" else config.server.import_from_browser
     )
 
     if config.is_interactive:
@@ -224,7 +220,7 @@ def import_from_browser_and_exit() -> None:
         # Save cookies
         os.makedirs(auth_root, exist_ok=True)
 
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(formatted_cookies, f, indent=2)
 
         # Set proper permissions
@@ -234,7 +230,7 @@ def import_from_browser_and_exit() -> None:
         li_at_found = any(c.get("name") == "li_at" for c in formatted_cookies)
 
         print(_toon_kv("status", "success"))
-        print(_toon_kv("source", cookie_data.get('source', 'unknown')))
+        print(_toon_kv("source", cookie_data.get("source", "unknown")))
         print(_toon_kv("cookies", len(formatted_cookies)))
         print(_toon_kv("path", str(output_path)))
 
@@ -244,7 +240,7 @@ def import_from_browser_and_exit() -> None:
             print(_toon_kv("auth_cookie", "missing"))
             print(_toon_kv("warning", "The session may not be fully functional"))
 
-        print(_toon_kv("help", "Run `linkedin-cli --status` to verify your session"))
+        print(_toon_kv("help", "Run `linkedin-lyr --status` to verify your session"))
         sys.exit(0)
 
     except Exception as e:
@@ -274,7 +270,12 @@ def profile_info_and_exit() -> None:
     if not cookies_path.exists():
         print(_toon_kv("session", "not_found"))
         print(_toon_kv("path", str(cookies_path)))
-        print(_toon_kv("help", "Run `linkedin-cli --import-from-browser` to import cookies from your browser"))
+        print(
+            _toon_kv(
+                "help",
+                "Run `linkedin-lyr --import-from-browser` to import cookies from your browser",
+            )
+        )
         sys.exit(0)
 
     # Check cookie file contents
@@ -291,14 +292,18 @@ def profile_info_and_exit() -> None:
             li_at_found = False
 
         print(_toon_kv("session", "valid" if li_at_found else "invalid"))
-        print(_toon_kv("cookies", len(cookies) if isinstance(cookies, list) else len(cookies.keys())))
+        print(
+            _toon_kv("cookies", len(cookies) if isinstance(cookies, list) else len(cookies.keys()))
+        )
         print(_toon_kv("path", str(cookies_path)))
 
         if li_at_found:
             print(_toon_kv("auth_cookie", "found"))
         else:
             print(_toon_kv("auth_cookie", "missing"))
-            print(_toon_kv("help", "Run `linkedin-cli --import-from-browser` to refresh your session"))
+            print(
+                _toon_kv("help", "Run `linkedin-lyr --import-from-browser` to refresh your session")
+            )
 
         sys.exit(0)
     except Exception as e:
@@ -312,8 +317,7 @@ def get_version() -> str:
         from importlib.metadata import PackageNotFoundError, version
 
         for package_name in (
-            "mcp-server-linkedin",
-            "linkedin-scraper-mcp",
+            "linkedin-lyr",
             "linkedin-mcp-server",
         ):
             try:
@@ -327,9 +331,7 @@ def get_version() -> str:
         import os
         import tomllib
 
-        pyproject_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "pyproject.toml"
-        )
+        pyproject_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "pyproject.toml")
         with open(pyproject_path, "rb") as f:
             data = tomllib.load(f)
             return data["project"]["version"]
@@ -407,7 +409,7 @@ def show_home_view() -> None:
         print("  status: valid")
     else:
         print("  status: not_configured")
-        print("  help: Run `linkedin-cli --import-from-browser` to import cookies")
+        print("  help: Run `linkedin-lyr --import-from-browser` to import cookies")
     print()
 
     # Tool listing in TOON format (AXI §2: minimal schema)
@@ -419,10 +421,10 @@ def show_home_view() -> None:
 
     # AXI §9: Contextual disclosure
     print("help[4]:")
-    print("  Run `linkedin-cli --tool-info <name>` for detailed parameters")
-    print("  Run `linkedin-cli --list-tools` to see all tools")
-    print("  Run `linkedin-cli --import-from-browser` to import browser cookies")
-    print("  Run `linkedin-cli` to start the MCP server")
+    print("  Run `linkedin-lyr --tool-info <name>` for detailed parameters")
+    print("  Run `linkedin-lyr --list-tools` to see all tools")
+    print("  Run `linkedin-lyr --import-from-browser` to import browser cookies")
+    print("  Run `linkedin-lyr` to start the MCP server")
 
 
 def list_tools_and_exit() -> None:
@@ -433,8 +435,8 @@ def list_tools_and_exit() -> None:
         print(f"  {name},{desc}")
     print()
     print("help[2]:")
-    print("  Run `linkedin-cli --tool-info <name>` for details")
-    print("  Run `linkedin-cli` to start the MCP server")
+    print("  Run `linkedin-lyr --tool-info <name>` for details")
+    print("  Run `linkedin-lyr` to start the MCP server")
     sys.exit(0)
 
 
@@ -446,33 +448,29 @@ def tool_info_and_exit(tool_name: str) -> None:
         tool = next((t for t in tools_obj if t.name == tool_name), None)
         if tool:
             fields = {"name": tool.name, "description": tool.description or ""}
-            schema = (
-                getattr(tool, "inputSchema", None)
-                or getattr(tool, "parameters", None)
-                or {}
-            )
+            schema = getattr(tool, "inputSchema", None) or getattr(tool, "parameters", None) or {}
             if isinstance(schema, dict):
                 props = schema.get("properties", {})
                 required = set(schema.get("required", []))
                 if props:
                     params = []
                     for pname, pdef in props.items():
-                        params.append(
-                            {
-                                "name": pname,
-                                "type": pdef.get("type", "any"),
-                                "required": "true" if pname in required else "false",
-                                "description": _truncate(pdef.get("description", ""), 80),
-                            }
-                        )
+                        params.append({
+                            "name": pname,
+                            "type": pdef.get("type", "any"),
+                            "required": "true" if pname in required else "false",
+                            "description": _truncate(pdef.get("description", ""), 80),
+                        })
                     fields["params"] = params
             print(_toon_object(fields))
-            print(_toon_kv("help", f"Run `linkedin-cli` to start the MCP server and call `{tool.name}`"))
+            print(
+                _toon_kv(
+                    "help", f"Run `linkedin-lyr` to start the MCP server and call `{tool.name}`"
+                )
+            )
         else:
             valid = sorted([t.name for t in tools_obj])
-            axi_error(
-                f"Unknown tool: '{tool_name}'", f"Valid tools: {', '.join(valid)}"
-            )
+            axi_error(f"Unknown tool: '{tool_name}'", f"Valid tools: {', '.join(valid)}")
     except Exception as e:
         axi_error(f"Failed to load tool info: {e}")
     sys.exit(0)
@@ -499,9 +497,7 @@ def install_session_hook_and_exit() -> None:
         hooks = settings.get("hooks", {})
         session_start = hooks.get("SessionStart", [])
         already = any(
-            h.get("command") == f"{bin_path} --status"
-            for h in session_start
-            if isinstance(h, dict)
+            h.get("command") == f"{bin_path} --status" for h in session_start if isinstance(h, dict)
         )
         if not already:
             session_start.append({"command": f"{bin_path} --status"})
@@ -524,9 +520,7 @@ def install_session_hook_and_exit() -> None:
             hooks = {}
         session_start = hooks.get("SessionStart", [])
         already = any(
-            h.get("command") == f"{bin_path} --status"
-            for h in session_start
-            if isinstance(h, dict)
+            h.get("command") == f"{bin_path} --status" for h in session_start if isinstance(h, dict)
         )
         if not already:
             session_start.append({"command": f"{bin_path} --status"})
@@ -539,9 +533,19 @@ def install_session_hook_and_exit() -> None:
         print(f"Codex hook: {e}", file=sys.stderr)
 
     if hooks_installed:
-        print(_toon_object({"status": "success", "message": f"Installed hooks for: {', '.join(hooks_installed)}"}))
+        print(
+            _toon_object({
+                "status": "success",
+                "message": f"Installed hooks for: {', '.join(hooks_installed)}",
+            })
+        )
     else:
-        print(_toon_object({"status": "info", "message": "Hooks already installed or no supported editors found"}))
+        print(
+            _toon_object({
+                "status": "info",
+                "message": "Hooks already installed or no supported editors found",
+            })
+        )
     sys.exit(0)
 
 
@@ -574,19 +578,19 @@ LinkedIn MCP Server provides comprehensive LinkedIn automation:
 ## Quick Start
 ```bash
 # Show home view with live state
-linkedin-cli
+linkedin-lyr
 
 # Import browser cookies
-linkedin-cli --import-from-browser
+linkedin-lyr --import-from-browser
 
 # Check session status
-linkedin-cli --status
+linkedin-lyr --status
 
 # List available tools
-linkedin-cli --list-tools
+linkedin-lyr --list-tools
 
 # Start MCP server
-linkedin-cli
+linkedin-lyr
 ```
 
 ## MCP Tools
@@ -604,7 +608,7 @@ linkedin-cli
 ## Session Integration
 Install session hooks for ambient context:
 ```bash
-linkedin-cli --install-hook
+linkedin-lyr --install-hook
 ```
 
 This shows LinkedIn session state on every agent session start.

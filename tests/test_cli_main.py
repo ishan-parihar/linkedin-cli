@@ -25,13 +25,9 @@ def _make_config(
     return config
 
 
-def _patch_main_dependencies(
-    monkeypatch: pytest.MonkeyPatch, config: AppConfig
-) -> None:
+def _patch_main_dependencies(monkeypatch: pytest.MonkeyPatch, config: AppConfig) -> None:
     monkeypatch.setattr("linkedin_mcp_server.cli_main.get_config", lambda: config)
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.configure_logging", lambda **_kwargs: None
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.configure_logging", lambda **_kwargs: None)
     monkeypatch.setattr("linkedin_mcp_server.cli_main.get_version", lambda: "4.0.0")
     monkeypatch.setattr("linkedin_mcp_server.cli_main.set_headless", lambda _x: None)
 
@@ -39,14 +35,10 @@ def _patch_main_dependencies(
 def test_main_non_interactive_stdio_has_no_human_stdout(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    config = _make_config(
-        is_interactive=False, transport="stdio", transport_explicitly_set=False
-    )
+    config = _make_config(is_interactive=False, transport="stdio", transport_explicitly_set=False)
     _patch_main_dependencies(monkeypatch, config)
     mcp = MagicMock()
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp)
 
     cli_main.main()
 
@@ -58,18 +50,14 @@ def test_main_non_interactive_stdio_has_no_human_stdout(
 def test_main_interactive_prompts_when_transport_not_explicit(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    config = _make_config(
-        is_interactive=True, transport="stdio", transport_explicitly_set=False
-    )
+    config = _make_config(is_interactive=True, transport="stdio", transport_explicitly_set=False)
     _patch_main_dependencies(monkeypatch, config)
     choose_transport = MagicMock(return_value="streamable-http")
     monkeypatch.setattr(
         "linkedin_mcp_server.cli_main.choose_transport_interactive", choose_transport
     )
     mcp = MagicMock()
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp)
 
     cli_main.main()
 
@@ -96,9 +84,7 @@ def test_choosing_http_at_the_prompt_warns_about_an_exposed_bind(
     and told the cookie-import gate that a server listening on every interface
     was a private one.
     """
-    config = _make_config(
-        is_interactive=True, transport="stdio", transport_explicitly_set=False
-    )
+    config = _make_config(is_interactive=True, transport="stdio", transport_explicitly_set=False)
     config.server.host = "0.0.0.0"
     _patch_main_dependencies(monkeypatch, config)
     monkeypatch.setattr(
@@ -129,9 +115,7 @@ def test_choosing_stdio_at_the_prompt_leaves_no_listener_recorded(
         "linkedin_mcp_server.cli_main.choose_transport_interactive", lambda: "stdio"
     )
     mcp = MagicMock()
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp)
 
     with caplog.at_level(logging.WARNING):
         cli_main.main()
@@ -144,18 +128,14 @@ def test_choosing_stdio_at_the_prompt_leaves_no_listener_recorded(
 def test_main_explicit_transport_skips_prompt(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    config = _make_config(
-        is_interactive=True, transport="stdio", transport_explicitly_set=True
-    )
+    config = _make_config(is_interactive=True, transport="stdio", transport_explicitly_set=True)
     _patch_main_dependencies(monkeypatch, config)
     choose_transport = MagicMock(return_value="streamable-http")
     monkeypatch.setattr(
         "linkedin_mcp_server.cli_main.choose_transport_interactive", choose_transport
     )
     mcp = MagicMock()
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp)
 
     cli_main.main()
 
@@ -178,9 +158,7 @@ def test_main_streamable_http_passes_host_port_path(
     config.server.path = "/custom-mcp"
     _patch_main_dependencies(monkeypatch, config)
     mcp = MagicMock()
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp)
 
     cli_main.main()
 
@@ -215,9 +193,7 @@ def test_main_streamable_http_enables_host_and_origin_validation(
     )
     _patch_main_dependencies(monkeypatch, config)
     mcp = MagicMock()
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp)
 
     cli_main.main()
 
@@ -228,9 +204,7 @@ def test_main_streamable_http_enables_host_and_origin_validation(
 def test_main_passes_configured_tool_timeout_to_factory(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    config = _make_config(
-        is_interactive=False, transport="stdio", transport_explicitly_set=False
-    )
+    config = _make_config(is_interactive=False, transport="stdio", transport_explicitly_set=False)
     config.server.tool_timeout_seconds = 42.0
     _patch_main_dependencies(monkeypatch, config)
 
@@ -255,27 +229,23 @@ def test_get_version_prefers_installed_metadata(
 
     def fake_version(package_name: str) -> str:
         calls.append(package_name)
-        if package_name == "mcp-server-linkedin":
+        if package_name == "linkedin-lyr":
             return "4.2.0"
         raise importlib.metadata.PackageNotFoundError(package_name)
 
     monkeypatch.setattr(importlib.metadata, "version", fake_version)
 
     assert cli_main.get_version() == "4.2.0"
-    assert calls == ["mcp-server-linkedin"]
+    assert calls == ["linkedin-lyr"]
 
 
 def test_main_non_interactive_no_auth_still_starts_server(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    config = _make_config(
-        is_interactive=False, transport="stdio", transport_explicitly_set=False
-    )
+    config = _make_config(is_interactive=False, transport="stdio", transport_explicitly_set=False)
     _patch_main_dependencies(monkeypatch, config)
     mcp = MagicMock()
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.create_mcp_server", lambda **_kwargs: mcp)
 
     cli_main.main()
 
@@ -295,28 +265,22 @@ def test_profile_info_reports_bridge_required_for_foreign_runtime(
     (profile_dir / "Default" / "Cookies").write_text("placeholder")
     (tmp_path / "cookies.json").write_text(json.dumps([{"name": "li_at"}]))
     (tmp_path / "source-state.json").write_text(
-        json.dumps(
-            {
-                "version": 1,
-                "source_runtime_id": "macos-arm64-host",
-                "login_generation": "gen-1",
-                "created_at": "2026-03-12T17:00:00Z",
-                "profile_path": str(profile_dir),
-                "cookies_path": str(tmp_path / "cookies.json"),
-            }
-        )
+        json.dumps({
+            "version": 1,
+            "source_runtime_id": "macos-arm64-host",
+            "login_generation": "gen-1",
+            "created_at": "2026-03-12T17:00:00Z",
+            "profile_path": str(profile_dir),
+            "cookies_path": str(tmp_path / "cookies.json"),
+        })
     )
 
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.get_profile_dir", lambda: profile_dir
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.get_profile_dir", lambda: profile_dir)
     monkeypatch.setattr(
         "linkedin_mcp_server.cli_main.get_runtime_id", lambda: "linux-amd64-container"
     )
     monkeypatch.setattr("linkedin_mcp_server.cli_main.get_config", lambda: AppConfig())
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.configure_logging", lambda **_kwargs: None
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.configure_logging", lambda **_kwargs: None)
     monkeypatch.setattr("linkedin_mcp_server.cli_main.get_version", lambda: "4.0.0")
 
     with pytest.raises(SystemExit) as exit_info:
@@ -338,61 +302,47 @@ def test_profile_info_reports_committed_derived_runtime(
     profile_dir.mkdir(parents=True)
     (profile_dir / "Default").mkdir(parents=True)
     (profile_dir / "Default" / "Cookies").write_text("placeholder")
-    runtime_profile = (
-        tmp_path / "runtime-profiles" / "linux-amd64-container" / "profile"
-    )
+    runtime_profile = tmp_path / "runtime-profiles" / "linux-amd64-container" / "profile"
     runtime_profile.mkdir(parents=True)
     (runtime_profile / "Default").mkdir(parents=True)
     (runtime_profile / "Default" / "Cookies").write_text("placeholder")
-    storage_state = (
-        tmp_path / "runtime-profiles" / "linux-amd64-container" / "storage-state.json"
-    )
+    storage_state = tmp_path / "runtime-profiles" / "linux-amd64-container" / "storage-state.json"
     storage_state.write_text("{}")
     (tmp_path / "cookies.json").write_text(json.dumps([{"name": "li_at"}]))
     (tmp_path / "source-state.json").write_text(
-        json.dumps(
-            {
-                "version": 1,
-                "source_runtime_id": "macos-arm64-host",
-                "login_generation": "gen-1",
-                "created_at": "2026-03-12T17:00:00Z",
-                "profile_path": str(profile_dir),
-                "cookies_path": str(tmp_path / "cookies.json"),
-            }
-        )
+        json.dumps({
+            "version": 1,
+            "source_runtime_id": "macos-arm64-host",
+            "login_generation": "gen-1",
+            "created_at": "2026-03-12T17:00:00Z",
+            "profile_path": str(profile_dir),
+            "cookies_path": str(tmp_path / "cookies.json"),
+        })
     )
-    (
-        tmp_path / "runtime-profiles" / "linux-amd64-container" / "runtime-state.json"
-    ).write_text(
-        json.dumps(
-            {
-                "version": 1,
-                "runtime_id": "linux-amd64-container",
-                "source_runtime_id": "macos-arm64-host",
-                "source_login_generation": "gen-1",
-                "created_at": "2026-03-12T17:10:00Z",
-                "committed_at": "2026-03-12T17:10:05Z",
-                "profile_path": str(runtime_profile),
-                "storage_state_path": str(storage_state),
-                "commit_method": "checkpoint_restart",
-            }
-        )
+    (tmp_path / "runtime-profiles" / "linux-amd64-container" / "runtime-state.json").write_text(
+        json.dumps({
+            "version": 1,
+            "runtime_id": "linux-amd64-container",
+            "source_runtime_id": "macos-arm64-host",
+            "source_login_generation": "gen-1",
+            "created_at": "2026-03-12T17:10:00Z",
+            "committed_at": "2026-03-12T17:10:05Z",
+            "profile_path": str(runtime_profile),
+            "storage_state_path": str(storage_state),
+            "commit_method": "checkpoint_restart",
+        })
     )
 
     browser = MagicMock()
     browser.is_authenticated = True
 
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.get_profile_dir", lambda: profile_dir
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.get_profile_dir", lambda: profile_dir)
     monkeypatch.setattr(
         "linkedin_mcp_server.cli_main.get_runtime_id", lambda: "linux-amd64-container"
     )
     monkeypatch.setenv("LINKEDIN_EXPERIMENTAL_PERSIST_DERIVED_SESSION", "1")
     monkeypatch.setattr("linkedin_mcp_server.cli_main.get_config", lambda: AppConfig())
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.configure_logging", lambda **_kwargs: None
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.configure_logging", lambda **_kwargs: None)
     monkeypatch.setattr("linkedin_mcp_server.cli_main.get_version", lambda: "4.0.0")
     monkeypatch.setattr(
         "linkedin_mcp_server.cli_main.get_or_create_browser",
@@ -414,9 +364,7 @@ def _patch_import_handler(monkeypatch, tmp_path, *, is_interactive=False):
     config.is_interactive = is_interactive
     config.server.import_from_browser = "chrome"
     monkeypatch.setattr("linkedin_mcp_server.cli_main.get_config", lambda: config)
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.configure_logging", lambda **_kwargs: None
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.configure_logging", lambda **_kwargs: None)
     monkeypatch.setattr("linkedin_mcp_server.cli_main.get_version", lambda: "4.0.0")
     monkeypatch.setattr("linkedin_mcp_server.cli_main.set_headless", lambda _x: None)
     configured = {"called": False}
@@ -497,15 +445,11 @@ def test_main_dispatches_import_before_login(monkeypatch, tmp_path):
     # Driving the dispatch through main() (not the handler directly) proves the
     # wiring: import is gated into ensure_browser_installed and runs before the
     # --login handler.
-    config = _make_config(
-        is_interactive=False, transport="stdio", transport_explicitly_set=False
-    )
+    config = _make_config(is_interactive=False, transport="stdio", transport_explicitly_set=False)
     config.server.import_from_browser = "chrome"
     config.server.login = True  # also set; import must win and exit first
     _patch_main_dependencies(monkeypatch, config)
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.configure_browser_environment", lambda: None
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.configure_browser_environment", lambda: None)
 
     calls: list[str] = []
 
@@ -514,9 +458,7 @@ def test_main_dispatches_import_before_login(monkeypatch, tmp_path):
         # first, so the install requests full chromium for the headed login.
         calls.append(f"ensure(full={full})")
 
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.ensure_browser_installed", fake_ensure
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.ensure_browser_installed", fake_ensure)
 
     def fake_import():
         calls.append("import")
@@ -526,9 +468,7 @@ def test_main_dispatches_import_before_login(monkeypatch, tmp_path):
         calls.append("login")
         raise SystemExit(0)
 
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.import_from_browser_and_exit", fake_import
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.import_from_browser_and_exit", fake_import)
     monkeypatch.setattr("linkedin_mcp_server.cli_main.get_profile_and_exit", fake_login)
 
     with pytest.raises(SystemExit) as exit_info:
@@ -548,9 +488,7 @@ def test_clear_profile_and_exit_clears_all_auth_state(
     config = AppConfig()
     config.browser.user_data_dir = str(tmp_path / "profile")
     monkeypatch.setattr("linkedin_mcp_server.cli_main.get_config", lambda: config)
-    monkeypatch.setattr(
-        "linkedin_mcp_server.cli_main.configure_logging", lambda **_kwargs: None
-    )
+    monkeypatch.setattr("linkedin_mcp_server.cli_main.configure_logging", lambda **_kwargs: None)
     monkeypatch.setattr("linkedin_mcp_server.cli_main.get_version", lambda: "4.0.0")
     monkeypatch.setattr(
         "linkedin_mcp_server.cli_main.get_profile_dir", lambda: tmp_path / "profile"

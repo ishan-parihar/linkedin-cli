@@ -15,9 +15,7 @@ def _required_issue_form_labels() -> list[str]:
     labels: list[str] = []
     current_label: str | None = None
     in_body = False
-    issue_form_path = (
-        Path(__file__).resolve().parents[1] / ".github/ISSUE_TEMPLATE/bug_report.yml"
-    )
+    issue_form_path = Path(__file__).resolve().parents[1] / ".github/ISSUE_TEMPLATE/bug_report.yml"
     lines = issue_form_path.read_text().splitlines()
     for line in lines:
         stripped = line.strip()
@@ -121,9 +119,7 @@ def test_find_existing_issues_query_failure_is_tolerated(monkeypatch, tmp_path):
     assert diagnostics["issue_search_skipped"] is False
 
 
-def test_build_issue_diagnostics_omits_missing_server_log_from_gist(
-    monkeypatch, tmp_path
-):
+def test_build_issue_diagnostics_omits_missing_server_log_from_gist(monkeypatch, tmp_path):
     monkeypatch.setenv("USER_DATA_DIR", str(tmp_path / "profile"))
     monkeypatch.setattr(
         "linkedin_mcp_server.error_diagnostics._find_existing_issues",
@@ -142,9 +138,7 @@ def test_build_issue_diagnostics_omits_missing_server_log_from_gist(
 
 
 @pytest.mark.asyncio
-async def test_build_issue_diagnostics_skips_network_search_in_event_loop(
-    monkeypatch, tmp_path
-):
+async def test_build_issue_diagnostics_skips_network_search_in_event_loop(monkeypatch, tmp_path):
     monkeypatch.setenv("USER_DATA_DIR", str(tmp_path / "profile"))
 
     called = {"value": False}
@@ -169,9 +163,7 @@ async def test_build_issue_diagnostics_skips_network_search_in_event_loop(
     assert "search was skipped in async server context" in issue_body
 
 
-def test_build_issue_diagnostics_covers_required_bug_report_fields(
-    monkeypatch, tmp_path
-):
+def test_build_issue_diagnostics_covers_required_bug_report_fields(monkeypatch, tmp_path):
     monkeypatch.setenv("USER_DATA_DIR", str(tmp_path / "profile"))
     monkeypatch.setattr(
         "linkedin_mcp_server.error_diagnostics._find_existing_issues",
@@ -200,9 +192,7 @@ def test_build_issue_diagnostics_covers_required_bug_report_fields(
     assert "### Session State" in issue_body
 
 
-def test_build_issue_diagnostics_marks_inferred_tool_and_container_runtime(
-    monkeypatch, tmp_path
-):
+def test_build_issue_diagnostics_marks_inferred_tool_and_container_runtime(monkeypatch, tmp_path):
     monkeypatch.setenv("USER_DATA_DIR", str(tmp_path / "profile"))
     monkeypatch.setattr(
         "linkedin_mcp_server.error_diagnostics.get_runtime_id",
@@ -240,11 +230,9 @@ def test_saved_jobs_contexts_resolve_to_the_tool(context: str, expected: str) ->
 
 
 def test_installation_method_lines_marks_managed_runtime() -> None:
-    lines = _installation_method_lines(
-        {
-            "current_runtime_id": "macos-arm64-host",
-        }
-    )
+    lines = _installation_method_lines({
+        "current_runtime_id": "macos-arm64-host",
+    })
 
     assert lines[0].startswith("- [ ] Docker")
     assert (
@@ -253,19 +241,12 @@ def test_installation_method_lines_marks_managed_runtime() -> None:
     )
 
 
-def test_installation_method_summary_returns_managed_runtime_for_non_container() -> (
-    None
-):
-    summary = _installation_method_summary(
-        {
-            "current_runtime_id": "macos-arm64-host",
-        }
-    )
+def test_installation_method_summary_returns_managed_runtime_for_non_container() -> None:
+    summary = _installation_method_summary({
+        "current_runtime_id": "macos-arm64-host",
+    })
 
-    assert (
-        summary
-        == "Managed runtime (Claude Desktop MCP Bundle, `uvx`, or local `uv run` setup)"
-    )
+    assert summary == "Managed runtime (Claude Desktop MCP Bundle, `uvx`, or local `uv run` setup)"
 
 
 def test_build_issue_diagnostics_keeps_sensitive_runtime_details_out_of_mcp_payload(

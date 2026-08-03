@@ -139,12 +139,8 @@ class TestConfigCompleteness:
 
     def test_person_sections_all_have_suffixes(self):
         for name, (suffix, _) in PERSON_SECTIONS.items():
-            assert isinstance(suffix, str) and len(suffix) > 0, (
-                f"{name} has empty suffix"
-            )
+            assert isinstance(suffix, str) and len(suffix) > 0, f"{name} has empty suffix"
 
     def test_company_sections_all_have_suffixes(self):
         for name, (suffix, _) in COMPANY_SECTIONS.items():
-            assert isinstance(suffix, str) and len(suffix) > 0, (
-                f"{name} has empty suffix"
-            )
+            assert isinstance(suffix, str) and len(suffix) > 0, f"{name} has empty suffix"

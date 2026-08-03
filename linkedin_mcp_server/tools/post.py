@@ -19,7 +19,12 @@ from linkedin_mcp_server.config.schema import DEFAULT_TOOL_TIMEOUT_SECONDS
 from linkedin_mcp_server.core.exceptions import AuthenticationError
 from linkedin_mcp_server.dependencies import get_ready_extractor, handle_auth_error
 from linkedin_mcp_server.error_handler import raise_tool_error
-from linkedin_mcp_server.output_utils import SEARCH_POSTS_HINTS, add_next_step, add_result_counts, apply_section_truncation
+from linkedin_mcp_server.output_utils import (
+    SEARCH_POSTS_HINTS,
+    add_next_step,
+    add_result_counts,
+    apply_section_truncation,
+)
 from linkedin_mcp_server.scraping.extractor import FilterValidationError
 
 logger = logging.getLogger(__name__)
@@ -74,9 +79,7 @@ def register_post_tools(
             posted date, and reaction/comment counts.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="search_posts"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="search_posts")
             logger.info(
                 "Searching posts: keywords='%s', date_posted='%s', max_pages=%d",
                 keywords,
@@ -84,9 +87,7 @@ def register_post_tools(
                 max_pages,
             )
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Starting post search"
-            )
+            await ctx.report_progress(progress=0, total=100, message="Starting post search")
 
             try:
                 result = await extractor.search_posts(

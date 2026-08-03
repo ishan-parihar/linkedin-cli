@@ -16,19 +16,21 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 # Mock Context for direct CLI execution
 class MockContext:
     """Mock FastMCP Context for direct CLI tool execution."""
-    
+
     def __init__(self):
         self._progress = []
-    
+
     async def report_progress(self, message: str, progress: float = 0.0, total: float = 100.0):
         """Mock progress reporting."""
         self._progress.append((message, progress, total))
         # Optionally print progress to stdout
         if progress > 0:
             print(f"Progress: {progress:.0%}/{total:.0%} - {message}")
+
 
 TOOLS = [
     # Profile
@@ -58,7 +60,10 @@ TOOLS = [
     # Session
     ("close_session", "Close the current browser session and clean up resources"),
     # Sidebar
-    ("get_sidebar_profiles", "Get profile links from sidebar recommendation sections on a LinkedIn profile page"),
+    (
+        "get_sidebar_profiles",
+        "Get profile links from sidebar recommendation sections on a LinkedIn profile page",
+    ),
 ]
 
 
@@ -113,7 +118,7 @@ async def _get_extractor_for_tool():
 
         # Read cookies directly from portable cookie path
         cookie_path = portable_cookie_path()
-        with open(cookie_path, 'r') as f:
+        with open(cookie_path, "r") as f:
             cookies_data = json.load(f)
 
         # Handle both dict format and list format
@@ -123,25 +128,25 @@ async def _get_extractor_for_tool():
                 if isinstance(cookies_data["cookies"], dict):
                     cookies_dict = cookies_data["cookies"]
                 else:
-                    cookies_dict = {c['name']: c['value'] for c in cookies_data["cookies"]}
+                    cookies_dict = {c["name"]: c["value"] for c in cookies_data["cookies"]}
             else:
                 # Already in dict format
                 cookies_dict = cookies_data
         elif isinstance(cookies_data, list):
-            cookies_dict = {c['name']: c['value'] for c in cookies_data}
+            cookies_dict = {c["name"]: c["value"] for c in cookies_data}
         else:
             cookies_dict = cookies_data
 
         # Check if required cookies are present
-        if 'li_at' not in cookies_dict:
+        if "li_at" not in cookies_dict:
             axi_error(
                 "LinkedIn session expired",
-                "No li_at cookie found. Run 'linkedin-cli --login' to re-authenticate."
+                "No li_at cookie found. Run 'linkedin-lyr --login' to re-authenticate.",
             )
 
         # Use the main profile directory for stability
         temp_profile = str(Path.home() / ".linkedin-lyr" / "profile")
-        
+
         # Cookies should already exist in the main profile from --login
         # Just verify they're there and readable
         cookie_file = Path(temp_profile) / "cookies.json"
@@ -149,14 +154,14 @@ async def _get_extractor_for_tool():
             logger.warning("No cookies found in main profile, writing from portable cookies")
             cookie_list = [
                 {
-                    "name": name, 
+                    "name": name,
                     "value": str(value),  # Ensure value is string
-                    "domain": ".linkedin.com", 
+                    "domain": ".linkedin.com",
                     "path": "/",
                     "secure": True,
                     "httpOnly": False,
                     "sameSite": "Lax",
-                    "expires": None  # Set expires to null for session cookies
+                    "expires": None,  # Set expires to null for session cookies
                 }
                 for name, value in cookies_dict.items()
             ]
@@ -164,7 +169,7 @@ async def _get_extractor_for_tool():
             logger.info(f"Wrote {len(cookie_list)} cookies to {cookie_file}")
         else:
             logger.info(f"Using existing cookies from {cookie_file}")
-        
+
         browser = ObscuraBrowserManager(user_data_dir=temp_profile, headless=True)
         await browser.start()
         page = browser.page
@@ -174,25 +179,25 @@ async def _get_extractor_for_tool():
     except AuthenticationError as e:
         axi_error(
             "LinkedIn authentication failed",
-            f"{str(e)}. Run 'linkedin-cli --login' to re-authenticate."
+            f"{str(e)}. Run 'linkedin-lyr --login' to re-authenticate.",
         )
     except Exception as e:
         axi_error(
             "Failed to initialize LinkedIn extractor",
-            f"{str(e)}. Check your browser setup and authentication."
+            f"{str(e)}. Check your browser setup and authentication.",
         )
 
 
 def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> None:
     """Execute a tool directly from CLI without MCP protocol."""
-    
+
     # Set environment variable to prevent argparse from processing tool args
     os.environ["LINKEDIN_MCP_TOOL_MODE"] = "1"
-    
+
     # Temporarily override sys.argv to prevent argparse from processing tool args
     original_argv = sys.argv
     sys.argv = [sys.argv[0]]  # Keep only the script name
-    
+
     try:
         # Lazy import to avoid argparse conflicts during early interception
         from linkedin_mcp_server.server import create_mcp_server
@@ -268,7 +273,7 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
 
     # Prepare context and extractor for direct CLI execution
     ctx = MockContext()
-    
+
     # Pre-fetch extractor for tools that need it
     extractor, browser, temp_profile = asyncio.run(_get_extractor_for_tool())
     kwargs["extractor"] = extractor
@@ -286,7 +291,7 @@ def run_tool_direct(tool_name: str, args: list[str], use_json: bool = False) -> 
         if "missing" in error_msg and "required" in error_msg:
             axi_error(
                 f"Tool `{tool_name}` requires additional parameters",
-                f"Run `linkedin-cli --tool-info {tool_name}` to see parameters.",
+                f"Run `linkedin-lyr --tool-info {tool_name}` to see parameters.",
             )
         else:
             axi_error(f"Tool `{tool_name}` failed: {e}", "Check your configuration and try again")

@@ -256,9 +256,14 @@ def classify_link(href: str) -> tuple[ReferenceKind, str] | None:
     path = parsed.path or "/"
 
     if not _is_linkedin_host(host):
-        return "external", urlunparse(
-            (parsed.scheme, parsed.netloc, parsed.path or "/", "", "", "")
-        )
+        return "external", urlunparse((
+            parsed.scheme,
+            parsed.netloc,
+            parsed.path or "/",
+            "",
+            "",
+            "",
+        ))
 
     # The "See all employees on LinkedIn" canned-search anchor carries the
     # company URN id, which is the only value LinkedIn's currentCompany
@@ -312,13 +317,11 @@ def choose_reference_text(
 ) -> str | None:
     """Choose the best compact human-readable label for a reference."""
     candidates: list[tuple[int, str]] = []
-    for priority, candidate in enumerate(
-        (
-            raw.get("text", ""),
-            raw.get("aria_label", ""),
-            raw.get("title", ""),
-        )
-    ):
+    for priority, candidate in enumerate((
+        raw.get("text", ""),
+        raw.get("aria_label", ""),
+        raw.get("title", ""),
+    )):
         cleaned = clean_label(candidate, kind)
         if cleaned:
             candidates.append((priority, cleaned))

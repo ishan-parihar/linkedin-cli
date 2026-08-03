@@ -83,9 +83,7 @@ def profile_dir(isolate_profile_dir):
     """Create a non-empty profile directory."""
     isolate_profile_dir.mkdir(parents=True, exist_ok=True)
     # Create a marker file so profile_exists() returns True
-    (isolate_profile_dir / "Default" / "Cookies").parent.mkdir(
-        parents=True, exist_ok=True
-    )
+    (isolate_profile_dir / "Default" / "Cookies").parent.mkdir(parents=True, exist_ok=True)
     (isolate_profile_dir / "Default" / "Cookies").write_text("placeholder")
     return isolate_profile_dir
 

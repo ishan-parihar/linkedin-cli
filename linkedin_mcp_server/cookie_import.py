@@ -445,9 +445,7 @@ def _parse_firefox_profiles_ini(ini_path: Path, base_dir: Path) -> Path | None:
 
         # Find the default profile
         for section in config.sections():
-            if config.has_option(section, "Default") and config.getboolean(
-                section, "Default"
-            ):
+            if config.has_option(section, "Default") and config.getboolean(section, "Default"):
                 profile_path = config.get(section, "Path")
                 is_relative = config.get(section, "IsRelative", fallback="1") == "1"
                 if is_relative:
@@ -489,8 +487,7 @@ def extract_chromium_cookies(db_path: Path) -> dict[str, str]:
         conn = sqlite3.connect(str(tmp_path))
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT name, value, encrypted_value FROM cookies "
-            "WHERE host_key LIKE '%linkedin.com%'"
+            "SELECT name, value, encrypted_value FROM cookies WHERE host_key LIKE '%linkedin.com%'"
         )
         for name, value, encrypted_value in cursor.fetchall():
             if name in LINKEDIN_COOKIES:
@@ -615,9 +612,9 @@ def save_cookies(cookies: dict[str, str], output_path: Path) -> None:
             "expires": -1,  # Session cookie
             "httpOnly": name in ["li_at", "jsessionid", "bscookie"],
             "secure": True,
-            "sameSite": "None"
+            "sameSite": "None",
         })
-    
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(cookie_list, indent=2))
     logger.info("Saved cookies to %s", output_path)
@@ -636,10 +633,10 @@ def import_cookies_for_linkedin(browser_id: str | None = None) -> Path | None:
         cookies = extract_cookies_from_browser(browser_id)
     else:
         cookies = auto_extract_cookies()
-    
+
     if not cookies:
         return None
-    
+
     output_path = auth_root_dir() / "cookies.json"
     save_cookies(cookies, output_path)
     return output_path
@@ -648,7 +645,7 @@ def import_cookies_for_linkedin(browser_id: str | None = None) -> Path | None:
 if __name__ == "__main__":
     # Test cookie extraction
     import sys
-    
+
     if len(sys.argv) > 1:
         browser_id = sys.argv[1]
         print(f"Extracting cookies from {browser_id}...")
@@ -656,7 +653,7 @@ if __name__ == "__main__":
     else:
         print("Auto-detecting browser...")
         cookies = auto_extract_cookies()
-    
+
     if cookies:
         print(f"Extracted cookies: {list(cookies.keys())}")
         output_path = import_cookies_for_linkedin()

@@ -63,9 +63,7 @@ def build_issue_diagnostics(
         "source_profile_dir": str(source_profile_dir),
         "portable_cookie_path": str(portable_cookie_path(source_profile_dir)),
         "source_state": asdict(source_state) if source_state else None,
-        "runtime_profile_dir": str(
-            runtime_profile_dir(current_runtime_id, source_profile_dir)
-        ),
+        "runtime_profile_dir": str(runtime_profile_dir(current_runtime_id, source_profile_dir)),
         "runtime_storage_state_path": str(
             runtime_storage_state_path(current_runtime_id, source_profile_dir)
         ),
@@ -99,9 +97,7 @@ def build_issue_diagnostics(
     return _public_issue_diagnostics(payload, issue_path=issue_path)
 
 
-def format_tool_error_with_diagnostics(
-    message: str, diagnostics: dict[str, Any]
-) -> str:
+def format_tool_error_with_diagnostics(message: str, diagnostics: dict[str, Any]) -> str:
     """Append issue-report locations to a tool-facing error message."""
     lines = [message, "", "Diagnostics:"]
     if diagnostics.get("issue_template_path"):
@@ -128,9 +124,7 @@ def format_tool_error_with_diagnostics(
                 "- Matching open-issue search was skipped in async server context to avoid blocking the server event loop."
             )
         lines.append(f"- File the issue here: {ISSUE_URL}")
-    lines.append(
-        "- Read the generated issue template and attach the listed files before posting."
-    )
+    lines.append("- Read the generated issue template and attach the listed files before posting.")
     return "\n".join(lines)
 
 
@@ -172,98 +166,94 @@ def _render_issue_template(payload: dict[str, Any]) -> str:
         ),
     ]
     return (
-        "\n".join(
-            [
-                "# LinkedIn MCP scrape failure",
-                "",
-                "## File This Issue",
-                "- Read this generated file before posting.",
-                "- Copy the `Setup`, `What Happened`, `Steps to Reproduce`, and `Logs` sections below into the matching GitHub bug report fields.",
-                "- Attach this generated markdown file, the server log, and the trace artifacts directory.",
-                (
-                    "- Review the existing open issues below first. If one matches, post the gist as a comment there instead of opening a new issue."
-                    if has_existing_issues
-                    else f"- GitHub issue link: {ISSUE_URL}"
-                ),
-                "",
-                "## Existing Open Issues",
-                *(
+        "\n".join([
+            "# LinkedIn MCP scrape failure",
+            "",
+            "## File This Issue",
+            "- Read this generated file before posting.",
+            "- Copy the `Setup`, `What Happened`, `Steps to Reproduce`, and `Logs` sections below into the matching GitHub bug report fields.",
+            "- Attach this generated markdown file, the server log, and the trace artifacts directory.",
+            (
+                "- Review the existing open issues below first. If one matches, post the gist as a comment there instead of opening a new issue."
+                if has_existing_issues
+                else f"- GitHub issue link: {ISSUE_URL}"
+            ),
+            "",
+            "## Existing Open Issues",
+            *(
+                [
+                    f"- #{issue['number']}: {issue['title']} ({issue['url']})"
+                    for issue in existing_issues
+                ]
+                if has_existing_issues
+                else (
                     [
-                        f"- #{issue['number']}: {issue['title']} ({issue['url']})"
-                        for issue in existing_issues
+                        "- Matching open-issue search was skipped in async server context to avoid blocking the server event loop."
                     ]
-                    if has_existing_issues
-                    else (
-                        [
-                            "- Matching open-issue search was skipped in async server context to avoid blocking the server event loop."
-                        ]
-                        if issue_search_skipped
-                        else ["- No matching open issues found during diagnostics."]
-                    )
-                ),
-                "",
-                "## Setup",
-                *setup_lines,
-                "",
-                "## What Happened",
-                *what_happened_lines,
-                "",
-                "## Steps to Reproduce",
-                *reproduction_lines,
-                "",
-                "## Logs",
-                "```text",
-                "See attached server log and trace artifacts.",
-                "```",
-                "",
-                "## Additional Diagnostics",
-                "",
-                "### Installation Method Details",
-                *installation_lines,
-                "",
-                "### Runtime Diagnostics",
-                f"- Hostname: {runtime['hostname']}",
-                f"- Current runtime: {runtime['current_runtime_id']}",
-                f"- Source profile: {runtime['source_profile_dir']}",
-                f"- Portable cookies: {runtime['portable_cookie_path']}",
-                f"- Derived runtime profile: {runtime['runtime_profile_dir']}",
-                f"- Derived storage-state: {runtime['runtime_storage_state_path']}",
-                f"- Trace artifacts: {runtime['trace_dir'] or 'not enabled'}",
-                f"- Server log: {runtime['log_path'] or 'not enabled'}",
-                f"- Suggested gist command: {runtime['suggested_gist_command'] or 'not available'}",
-                "",
-                "### Session State",
-                "```json",
-                json.dumps(
-                    {
-                        "source_state": runtime["source_state"],
-                        "runtime_state": runtime["runtime_state"],
-                    },
-                    indent=2,
-                    sort_keys=True,
-                ),
-                "```",
-                "",
-                "### Attachment Checklist",
-                "- Read this generated markdown file and use it as the issue body/context.",
-                "- Attach this generated markdown file itself.",
-                "- Attach the server log if available.",
-                "- Attach the trace screenshots/trace.jsonl if available.",
-                "- Optional: run the suggested gist command below to upload the text artifacts as a single shareable bundle.",
-                "",
-                "### Suggested Gist Command",
-                "```bash",
-                runtime["suggested_gist_command"] or "# gist command unavailable",
-                "```",
-            ]
-        )
+                    if issue_search_skipped
+                    else ["- No matching open issues found during diagnostics."]
+                )
+            ),
+            "",
+            "## Setup",
+            *setup_lines,
+            "",
+            "## What Happened",
+            *what_happened_lines,
+            "",
+            "## Steps to Reproduce",
+            *reproduction_lines,
+            "",
+            "## Logs",
+            "```text",
+            "See attached server log and trace artifacts.",
+            "```",
+            "",
+            "## Additional Diagnostics",
+            "",
+            "### Installation Method Details",
+            *installation_lines,
+            "",
+            "### Runtime Diagnostics",
+            f"- Hostname: {runtime['hostname']}",
+            f"- Current runtime: {runtime['current_runtime_id']}",
+            f"- Source profile: {runtime['source_profile_dir']}",
+            f"- Portable cookies: {runtime['portable_cookie_path']}",
+            f"- Derived runtime profile: {runtime['runtime_profile_dir']}",
+            f"- Derived storage-state: {runtime['runtime_storage_state_path']}",
+            f"- Trace artifacts: {runtime['trace_dir'] or 'not enabled'}",
+            f"- Server log: {runtime['log_path'] or 'not enabled'}",
+            f"- Suggested gist command: {runtime['suggested_gist_command'] or 'not available'}",
+            "",
+            "### Session State",
+            "```json",
+            json.dumps(
+                {
+                    "source_state": runtime["source_state"],
+                    "runtime_state": runtime["runtime_state"],
+                },
+                indent=2,
+                sort_keys=True,
+            ),
+            "```",
+            "",
+            "### Attachment Checklist",
+            "- Read this generated markdown file and use it as the issue body/context.",
+            "- Attach this generated markdown file itself.",
+            "- Attach the server log if available.",
+            "- Attach the trace screenshots/trace.jsonl if available.",
+            "- Optional: run the suggested gist command below to upload the text artifacts as a single shareable bundle.",
+            "",
+            "### Suggested Gist Command",
+            "```bash",
+            runtime["suggested_gist_command"] or "# gist command unavailable",
+            "```",
+        ])
         + "\n"
     )
 
 
-def _public_issue_diagnostics(
-    payload: dict[str, Any], *, issue_path: Path
-) -> dict[str, Any]:
+def _public_issue_diagnostics(payload: dict[str, Any], *, issue_path: Path) -> dict[str, Any]:
     runtime = payload["runtime"]
     return {
         "created_at": payload["created_at"],
@@ -343,13 +333,11 @@ def _find_existing_issues(payload: dict[str, Any]) -> list[dict[str, Any]]:
 
     issues: list[dict[str, Any]] = []
     for item in data.get("items", []):
-        issues.append(
-            {
-                "number": item.get("number"),
-                "title": item.get("title"),
-                "url": item.get("html_url"),
-            }
-        )
+        issues.append({
+            "number": item.get("number"),
+            "title": item.get("title"),
+            "url": item.get("html_url"),
+        })
     return issues
 
 

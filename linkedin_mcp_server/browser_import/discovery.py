@@ -247,11 +247,7 @@ def browser_roots(browser: str | None = None) -> list[tuple[str, Path]]:
                 if parent.is_dir():
                     prefix = exact.name
                     candidates.extend(
-                        sorted(
-                            p
-                            for p in parent.glob(f"{prefix}*")
-                            if p.is_dir() and p != exact
-                        )
+                        sorted(p for p in parent.glob(f"{prefix}*") if p.is_dir() and p != exact)
                     )
                 for root in candidates:
                     resolved = root.resolve() if root.exists() else root
@@ -300,9 +296,7 @@ def _flat_display_name(user_data_root: Path) -> str:
     return name if isinstance(name, str) and name else user_data_root.name
 
 
-def enumerate_profiles(
-    user_data_root: Path, *, layout: str = "profiles"
-) -> list[tuple[str, str]]:
+def enumerate_profiles(user_data_root: Path, *, layout: str = "profiles") -> list[tuple[str, str]]:
     """Return ``(profile_dir_name, display_name)`` for real sign-in profiles.
 
     Parses ``<root>/Local State`` ``profile.info_cache``; skips ephemeral and

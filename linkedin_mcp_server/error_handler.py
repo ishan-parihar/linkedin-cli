@@ -151,9 +151,7 @@ def raise_tool_error(exception: Exception, context: str = "") -> NoReturn:
 
     elif isinstance(exception, ProfileNotFoundError):
         logger.warning("Profile not found%s: %s", ctx, exception)
-        raise ToolError(
-            "Profile not found. Check the profile URL is correct."
-        ) from exception
+        raise ToolError("Profile not found. Check the profile URL is correct.") from exception
 
     elif isinstance(exception, ElementNotFoundError):
         logger.warning("Element not found%s: %s", ctx, exception)

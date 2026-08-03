@@ -1,6 +1,6 @@
 """Background check for a newer release on PyPI, surfaced as a tool-result notice.
 
-Most users install via ``uvx mcp-server-linkedin@latest``, which re-resolves PyPI
+Most users install via ``uvx linkedin-lyr@latest``, which re-resolves PyPI
 on every client launch, so they are already current. This is defense-in-depth for
 the minority that pin a fixed version, run a stale Docker tag, or are offline: it
 polls the PyPI JSON API at most once a day, caches the answer under
@@ -33,10 +33,8 @@ from linkedin_mcp_server import __version__
 
 logger = logging.getLogger(__name__)
 
-_PYPI_URL = "https://pypi.org/pypi/mcp-server-linkedin/json"
-_LATEST_RELEASE_URL = (
-    "https://github.com/stickerdaniel/linkedin-mcp-server/releases/latest"
-)
+_PYPI_URL = "https://pypi.org/pypi/linkedin-lyr/json"
+_LATEST_RELEASE_URL = "https://github.com/stickerdaniel/linkedin-mcp-server/releases/latest"
 _CACHE_PATH = Path.home() / ".linkedin-lyr" / "update-check.json"
 _CACHE_TTL_SECONDS = 24 * 60 * 60
 _REQUEST_TIMEOUT_SECONDS = 2.0
@@ -54,7 +52,7 @@ def _is_source_install() -> bool:
     installs from PyPI (uvx, pip, pipx, including pinned versions) have no such file
     and remain the audience for the update nudge.
     """
-    for name in ("mcp-server-linkedin", "linkedin-scraper-mcp"):
+    for name in ("linkedin-lyr",):
         try:
             text = distribution(name).read_text("direct_url.json")
         except PackageNotFoundError:
@@ -94,9 +92,7 @@ def _read_cache() -> tuple[float, str] | None:
 def _write_cache(latest: str) -> None:
     try:
         _CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        _CACHE_PATH.write_text(
-            json.dumps({"checked_at": time.time(), "latest": latest})
-        )
+        _CACHE_PATH.write_text(json.dumps({"checked_at": time.time(), "latest": latest}))
     except OSError:
         logger.debug("Could not write update-check cache", exc_info=True)
 
@@ -106,7 +102,7 @@ def _fetch_latest_from_pypi() -> str | None:
         _PYPI_URL,
         headers={
             "Accept": "application/json",
-            "User-Agent": f"mcp-server-linkedin/{__version__}",
+            "User-Agent": f"linkedin-lyr/{__version__}",
         },
     )
     try:
@@ -200,10 +196,7 @@ def _update_action() -> str:
     """Method-specific instruction for getting onto the latest release."""
     kind = _runtime_kind()
     if kind == "docker":
-        return (
-            "You are running in Docker: pull the newest image tag and recreate the "
-            "container."
-        )
+        return "You are running in Docker: pull the newest image tag and recreate the container."
     if kind == "mcpb":
         return (
             "You are running the Claude Desktop bundle, which does not auto-update. "
@@ -212,7 +205,7 @@ def _update_action() -> str:
         )
     return (
         "Check this server's entry in the MCP client config: it should run "
-        '"uvx mcp-server-linkedin@latest" rather than a pinned version. If it pins a '
+        '"uvx linkedin-lyr@latest" rather than a pinned version. If it pins a '
         "version or drops @latest, fix it and restart the client."
     )
 
@@ -231,8 +224,7 @@ def pending_update_notice() -> str | None:
     if not _is_meaningfully_behind(current, latest):
         return None
     return (
-        f"Update available: mcp-server-linkedin {latest} is out (you are on "
-        f"{current}). {_update_action()}"
+        f"Update available: linkedin-lyr {latest} is out (you are on {current}). {_update_action()}"
     )
 
 

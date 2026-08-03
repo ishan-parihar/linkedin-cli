@@ -14,9 +14,7 @@ def _mode(path):
     return stat.S_IMODE(path.stat().st_mode)
 
 
-@pytest.mark.skipif(
-    os.name == "nt", reason="POSIX permission bits are not portable on Windows"
-)
+@pytest.mark.skipif(os.name == "nt", reason="POSIX permission bits are not portable on Windows")
 def test_harden_linkedin_tree_hardens_dirs(tmp_path):
     root = tmp_path / ".linkedin"
     profile = root / "profile"
@@ -30,9 +28,7 @@ def test_harden_linkedin_tree_hardens_dirs(tmp_path):
     assert _mode(profile) == 0o700
 
 
-@pytest.mark.skipif(
-    os.name == "nt", reason="POSIX permission bits are not portable on Windows"
-)
+@pytest.mark.skipif(os.name == "nt", reason="POSIX permission bits are not portable on Windows")
 def test_harden_linkedin_tree_does_not_harden_unrelated_parent(tmp_path):
     parent = tmp_path / "custom"
     profile = parent / ".linkedin" / "profile"
@@ -47,9 +43,7 @@ def test_harden_linkedin_tree_does_not_harden_unrelated_parent(tmp_path):
     assert _mode(profile.parent) == 0o700
 
 
-@pytest.mark.skipif(
-    os.name == "nt", reason="POSIX permission bits are not portable on Windows"
-)
+@pytest.mark.skipif(os.name == "nt", reason="POSIX permission bits are not portable on Windows")
 def test_harden_linkedin_tree_noop_outside_linkedin(tmp_path):
     """Dirs that are not inside .linkedin are left untouched."""
     unrelated = tmp_path / "other" / "data"
@@ -62,16 +56,12 @@ def test_harden_linkedin_tree_noop_outside_linkedin(tmp_path):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(
-    os.name == "nt", reason="POSIX permission bits are not portable on Windows"
-)
+@pytest.mark.skipif(os.name == "nt", reason="POSIX permission bits are not portable on Windows")
 async def test_export_cookies_writes_owner_only_file(tmp_path):
     manager = BrowserManager(user_data_dir=tmp_path / ".linkedin" / "profile")
     manager._context = MagicMock()
     manager._context.cookies = AsyncMock(
-        return_value=[
-            {"name": "li_at", "domain": ".linkedin.com", "value": "secret-value"}
-        ]
+        return_value=[{"name": "li_at", "domain": ".linkedin.com", "value": "secret-value"}]
     )
 
     cookie_path = tmp_path / ".linkedin" / "cookies.json"
@@ -84,9 +74,7 @@ async def test_export_cookies_writes_owner_only_file(tmp_path):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(
-    os.name == "nt", reason="POSIX permission bits are not portable on Windows"
-)
+@pytest.mark.skipif(os.name == "nt", reason="POSIX permission bits are not portable on Windows")
 async def test_export_storage_state_hardens_file(tmp_path):
     manager = BrowserManager(user_data_dir=tmp_path / ".linkedin" / "profile")
     manager._context = MagicMock()

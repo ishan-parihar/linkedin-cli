@@ -69,9 +69,7 @@ def post(base_url: str, monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setattr(server_module, "initialize_bootstrap", MagicMock())
     monkeypatch.setattr(server_module, "get_runtime_policy", MagicMock())
-    monkeypatch.setattr(
-        server_module, "start_background_browser_setup_if_needed", AsyncMock()
-    )
+    monkeypatch.setattr(server_module, "start_background_browser_setup_if_needed", AsyncMock())
     monkeypatch.setattr(server_module, "watch_for_handoff_requests", AsyncMock())
     monkeypatch.setattr(server_module, "close_browser", AsyncMock())
 
@@ -83,9 +81,7 @@ def post(base_url: str, monkeypatch: pytest.MonkeyPatch):
         # whether the connection looks local, not the Host header.
         # raise_server_exceptions=False so a rejection arrives as its status
         # rather than an exception, which is what a real client would see.
-        with TestClient(
-            app, base_url=base_url, raise_server_exceptions=False
-        ) as client:
+        with TestClient(app, base_url=base_url, raise_server_exceptions=False) as client:
             return client.post(
                 f"{base_url}/mcp",
                 json=_INITIALIZE,
@@ -104,12 +100,10 @@ class TestDnsRebinding:
         by that name.
         """
         assert (
-            post(
-                {
-                    "Host": "attacker.example",
-                    "Origin": "http://attacker.example",
-                }
-            )
+            post({
+                "Host": "attacker.example",
+                "Origin": "http://attacker.example",
+            })
             == 421
         )
 
@@ -187,9 +181,7 @@ class TestLegitimateClientsStillWork:
 
     def test_the_docker_flow_survives_a_matching_origin(self, post) -> None:
         """A browser client at the published port sends an Origin too."""
-        assert (
-            post({"Host": "localhost:8000", "Origin": "http://localhost:8000"}) == 200
-        )
+        assert post({"Host": "localhost:8000", "Origin": "http://localhost:8000"}) == 200
 
     def test_a_hostname_the_server_does_not_know_is_refused(self, post) -> None:
         """The documented cost of strict validation, recorded deliberately.

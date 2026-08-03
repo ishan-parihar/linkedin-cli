@@ -42,11 +42,16 @@ class LinkedInCookieValidator:
             # Full browser validation can be disabled for resource-constrained environments
             # Set LINKEDIN_SKIP_BROWSER_VALIDATION=1 to skip browser-based validation
             skip_browser_validation = os.getenv("LINKEDIN_SKIP_BROWSER_VALIDATION", "").lower() in (
-                "1", "true", "yes", "on"
+                "1",
+                "true",
+                "yes",
+                "on",
             )
 
             if skip_browser_validation:
-                logger.debug("Skipping browser-based validation (LINKEDIN_SKIP_BROWSER_VALIDATION set)")
+                logger.debug(
+                    "Skipping browser-based validation (LINKEDIN_SKIP_BROWSER_VALIDATION set)"
+                )
                 return True
 
             # Import here to avoid circular imports
@@ -64,7 +69,9 @@ class LinkedInCookieValidator:
             await page.context.add_cookies(cookie_list)
 
             # Try to access a page
-            await page.goto("https://www.linkedin.com/feed/", wait_until="domcontentloaded", timeout=10000)
+            await page.goto(
+                "https://www.linkedin.com/feed/", wait_until="domcontentloaded", timeout=10000
+            )
 
             # Check if we're logged in (locale-independent check)
             is_logged_in = await page.evaluate("""() => {
@@ -92,7 +99,9 @@ class LinkedInObscuraManager:
 
     def _get_extractor(self) -> LinkedInCookieExtractor:
         """Get browser cookie extractor (prefers Chrome/Arc)."""
-        return LinkedInCookieExtractor(preferred_browsers=["chrome", "arc", "brave", "firefox", "edge"])
+        return LinkedInCookieExtractor(
+            preferred_browsers=["chrome", "arc", "brave", "firefox", "edge"]
+        )
 
     def _get_manager(self) -> ObscuraCookieManager:
         """Get or create the ObscuraCookieManager instance."""

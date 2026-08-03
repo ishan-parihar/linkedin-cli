@@ -43,9 +43,7 @@ def positive_float(value: str) -> float:
     """Argparse type for positive finite floats."""
     fvalue = float(value)
     if not (math.isfinite(fvalue) and fvalue > 0):
-        raise argparse.ArgumentTypeError(
-            f"must be a positive finite number, got {value}"
-        )
+        raise argparse.ArgumentTypeError(f"must be a positive finite number, got {value}")
     return fvalue
 
 
@@ -53,9 +51,7 @@ def non_negative_float(value: str) -> float:
     """Argparse type for non-negative finite floats (0 allowed as a sentinel)."""
     fvalue = float(value)
     if not (math.isfinite(fvalue) and fvalue >= 0):
-        raise argparse.ArgumentTypeError(
-            f"must be a non-negative finite number, got {value}"
-        )
+        raise argparse.ArgumentTypeError(f"must be a non-negative finite number, got {value}")
     return fvalue
 
 
@@ -174,9 +170,7 @@ def load_from_env(config: AppConfig) -> AppConfig:
         try:
             config.browser.default_timeout = int(timeout_env)
         except ValueError:
-            raise ConfigurationError(
-                f"Invalid TIMEOUT: '{timeout_env}'. Must be an integer."
-            )
+            raise ConfigurationError(f"Invalid TIMEOUT: '{timeout_env}'. Must be an integer.")
 
     # Per-tool MCP execution timeout in seconds (also validated in ServerConfig.validate())
     if tool_timeout_env := os.environ.get(EnvironmentKeys.TOOL_TIMEOUT):
@@ -216,9 +210,7 @@ def load_from_env(config: AppConfig) -> AppConfig:
             raise ConfigurationError(
                 f"Invalid LOGIN_INLINE_WAIT: '{login_inline_wait_env}'. Must be a number."
             )
-        if not (
-            math.isfinite(login_inline_wait_value) and login_inline_wait_value >= 0
-        ):
+        if not (math.isfinite(login_inline_wait_value) and login_inline_wait_value >= 0):
             raise ConfigurationError(
                 f"Invalid LOGIN_INLINE_WAIT: '{login_inline_wait_env}'. Must be a non-negative finite number (0 = no inline wait)."
             )
@@ -268,9 +260,7 @@ def load_from_env(config: AppConfig) -> AppConfig:
         try:
             config.browser.slow_mo = int(slow_mo_env)
         except ValueError:
-            raise ConfigurationError(
-                f"Invalid SLOW_MO: '{slow_mo_env}'. Must be an integer."
-            )
+            raise ConfigurationError(f"Invalid SLOW_MO: '{slow_mo_env}'. Must be an integer.")
 
     # Browser viewport (validated in BrowserConfig.validate())
     if viewport_env := os.environ.get(EnvironmentKeys.VIEWPORT):
@@ -341,7 +331,7 @@ def load_from_args(config: AppConfig) -> AppConfig:
     # Skip argparse parsing if in tool mode (to avoid conflicts with direct tool invocation)
     if os.environ.get("LINKEDIN_MCP_TOOL_MODE") == "1":
         return config
-    
+
     parser = argparse.ArgumentParser(
         description="LinkedIn MCP Server - A Model Context Protocol server for LinkedIn integration"
     )

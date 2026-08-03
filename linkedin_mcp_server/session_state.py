@@ -107,9 +107,7 @@ def runtime_dir(runtime_id: str, source_profile_dir: Path | None = None) -> Path
     return runtime_profiles_root(source_profile_dir) / runtime_id
 
 
-def runtime_profile_dir(
-    runtime_id: str, source_profile_dir: Path | None = None
-) -> Path:
+def runtime_profile_dir(runtime_id: str, source_profile_dir: Path | None = None) -> Path:
     """Return the profile directory for one runtime's derived session."""
     return runtime_dir(runtime_id, source_profile_dir) / "profile"
 
@@ -119,9 +117,7 @@ def runtime_state_path(runtime_id: str, source_profile_dir: Path | None = None) 
     return runtime_dir(runtime_id, source_profile_dir) / _RUNTIME_STATE_FILE
 
 
-def runtime_storage_state_path(
-    runtime_id: str, source_profile_dir: Path | None = None
-) -> Path:
+def runtime_storage_state_path(runtime_id: str, source_profile_dir: Path | None = None) -> Path:
     """Return the storage-state snapshot path for one runtime's derived session."""
     return runtime_dir(runtime_id, source_profile_dir) / "storage-state.json"
 
@@ -225,9 +221,9 @@ def load_source_state(source_profile_dir: Path | None = None) -> SourceState | N
     if not data:
         return None
     try:
-        return SourceState(
-            **{key: value for key, value in data.items() if key in _SOURCE_STATE_FIELDS}
-        )
+        return SourceState(**{
+            key: value for key, value in data.items() if key in _SOURCE_STATE_FIELDS
+        })
     except TypeError:
         logger.warning("Ignoring invalid source-state.json")
         return None
@@ -239,9 +235,7 @@ def write_source_state(
     user_agent: str | None = None,
 ) -> SourceState:
     """Write a fresh source session generation after successful login."""
-    profile_dir = (
-        (source_profile_dir or get_source_profile_dir()).expanduser().resolve()
-    )
+    profile_dir = (source_profile_dir or get_source_profile_dir()).expanduser().resolve()
     state = SourceState(
         version=1,
         source_runtime_id=get_runtime_id(),
@@ -263,13 +257,9 @@ def load_runtime_state(
     if not data:
         return None
     try:
-        return RuntimeState(
-            **{
-                key: value
-                for key, value in data.items()
-                if key in _RUNTIME_STATE_FIELDS
-            }
-        )
+        return RuntimeState(**{
+            key: value for key, value in data.items() if key in _RUNTIME_STATE_FIELDS
+        })
     except TypeError:
         logger.warning("Ignoring invalid runtime-state.json for %s", runtime_id)
         return None
@@ -302,9 +292,7 @@ def write_runtime_state(
     return state
 
 
-def clear_runtime_profile(
-    runtime_id: str, source_profile_dir: Path | None = None
-) -> bool:
+def clear_runtime_profile(runtime_id: str, source_profile_dir: Path | None = None) -> bool:
     """Remove one derived runtime profile and its metadata."""
     target = runtime_dir(runtime_id, source_profile_dir)
     if not target.exists():
@@ -472,8 +460,7 @@ def _exclusive_profile(profile_dir: Path, *, action: str) -> Iterator[None]:
     lease = get_profile_lease(profile_dir)
     if lease.browser_open:
         raise RuntimeError(
-            "This server still has a browser open on the profile. "
-            f"Close it before {action}."
+            f"This server still has a browser open on the profile. Close it before {action}."
         )
     if not lease.try_acquire():
         raise RuntimeError(
@@ -524,9 +511,7 @@ def rotate_source_profile(source_profile_dir: Path | None = None) -> Path | None
             retirement, never one session split across both.
     """
     profile_dir = (source_profile_dir or get_source_profile_dir()).expanduser()
-    existing = [
-        target for target in _auth_state_targets(profile_dir) if target.exists()
-    ]
+    existing = [target for target in _auth_state_targets(profile_dir) if target.exists()]
     if not existing:
         return None
 
@@ -535,9 +520,7 @@ def rotate_source_profile(source_profile_dir: Path | None = None) -> Path | None
         # than exceptional, so two rotations can land in the same second. The
         # suffix keeps them from merging into one directory.
         stamp = utcnow_iso().replace(":", "-")
-        backup_dir = (
-            auth_root_dir(profile_dir) / f"{QUARANTINE_PREFIX}{stamp}-{uuid4().hex[:8]}"
-        )
+        backup_dir = auth_root_dir(profile_dir) / f"{QUARANTINE_PREFIX}{stamp}-{uuid4().hex[:8]}"
         secure_mkdir(backup_dir)
         moved: list[Path] = []
         try:
@@ -564,9 +547,7 @@ def _restore(backup_dir: Path, targets: list[Path]) -> None:
         pass
 
 
-def restore_source_profile(
-    backup_dir: Path, source_profile_dir: Path | None = None
-) -> bool:
+def restore_source_profile(backup_dir: Path, source_profile_dir: Path | None = None) -> bool:
     """Put a retired session back, undoing ``rotate_source_profile``.
 
     A rotation happens *before* the replacement session exists, so a login that
@@ -625,9 +606,7 @@ def _restore_source_profile_locked(backup_dir: Path, profile_dir: Path) -> bool:
             return False
 
     restorable = [
-        (item, targets[item.name])
-        for item in backup_dir.iterdir()
-        if item.name in targets
+        (item, targets[item.name]) for item in backup_dir.iterdir() if item.name in targets
     ]
     restored: list[Path] = []
     for source, target in restorable:

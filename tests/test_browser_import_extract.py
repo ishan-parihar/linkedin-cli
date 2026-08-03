@@ -39,9 +39,7 @@ _HOST = ".linkedin.com"
 
 def _cbc_blob(plaintext: bytes, key: bytes, *, host_key: str, store_version: int):
     payload = (
-        hashlib.sha256(host_key.encode()).digest() + plaintext
-        if store_version >= 24
-        else plaintext
+        hashlib.sha256(host_key.encode()).digest() + plaintext if store_version >= 24 else plaintext
     )
     padder = padding.PKCS7(algorithms.AES.block_size).padder()
     padded = padder.update(payload) + padder.finalize()
@@ -49,18 +47,14 @@ def _cbc_blob(plaintext: bytes, key: bytes, *, host_key: str, store_version: int
     return b"v10" + enc.update(padded) + enc.finalize()
 
 
-def _gcm_blob(
-    plaintext: bytes, master_key: bytes, *, host_key: str, store_version: int, nonce
-):
+def _gcm_blob(plaintext: bytes, master_key: bytes, *, host_key: str, store_version: int, nonce):
     """Build a Windows v10 AES-256-GCM blob matching the real v24+ layout.
 
     Store version >= 24 prepends a 32-byte ``SHA256(host_key)`` digest to the
     plaintext on Windows too, exactly like the CBC path.
     """
     payload = (
-        hashlib.sha256(host_key.encode()).digest() + plaintext
-        if store_version >= 24
-        else plaintext
+        hashlib.sha256(host_key.encode()).digest() + plaintext if store_version >= 24 else plaintext
     )
     ciphertext = AESGCM(master_key).encrypt(nonce, payload, None)
     return b"v10" + nonce + ciphertext
@@ -77,9 +71,7 @@ def _build_cookies_db(tmp_path, rows, *, version=24, legacy_columns=False):
     secure_col = "secure" if legacy_columns else "is_secure"
     httponly_col = "httponly" if legacy_columns else "is_httponly"
     connection.execute("CREATE TABLE meta (key TEXT, value TEXT)")
-    connection.execute(
-        "INSERT INTO meta (key, value) VALUES ('version', ?)", (str(version),)
-    )
+    connection.execute("INSERT INTO meta (key, value) VALUES ('version', ?)", (str(version),))
     connection.execute(
         f"""
         CREATE TABLE cookies (
@@ -283,9 +275,7 @@ def test_macos_safe_storage_password_missing_item_raises(monkeypatch):
 
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: R())
     with pytest.raises(KeystoreUnavailableError):
-        extract._macos_safe_storage_password(
-            "Microsoft Edge", "Microsoft Edge Safe Storage"
-        )
+        extract._macos_safe_storage_password("Microsoft Edge", "Microsoft Edge Safe Storage")
 
 
 def test_macos_safe_storage_password_timeout_raises(monkeypatch):
@@ -409,9 +399,7 @@ def test_linux_resolver_uses_registry_token(tmp_path, monkeypatch):
     monkeypatch.setattr(extract, "_current_os", lambda: "linux")
     monkeypatch.setattr(extract, "_linux_safe_storage_password", fake)
 
-    extract.extract_linkedin_cookies(
-        _profile(db, browser="edge", safe_storage="Microsoft Edge")
-    )
+    extract.extract_linkedin_cookies(_profile(db, browser="edge", safe_storage="Microsoft Edge"))
 
     assert captured["app_token"] == "microsoft-edge"
 
@@ -422,9 +410,7 @@ def test_linux_peanuts_decrypts_v10(tmp_path, monkeypatch):
     blob = _cbc_blob(secret, key, host_key=_HOST, store_version=24)
     db = _build_cookies_db(tmp_path, [{"name": "li_at", "encrypted_value": blob}])
     monkeypatch.setattr(extract, "_current_os", lambda: "linux")
-    monkeypatch.setattr(
-        extract, "_linux_safe_storage_password", lambda label: b"peanuts"
-    )
+    monkeypatch.setattr(extract, "_linux_safe_storage_password", lambda label: b"peanuts")
 
     cookies = extract_linkedin_cookies(_profile(db))
 
@@ -439,9 +425,7 @@ def test_linux_wrong_key_skips_with_host_key_mismatch(tmp_path, monkeypatch):
     db = _build_cookies_db(tmp_path, [{"name": "li_at", "encrypted_value": blob}])
     monkeypatch.setattr(extract, "_current_os", lambda: "linux")
     # Wrong password: the peanuts fallback against a keyring-encrypted store.
-    monkeypatch.setattr(
-        extract, "_linux_safe_storage_password", lambda label: b"peanuts"
-    )
+    monkeypatch.setattr(extract, "_linux_safe_storage_password", lambda label: b"peanuts")
 
     cookies = extract_linkedin_cookies(_profile(db))
 
@@ -461,9 +445,7 @@ def test_wrong_key_on_legacy_store_skips_without_raising(tmp_path, monkeypatch):
         version=23,
     )
     monkeypatch.setattr(extract, "_current_os", lambda: "linux")
-    monkeypatch.setattr(
-        extract, "_linux_safe_storage_password", lambda label: b"peanuts"
-    )
+    monkeypatch.setattr(extract, "_linux_safe_storage_password", lambda label: b"peanuts")
 
     cookies = extract_linkedin_cookies(_profile(db))
 
@@ -498,9 +480,7 @@ def test_windows_gcm_v10_legacy_store_has_no_prefix(tmp_path, monkeypatch):
     secret = b"win_legacy_li_at"
     nonce = b"\x04" * 12
     blob = _gcm_blob(secret, master_key, host_key=_HOST, store_version=23, nonce=nonce)
-    db = _build_cookies_db(
-        tmp_path, [{"name": "li_at", "encrypted_value": blob}], version=23
-    )
+    db = _build_cookies_db(tmp_path, [{"name": "li_at", "encrypted_value": blob}], version=23)
     monkeypatch.setattr(extract, "_current_os", lambda: "windows")
     monkeypatch.setattr(extract, "_windows_master_key", lambda path: master_key)
 
@@ -706,9 +686,7 @@ def test_chromium_utc_zero_sentinel():
 
 def test_chromium_utc_known_epoch():
     micros = 13_300_000_000 * 1_000_000
-    assert _chromium_utc_to_unix(micros) == pytest.approx(
-        13_300_000_000 - 11_644_473_600
-    )
+    assert _chromium_utc_to_unix(micros) == pytest.approx(13_300_000_000 - 11_644_473_600)
 
 
 def test_cookie_samesite_and_expires_end_to_end(tmp_path, monkeypatch):
@@ -744,9 +722,7 @@ def test_cookie_samesite_and_expires_end_to_end(tmp_path, monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skipif(
-    os.name == "nt", reason="POSIX permission bits are not portable on Windows"
-)
+@pytest.mark.skipif(os.name == "nt", reason="POSIX permission bits are not portable on Windows")
 def test_copies_db_and_wal_shm_with_secure_perms(tmp_path, monkeypatch):
     key = _derive_cbc_key(_MAC_PASSWORD, iterations=1003)
     blob = _cbc_blob(b"s", key, host_key=_HOST, store_version=24)

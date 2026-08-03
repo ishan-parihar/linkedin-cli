@@ -15,7 +15,12 @@ from linkedin_mcp_server.config.schema import DEFAULT_TOOL_TIMEOUT_SECONDS
 from linkedin_mcp_server.core.exceptions import AuthenticationError
 from linkedin_mcp_server.dependencies import get_ready_extractor, handle_auth_error
 from linkedin_mcp_server.error_handler import raise_tool_error
-from linkedin_mcp_server.output_utils import COMPANY_HINTS, add_next_step, add_result_counts, apply_section_truncation
+from linkedin_mcp_server.output_utils import (
+    COMPANY_HINTS,
+    add_next_step,
+    add_result_counts,
+    apply_section_truncation,
+)
 from linkedin_mcp_server.scraping import parse_company_sections
 from linkedin_mcp_server.scraping.extractor import _RATE_LIMITED_MSG
 from linkedin_mcp_server.scraping.link_metadata import Reference
@@ -67,9 +72,7 @@ def register_company_tools(
             that facet.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="get_company_profile"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="get_company_profile")
             requested, unknown = parse_company_sections(sections)
 
             logger.info(
@@ -79,9 +82,7 @@ def register_company_tools(
             )
 
             cb = MCPContextProgressCallback(ctx)
-            result = await extractor.scrape_company(
-                company_name, requested, callbacks=cb
-            )
+            result = await extractor.scrape_company(company_name, requested, callbacks=cb)
 
             if unknown:
                 result["unknown_sections"] = unknown
@@ -124,9 +125,7 @@ def register_company_tools(
             The LLM should parse the raw text to extract individual posts.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="get_company_posts"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="get_company_posts")
             logger.info("Scraping company posts: %s", company_name)
 
             await ctx.report_progress(
@@ -194,14 +193,10 @@ def register_company_tools(
             The LLM should parse the raw text to extract individual companies and their pages.
         """
         try:
-            extractor = extractor or await get_ready_extractor(
-                ctx, tool_name="search_companies"
-            )
+            extractor = extractor or await get_ready_extractor(ctx, tool_name="search_companies")
             logger.info("Searching companies: keywords='%s'", keywords)
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Starting company search"
-            )
+            await ctx.report_progress(progress=0, total=100, message="Starting company search")
 
             result = await extractor.search_companies(keywords)
 
@@ -267,17 +262,11 @@ def register_company_tools(
             extractor = extractor or await get_ready_extractor(
                 ctx, tool_name="get_company_employees"
             )
-            logger.info(
-                "Scraping company employees: %s (keywords=%s)", company_name, keywords
-            )
+            logger.info("Scraping company employees: %s (keywords=%s)", company_name, keywords)
 
-            await ctx.report_progress(
-                progress=0, total=100, message="Loading company employees"
-            )
+            await ctx.report_progress(progress=0, total=100, message="Loading company employees")
 
-            result = await extractor.get_company_employees(
-                company_name, keywords=keywords
-            )
+            result = await extractor.get_company_employees(company_name, keywords=keywords)
 
             await ctx.report_progress(progress=100, total=100, message="Complete")
 

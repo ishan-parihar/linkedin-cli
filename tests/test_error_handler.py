@@ -49,9 +49,7 @@ def test_raises_tool_error_for_profile_not_found():
 def test_rate_limit_skips_issue_diagnostics(monkeypatch):
     monkeypatch.setattr(
         "linkedin_mcp_server.error_handler.build_issue_diagnostics",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            AssertionError("diagnostics should not run")
-        ),
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("diagnostics should not run")),
     )
     error = RateLimitError("Rate limited")
 
@@ -62,9 +60,7 @@ def test_rate_limit_skips_issue_diagnostics(monkeypatch):
 def test_profile_not_found_skips_issue_diagnostics(monkeypatch):
     monkeypatch.setattr(
         "linkedin_mcp_server.error_handler.build_issue_diagnostics",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            AssertionError("diagnostics should not run")
-        ),
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("diagnostics should not run")),
     )
 
     with pytest.raises(ToolError, match="Profile not found"):
@@ -145,18 +141,14 @@ def test_proxy_error_reports_the_proxy_not_a_network_problem():
     # It subclasses NetworkError, so the specific branch has to come first;
     # otherwise the user is told to check their connection.
     with pytest.raises(ToolError, match="proxy"):
-        raise_tool_error(
-            ProxyConnectionError("Could not reach LinkedIn through proxy gate:7000")
-        )
+        raise_tool_error(ProxyConnectionError("Could not reach LinkedIn through proxy gate:7000"))
 
 
 def test_proxy_error_skips_issue_diagnostics(monkeypatch):
     # A proxy that is down or misconfigured is not a bug worth reporting.
     monkeypatch.setattr(
         "linkedin_mcp_server.error_handler.build_issue_diagnostics",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            AssertionError("diagnostics should not run")
-        ),
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("diagnostics should not run")),
     )
 
     with pytest.raises(ToolError):

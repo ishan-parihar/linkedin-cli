@@ -82,12 +82,8 @@ class TestBootstrap:
             return None
 
         _patch_inline_wait(monkeypatch, 0)
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: False
-        )
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_browser_setup", fake_setup
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: False)
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_browser_setup", fake_setup)
 
         initialize_bootstrap("managed")
         await start_background_browser_setup_if_needed()
@@ -114,9 +110,7 @@ class TestBootstrap:
             )
 
         _patch_inline_wait(monkeypatch, 0)
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True)
         monkeypatch.setattr("linkedin_mcp_server.bootstrap._auth_ready", lambda: False)
         monkeypatch.setattr(
             "linkedin_mcp_server.bootstrap._start_login_if_needed", fake_start_login
@@ -128,9 +122,7 @@ class TestBootstrap:
             await ensure_tool_ready_or_raise("get_person_profile")
 
     async def test_login_in_progress_reuses_existing_session(self, monkeypatch):
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True)
         monkeypatch.setattr("linkedin_mcp_server.bootstrap._auth_ready", lambda: False)
         _patch_inline_wait(monkeypatch, 0.05)
 
@@ -214,32 +206,26 @@ def _make_auth_ready(profile_dir):
     cookie_path.parent.mkdir(parents=True, exist_ok=True)
     cookie_path.write_text(json.dumps([{"name": "li_at", "domain": ".linkedin.com"}]))
     source_state_path(profile_dir).write_text(
-        json.dumps(
-            {
-                "version": 1,
-                "source_runtime_id": "macos-arm64-host",
-                "login_generation": "gen-1",
-                "created_at": "2026-03-12T17:00:00Z",
-                "profile_path": str(profile_dir),
-                "cookies_path": str(cookie_path),
-            }
-        )
+        json.dumps({
+            "version": 1,
+            "source_runtime_id": "macos-arm64-host",
+            "login_generation": "gen-1",
+            "created_at": "2026-03-12T17:00:00Z",
+            "profile_path": str(profile_dir),
+            "cookies_path": str(cookie_path),
+        })
     )
 
 
 class TestInvalidateAuthAndTriggerRelogin:
-    async def test_force_moves_files_and_starts_login(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_force_moves_files_and_starts_login(self, isolate_profile_dir, monkeypatch):
         """Stale-but-present profile files are moved aside and login starts."""
         _make_auth_ready(isolate_profile_dir)
 
         async def fake_login_flow():
             return None
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
         initialize_bootstrap("managed")
 
         with pytest.raises(AuthenticationStartedError, match="Session expired"):
@@ -254,9 +240,7 @@ class TestInvalidateAuthAndTriggerRelogin:
         assert state.auth_state is AuthState.STARTING
         assert state.login_task is not None
 
-    async def test_login_in_progress_does_not_move_files(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_login_in_progress_does_not_move_files(self, isolate_profile_dir, monkeypatch):
         """If login is already running, raise InProgress without touching files."""
         _make_auth_ready(isolate_profile_dir)
         initialize_bootstrap("managed")
@@ -337,9 +321,7 @@ def _patch_targets_and_version(
         "linkedin_mcp_server.bootstrap._patchright_install_targets",
         lambda: dict(targets) if targets else None,
     )
-    monkeypatch.setattr(
-        "linkedin_mcp_server.bootstrap._patchright_pkg_version", lambda: version
-    )
+    monkeypatch.setattr("linkedin_mcp_server.bootstrap._patchright_pkg_version", lambda: version)
 
 
 class TestBrowserSetupReady:
@@ -380,9 +362,7 @@ class TestBrowserSetupReady:
         _write_metadata(install_metadata_path(), bdir)
         assert browser_setup_ready() is False
 
-    def test_false_when_required_revision_missing(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    def test_false_when_required_revision_missing(self, isolate_profile_dir, monkeypatch):
         _patch_targets_and_version(monkeypatch)
         bdir = browsers_path()
         _materialize_install(bdir, ["chromium-1208", "chromium_headless_shell-1208"])
@@ -396,15 +376,11 @@ class TestBrowserSetupReady:
         _write_metadata(install_metadata_path(), bdir, patchright_version="1.41.0")
         assert browser_setup_ready() is False
 
-    def test_false_on_browsers_path_mismatch(
-        self, isolate_profile_dir, monkeypatch, tmp_path
-    ):
+    def test_false_on_browsers_path_mismatch(self, isolate_profile_dir, monkeypatch, tmp_path):
         _patch_targets_and_version(monkeypatch)
         bdir = browsers_path()
         _materialize_install(bdir, ["chromium-1217", "chromium_headless_shell-1217"])
-        _write_metadata(
-            install_metadata_path(), bdir, browsers_path=str(tmp_path / "elsewhere")
-        )
+        _write_metadata(install_metadata_path(), bdir, browsers_path=str(tmp_path / "elsewhere"))
         assert browser_setup_ready() is False
 
     def test_false_on_v1_metadata(self, isolate_profile_dir, monkeypatch):
@@ -437,9 +413,7 @@ class TestBrowserSetupReady:
         _write_metadata(install_metadata_path(), bdir)
         assert browser_setup_ready() is False
 
-    def test_true_with_stale_old_revision_alongside_current(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    def test_true_with_stale_old_revision_alongside_current(self, isolate_profile_dir, monkeypatch):
         """Locks in: stale chromium-1208 doesn't break readiness when current 1217 is also present."""
         _patch_targets_and_version(monkeypatch)
         bdir = browsers_path()
@@ -455,9 +429,7 @@ class TestBrowserSetupReady:
         _write_metadata(install_metadata_path(), bdir)
         assert browser_setup_ready() is True
 
-    def test_false_when_only_stale_revision_present(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    def test_false_when_only_stale_revision_present(self, isolate_profile_dir, monkeypatch):
         _patch_targets_and_version(monkeypatch)
         bdir = browsers_path()
         _materialize_install(bdir, ["chromium-1208", "chromium_headless_shell-1208"])
@@ -488,9 +460,7 @@ class TestShellAndFullReady:
     def _headless_config(self, monkeypatch):
         _set_headless(monkeypatch, True)
 
-    def test_shell_ready_true_full_false_with_only_shell(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    def test_shell_ready_true_full_false_with_only_shell(self, isolate_profile_dir, monkeypatch):
         """Only the headless shell present: shell_ready True, full_chromium_ready False."""
         _patch_targets_and_version(monkeypatch)
         bdir = browsers_path()
@@ -528,9 +498,7 @@ class TestShellAndFullReady:
 class TestModeAwareGate:
     """ensure_tool_ready_or_raise gates on the binary the configured mode uses."""
 
-    async def test_headless_mode_releases_on_shell_only(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_headless_mode_releases_on_shell_only(self, isolate_profile_dir, monkeypatch):
         """Headless server: only the shell present -> gate releases to the auth path."""
         _patch_targets_and_version(monkeypatch)
         _set_headless(monkeypatch, True)
@@ -548,9 +516,7 @@ class TestModeAwareGate:
         result = await ensure_tool_ready_or_raise("get_person_profile")
         assert result is None
 
-    async def test_headed_mode_blocks_until_full_chromium(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_headed_mode_blocks_until_full_chromium(self, isolate_profile_dir, monkeypatch):
         """--no-headless server: shell-only is not enough -> setup-in-progress raise."""
         _patch_targets_and_version(monkeypatch)
         _set_headless(monkeypatch, False)
@@ -562,9 +528,7 @@ class TestModeAwareGate:
         async def fake_setup() -> None:
             return None
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_browser_setup", fake_setup
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_browser_setup", fake_setup)
         monkeypatch.setattr("linkedin_mcp_server.bootstrap._auth_ready", lambda: True)
 
         initialize_bootstrap("managed")
@@ -572,9 +536,7 @@ class TestModeAwareGate:
         with pytest.raises(BrowserSetupInProgressError):
             await ensure_tool_ready_or_raise("get_person_profile")
 
-    async def test_headed_mode_releases_on_full_chromium(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_headed_mode_releases_on_full_chromium(self, isolate_profile_dir, monkeypatch):
         """--no-headless server with full chromium present: gate releases."""
         _patch_targets_and_version(monkeypatch)
         _set_headless(monkeypatch, False)
@@ -607,9 +569,7 @@ class TestChromePathShortCircuit:
         )
 
     @pytest.mark.parametrize("headless", [True, False])
-    async def test_gate_short_circuits_to_ready(
-        self, isolate_profile_dir, monkeypatch, headless
-    ):
+    async def test_gate_short_circuits_to_ready(self, isolate_profile_dir, monkeypatch, headless):
         config = self._config(headless=headless, chrome_path="/usr/bin/chromium")
         monkeypatch.setattr("linkedin_mcp_server.bootstrap.get_config", lambda: config)
         monkeypatch.setattr("linkedin_mcp_server.bootstrap._auth_ready", lambda: True)
@@ -621,9 +581,7 @@ class TestChromePathShortCircuit:
         async def fail_setup() -> None:
             called["value"] = True
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_browser_setup", fail_setup
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_browser_setup", fail_setup)
 
         initialize_bootstrap("managed")
 
@@ -633,9 +591,7 @@ class TestChromePathShortCircuit:
         assert get_bootstrap_state().setup_state is SetupState.READY
 
     @pytest.mark.parametrize("headless", [True, False])
-    async def test_background_setup_skipped(
-        self, isolate_profile_dir, monkeypatch, headless
-    ):
+    async def test_background_setup_skipped(self, isolate_profile_dir, monkeypatch, headless):
         config = self._config(headless=headless, chrome_path="/usr/bin/chromium")
         monkeypatch.setattr("linkedin_mcp_server.bootstrap.get_config", lambda: config)
 
@@ -657,19 +613,13 @@ class TestTwoStageInstall:
         async def fake_install(extra_arg: str) -> None:
             calls.append(extra_arg)
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_patchright_install", fake_install
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_patchright_install", fake_install)
         return calls
 
-    async def test_headless_lazy_stops_after_shell(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_headless_lazy_stops_after_shell(self, isolate_profile_dir, monkeypatch):
         """Plain headless mode installs only the shell; metadata records shell-only."""
         _patch_targets_and_version(monkeypatch)
-        config = SimpleNamespace(
-            browser=SimpleNamespace(headless=True, eager_full_chromium=False)
-        )
+        config = SimpleNamespace(browser=SimpleNamespace(headless=True, eager_full_chromium=False))
         monkeypatch.setattr("linkedin_mcp_server.bootstrap.get_config", lambda: config)
         calls = self._stub_install(monkeypatch)
 
@@ -692,9 +642,7 @@ class TestTwoStageInstall:
         from linkedin_mcp_server.exceptions import BrowserSetupFailedError
 
         _patch_targets_and_version(monkeypatch)
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.full_chromium_ready", lambda: False
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.full_chromium_ready", lambda: False)
         monkeypatch.setattr("linkedin_mcp_server.bootstrap.shell_ready", lambda: False)
 
         calls: list[str] = []
@@ -704,9 +652,7 @@ class TestTwoStageInstall:
             if extra_arg == "--no-shell":
                 raise BrowserSetupFailedError("network down")
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_patchright_install", fake_install
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_patchright_install", fake_install)
 
         from linkedin_mcp_server.bootstrap import _ensure_full_chromium_installed
 
@@ -720,14 +666,10 @@ class TestTwoStageInstall:
             "chromium_headless_shell-": True,
         }
 
-    async def test_headed_installs_both_in_order(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_headed_installs_both_in_order(self, isolate_profile_dir, monkeypatch):
         """Headed mode installs shell then full chromium; metadata records both."""
         _patch_targets_and_version(monkeypatch)
-        config = SimpleNamespace(
-            browser=SimpleNamespace(headless=False, eager_full_chromium=False)
-        )
+        config = SimpleNamespace(browser=SimpleNamespace(headless=False, eager_full_chromium=False))
         monkeypatch.setattr("linkedin_mcp_server.bootstrap.get_config", lambda: config)
         calls = self._stub_install(monkeypatch)
 
@@ -742,14 +684,10 @@ class TestTwoStageInstall:
             "chromium_headless_shell-": True,
         }
 
-    async def test_eager_knob_installs_both_in_headless(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_eager_knob_installs_both_in_headless(self, isolate_profile_dir, monkeypatch):
         """eager_full_chromium runs the --no-shell stage even in headless mode."""
         _patch_targets_and_version(monkeypatch)
-        config = SimpleNamespace(
-            browser=SimpleNamespace(headless=True, eager_full_chromium=True)
-        )
+        config = SimpleNamespace(browser=SimpleNamespace(headless=True, eager_full_chromium=True))
         monkeypatch.setattr("linkedin_mcp_server.bootstrap.get_config", lambda: config)
         calls = self._stub_install(monkeypatch)
 
@@ -759,20 +697,14 @@ class TestTwoStageInstall:
 
         assert calls == ["--only-shell", "--no-shell"]
 
-    async def test_single_setup_task_runs_both_stages(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_single_setup_task_runs_both_stages(self, isolate_profile_dir, monkeypatch):
         """Both install stages run inside the one background setup task."""
         _patch_targets_and_version(monkeypatch)
         config = SimpleNamespace(
-            browser=SimpleNamespace(
-                headless=False, eager_full_chromium=False, chrome_path=None
-            )
+            browser=SimpleNamespace(headless=False, eager_full_chromium=False, chrome_path=None)
         )
         monkeypatch.setattr("linkedin_mcp_server.bootstrap.get_config", lambda: config)
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: False
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: False)
         calls = self._stub_install(monkeypatch)
 
         initialize_bootstrap("managed")
@@ -797,9 +729,7 @@ class TestEnsureBrowserInstalledTarget:
         async def fake_full() -> None:
             full_calls["value"] += 1
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_install_shell_only", fake_shell
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_install_shell_only", fake_shell)
         monkeypatch.setattr(
             "linkedin_mcp_server.bootstrap._ensure_full_chromium_installed", fake_full
         )
@@ -817,9 +747,7 @@ class TestEnsureBrowserInstalledTarget:
 
     def test_full_target_installs_full(self, isolate_profile_dir, monkeypatch):
         _patch_targets_and_version(monkeypatch)
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.full_chromium_ready", lambda: False
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.full_chromium_ready", lambda: False)
         shell_calls, full_calls = self._stub(monkeypatch)
 
         ensure_browser_installed(full=True)
@@ -827,9 +755,7 @@ class TestEnsureBrowserInstalledTarget:
         assert shell_calls["value"] == 0
         assert full_calls["value"] == 1
 
-    def test_shell_target_noop_when_shell_present(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    def test_shell_target_noop_when_shell_present(self, isolate_profile_dir, monkeypatch):
         monkeypatch.setattr("linkedin_mcp_server.bootstrap.shell_ready", lambda: True)
         shell_calls, full_calls = self._stub(monkeypatch)
 
@@ -839,9 +765,7 @@ class TestEnsureBrowserInstalledTarget:
         assert full_calls["value"] == 0
 
     def test_full_target_noop_when_full_present(self, isolate_profile_dir, monkeypatch):
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.full_chromium_ready", lambda: True
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.full_chromium_ready", lambda: True)
         shell_calls, full_calls = self._stub(monkeypatch)
 
         ensure_browser_installed(full=True)
@@ -869,9 +793,7 @@ class TestLazyFullChromiumTrigger:
         monkeypatch.setattr(
             "linkedin_mcp_server.bootstrap._ensure_full_chromium_installed", fake_full
         )
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.interactive_login", fake_login
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.interactive_login", fake_login)
         monkeypatch.setattr(
             "linkedin_mcp_server.bootstrap.get_profile_dir",
             lambda: Path("/tmp/profile"),
@@ -903,9 +825,7 @@ class TestPatchrightInstallTargets:
         registry.write_text(json.dumps(payload))
         fake_pkg_dir = tmp_path / "patchright_pkg"
         (fake_pkg_dir / "driver" / "package").mkdir(parents=True)
-        (fake_pkg_dir / "driver" / "package" / "browsers.json").write_text(
-            json.dumps(payload)
-        )
+        (fake_pkg_dir / "driver" / "package" / "browsers.json").write_text(json.dumps(payload))
         # Make `Path(patchright.__file__).parent` resolve to fake_pkg_dir.
         fake_module = MagicMock()
         fake_module.__file__ = str(fake_pkg_dir / "__init__.py")
@@ -1053,12 +973,8 @@ class TestEnsureToolReadyInvalidatesStaleReady:
 
         _patch_inline_wait(monkeypatch, 0)
         # Disk says not-ready, in-memory state cached READY.
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: False
-        )
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_browser_setup", fake_setup
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: False)
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_browser_setup", fake_setup)
 
         # Pre-existing stale metadata file the invalidator should drop.
         bdir = browsers_path()
@@ -1108,9 +1024,7 @@ class TestConfigureBrowserEnvironment:
         assert result.is_absolute()
         assert os.environ["PLAYWRIGHT_BROWSERS_PATH"] == str(result)
 
-    def test_absolutizes_relative_env_var(
-        self, isolate_profile_dir, monkeypatch, tmp_path
-    ):
+    def test_absolutizes_relative_env_var(self, isolate_profile_dir, monkeypatch, tmp_path):
         """A relative path env var is made absolute so subsequent readiness checks don't depend on cwd."""
         monkeypatch.chdir(tmp_path)
         monkeypatch.setenv("PLAYWRIGHT_BROWSERS_PATH", "relative-cache")
@@ -1140,22 +1054,16 @@ class TestHasInstallFor:
 
 
 class TestInlineLoginWait:
-    async def test_inline_wait_resumes_on_success(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_inline_wait_resumes_on_success(self, isolate_profile_dir, monkeypatch):
         """A login that finishes within the budget resumes the same call (ready)."""
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True)
 
         # _auth_ready() flips True only after the fake login flow materializes
         # the profile files on disk.
         async def fake_login_flow() -> None:
             _make_auth_ready(isolate_profile_dir)
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
         _patch_inline_wait(monkeypatch, 0.5)
 
         initialize_bootstrap("managed")
@@ -1168,17 +1076,13 @@ class TestInlineLoginWait:
         state = get_bootstrap_state()
         assert state.auth_state is AuthState.READY
 
-    async def test_inline_wait_elapses_returns_pending(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_inline_wait_elapses_returns_pending(self, isolate_profile_dir, monkeypatch):
         """Budget elapses with login still pending -> poll-friendly raise.
 
         Regression guard for the asyncio.wait_for footgun: the login task must
         still be running (not cancelled, not done) after the wait elapses.
         """
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True)
         monkeypatch.setattr("linkedin_mcp_server.bootstrap._auth_ready", lambda: False)
 
         never_done = asyncio.Event()
@@ -1186,9 +1090,7 @@ class TestInlineLoginWait:
         async def fake_login_flow() -> None:
             await never_done.wait()
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
         _patch_inline_wait(monkeypatch, 0.05)
 
         initialize_bootstrap("managed")
@@ -1211,13 +1113,9 @@ class TestInlineLoginWait:
             if login_task is not None:
                 login_task.cancel()
 
-    async def test_inline_wait_zero_returns_immediately(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_inline_wait_zero_returns_immediately(self, isolate_profile_dir, monkeypatch):
         """login_inline_wait_seconds == 0 raises without awaiting the task."""
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True)
         monkeypatch.setattr("linkedin_mcp_server.bootstrap._auth_ready", lambda: False)
 
         never_done = asyncio.Event()
@@ -1232,9 +1130,7 @@ class TestInlineLoginWait:
             wait_called["value"] = True
             return await real_wait(*args, **kwargs)
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
         monkeypatch.setattr("linkedin_mcp_server.bootstrap.asyncio.wait", tracking_wait)
         _patch_inline_wait(monkeypatch, 0)
 
@@ -1254,13 +1150,9 @@ class TestInlineLoginWait:
             if login_task is not None:
                 login_task.cancel()
 
-    async def test_inline_wait_prior_failure_surfaced(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_inline_wait_prior_failure_surfaced(self, isolate_profile_dir, monkeypatch):
         """A prior failed attempt is mentioned when a fresh login is spawned."""
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True)
         monkeypatch.setattr("linkedin_mcp_server.bootstrap._auth_ready", lambda: False)
 
         never_done = asyncio.Event()
@@ -1268,18 +1160,14 @@ class TestInlineLoginWait:
         async def fake_login_flow() -> None:
             await never_done.wait()
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
         _patch_inline_wait(monkeypatch, 0.05)
 
         initialize_bootstrap("managed")
         state = get_bootstrap_state()
         # Prior attempt finished failed: FAILED + last_error, no running task.
         state.auth_state = AuthState.FAILED
-        state.last_error = (
-            "Manual login timeout: login was not completed within 30 minutes."
-        )
+        state.last_error = "Manual login timeout: login was not completed within 30 minutes."
         state.login_task = None
 
         try:
@@ -1299,9 +1187,7 @@ class TestInlineLoginWait:
         self, isolate_profile_dir, monkeypatch
     ):
         """Concurrent callers share ONE login task; the flow spawns once."""
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True)
         monkeypatch.setattr("linkedin_mcp_server.bootstrap._auth_ready", lambda: False)
 
         never_done = asyncio.Event()
@@ -1311,9 +1197,7 @@ class TestInlineLoginWait:
             spawn_count["value"] += 1
             await never_done.wait()
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
         _patch_inline_wait(monkeypatch, 0.05)
 
         initialize_bootstrap("managed")
@@ -1332,18 +1216,14 @@ class TestInlineLoginWait:
             if login_task is not None:
                 login_task.cancel()
 
-    async def test_inline_wait_bypassed_in_docker(
-        self, isolate_profile_dir, monkeypatch
-    ):
+    async def test_inline_wait_bypassed_in_docker(self, isolate_profile_dir, monkeypatch):
         """Docker raises host-login required without ever entering the wait."""
         monkeypatch.setattr("linkedin_mcp_server.bootstrap._auth_ready", lambda: False)
 
         async def fail_if_called(*args, **kwargs):
             raise AssertionError("asyncio.wait must not run under Docker")
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.asyncio.wait", fail_if_called
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.asyncio.wait", fail_if_called)
         # A large budget would matter only if the wait were reachable.
         _patch_inline_wait(monkeypatch, 30)
 
@@ -1353,25 +1233,17 @@ class TestInlineLoginWait:
             await ensure_tool_ready_or_raise("search_jobs")
 
 
-_IMPORT_TARGET = (
-    "linkedin_mcp_server.browser_import.orchestrate.import_session_from_browser"
-)
+_IMPORT_TARGET = "linkedin_mcp_server.browser_import.orchestrate.import_session_from_browser"
 
 
 @pytest.fixture
 def _stub_import_env(monkeypatch):
     """Stub the import side-effects and force the gate open for auto-login tests."""
-    monkeypatch.setattr(
-        "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True
-    )
-    monkeypatch.setattr(
-        "linkedin_mcp_server.bootstrap.close_browser", AsyncMock(return_value=None)
-    )
+    monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True)
+    monkeypatch.setattr("linkedin_mcp_server.bootstrap.close_browser", AsyncMock(return_value=None))
     monkeypatch.setattr("linkedin_mcp_server.bootstrap.set_headless", lambda _x: None)
     monkeypatch.setattr("linkedin_mcp_server.bootstrap.current_headless", lambda: True)
-    monkeypatch.setattr(
-        "linkedin_mcp_server.bootstrap._auto_import_allowed", lambda: True
-    )
+    monkeypatch.setattr("linkedin_mcp_server.bootstrap._auto_import_allowed", lambda: True)
     monkeypatch.setattr("linkedin_mcp_server.bootstrap._auth_ready", lambda: False)
 
 
@@ -1409,9 +1281,7 @@ class TestAutoLogin:
             "linkedin_mcp_server.bootstrap._auth_ready",
             lambda: portable_cookie_path(isolate_profile_dir).exists(),
         )
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_run_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_run_login_flow)
         import_mock = AsyncMock(side_effect=fake_import)
         monkeypatch.setattr(_IMPORT_TARGET, import_mock)
         _patch_inline_wait(monkeypatch, 0.5, auto_import=True)
@@ -1446,9 +1316,7 @@ class TestAutoLogin:
         async def fake_login_flow() -> None:
             await never_done.wait()
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
         monkeypatch.setattr(_IMPORT_TARGET, import_outcome)
         _patch_inline_wait(monkeypatch, 0.05, auto_import=True)
 
@@ -1490,9 +1358,7 @@ class TestAutoLogin:
 
         import_mock = AsyncMock(side_effect=fake_import)
         monkeypatch.setattr(_IMPORT_TARGET, import_mock)
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
         _patch_inline_wait(monkeypatch, 0.05, auto_import=True)
 
         initialize_bootstrap("managed")
@@ -1536,9 +1402,7 @@ class TestAutoLogin:
 
     async def test_config_disabled_skips_import(self, isolate_profile_dir, monkeypatch):
         """auto_import False -> the real predicate gates it off, manual login only."""
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True)
         monkeypatch.setattr("linkedin_mcp_server.bootstrap._auth_ready", lambda: False)
 
         never_done = asyncio.Event()
@@ -1548,9 +1412,7 @@ class TestAutoLogin:
 
         import_mock = AsyncMock(return_value=False)
         monkeypatch.setattr(_IMPORT_TARGET, import_mock)
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
         # Do NOT patch _auto_import_allowed: let the real predicate see the flag.
         _patch_inline_wait(monkeypatch, 0.05, auto_import=False)
 
@@ -1678,9 +1540,7 @@ class TestAutoLogin:
         async def fake_login_flow() -> None:
             await never_done.wait()
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
 
         state = get_bootstrap_state()
         state.import_attempted = True
@@ -1700,12 +1560,8 @@ class TestAutoLogin:
         self, isolate_profile_dir, monkeypatch
     ):
         """close_browser() runs before the import; the prior headless mode is restored."""
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True
-        )
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._auto_import_allowed", lambda: True
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.browser_setup_ready", lambda: True)
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._auto_import_allowed", lambda: True)
         monkeypatch.setattr("linkedin_mcp_server.bootstrap._auth_ready", lambda: False)
 
         order: list[str] = []
@@ -1721,15 +1577,9 @@ class TestAutoLogin:
 
         # current_headless() reports the operator's --no-headless scrape mode; the
         # restore in finally must put exactly that value back.
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.close_browser", spy_close_browser
-        )
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.current_headless", lambda: False
-        )
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap.set_headless", headless_calls.append
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.close_browser", spy_close_browser)
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.current_headless", lambda: False)
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap.set_headless", headless_calls.append)
         monkeypatch.setattr(
             "linkedin_mcp_server.bootstrap._auth_ready",
             lambda: portable_cookie_path(isolate_profile_dir).exists(),
@@ -1758,9 +1608,7 @@ class TestAutoLogin:
 
         import_mock = AsyncMock(side_effect=fake_import)
         monkeypatch.setattr(_IMPORT_TARGET, import_mock)
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
         _patch_inline_wait(monkeypatch, 0.01, auto_import=True)
 
         initialize_bootstrap("managed")
@@ -1803,9 +1651,7 @@ class TestAutoLogin:
         async def fake_login_flow() -> None:
             await never_done.wait()
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
         monkeypatch.setattr(_IMPORT_TARGET, AsyncMock(return_value=False))
         _patch_inline_wait(monkeypatch, 0.05, auto_import=True)
 
@@ -1831,9 +1677,7 @@ class TestAutoLogin:
         async def fake_login_flow() -> None:
             await never_done.wait()
 
-        monkeypatch.setattr(
-            "linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow
-        )
+        monkeypatch.setattr("linkedin_mcp_server.bootstrap._run_login_flow", fake_login_flow)
         # Exercise the except TimeoutError branch deterministically: no real wait.
         monkeypatch.setattr(_IMPORT_TARGET, AsyncMock(side_effect=TimeoutError()))
         _patch_inline_wait(monkeypatch, 0.05, auto_import=True)
@@ -1865,9 +1709,7 @@ def test_move_auth_state_aside_reports_a_held_profile(monkeypatch):
         MagicMock(side_effect=RuntimeError("in use by another process")),
     )
 
-    with pytest.raises(
-        AuthenticationBootstrapFailedError, match="No login was started"
-    ):
+    with pytest.raises(AuthenticationBootstrapFailedError, match="No login was started"):
         bootstrap._move_auth_state_aside(force=True)
 
 

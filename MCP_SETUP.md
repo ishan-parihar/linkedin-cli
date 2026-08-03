@@ -6,11 +6,11 @@ This guide explains how to wire up the LinkedIn MCP server with various AI agent
 
 ### Installation Steps
 
-1. **Install linkedin-cli globally:**
+1. **Install linkedin-lyr globally:**
    ```bash
-   pip install mcp-server-linkedin
+   pip install linkedin-lyr
    # OR
-   pipx install mcp-server-linkedin
+   pipx install linkedin-lyr
    ```
 
 2. **Configure Claude Desktop:**
@@ -25,7 +25,7 @@ This guide explains how to wire up the LinkedIn MCP server with various AI agent
    {
      "mcpServers": {
        "linkedin": {
-         "command": "linkedin-cli",
+         "command": "linkedin-lyr",
          "args": []
        }
      }
@@ -36,12 +36,12 @@ This guide explains how to wire up the LinkedIn MCP server with various AI agent
 
 5. **Import LinkedIn cookies:**
    ```bash
-   linkedin-cli --import-from-browser brave
+   linkedin-lyr --import-from-browser brave
    ```
 
 6. **Verify session status:**
    ```bash
-   linkedin-cli --status
+   linkedin-lyr --status
    ```
 
 ### Alternative Configurations
@@ -52,7 +52,7 @@ This guide explains how to wire up the LinkedIn MCP server with various AI agent
   "mcpServers": {
     "linkedin": {
       "command": "pipx",
-      "args": ["run", "mcp-server-linkedin"],
+      "args": ["run", "linkedin-lyr"],
       "env": { "UV_HTTP_TIMEOUT": "300" }
     }
   }
@@ -65,7 +65,7 @@ This guide explains how to wire up the LinkedIn MCP server with various AI agent
   "mcpServers": {
     "linkedin": {
       "command": "uvx",
-      "args": ["mcp-server-linkedin@latest"],
+      "args": ["linkedin-lyr@latest"],
       "env": { "UV_HTTP_TIMEOUT": "300" }
     }
   }
@@ -77,7 +77,7 @@ This guide explains how to wire up the LinkedIn MCP server with various AI agent
 {
   "mcpServers": {
     "linkedin": {
-      "command": "/home/user/.local/bin/linkedin-cli",
+      "command": "/home/user/.local/bin/linkedin-lyr",
       "args": []
     }
   }
@@ -93,7 +93,7 @@ Add to your Cline settings:
 {
   "mcpServers": {
     "linkedin": {
-      "command": "linkedin-cli",
+      "command": "linkedin-lyr",
       "args": []
     }
   }
@@ -107,7 +107,7 @@ Configure in your MCP settings:
 {
   "mcpServers": {
     "linkedin": {
-      "command": "linkedin-cli",
+      "command": "linkedin-lyr",
       "args": []
     }
   }
@@ -121,7 +121,7 @@ For any MCP-compatible client, use the standard configuration:
 {
   "mcpServers": {
     "linkedin": {
-      "command": "linkedin-cli",
+      "command": "linkedin-lyr",
       "args": []
     }
   }
@@ -136,7 +136,7 @@ If you get "command not found" errors:
 
 1. **Check your PATH:**
    ```bash
-   which linkedin-cli
+   which linkedin-lyr
    ```
 
 2. **Ensure pipx is in PATH:**
@@ -149,7 +149,7 @@ If you get "command not found" errors:
    {
      "mcpServers": {
        "linkedin": {
-         "command": "/home/user/.local/bin/linkedin-cli",
+         "command": "/home/user/.local/bin/linkedin-lyr",
          "args": []
        }
      }
@@ -162,12 +162,12 @@ If the MCP server can't find cookies:
 
 1. **Check session status:**
    ```bash
-   linkedin-cli --status
+   linkedin-lyr --status
    ```
 
 2. **Re-import cookies:**
    ```bash
-   linkedin-cli --import-from-browser auto
+   linkedin-lyr --import-from-browser auto
    ```
 
 3. **Check cookie file location:**
@@ -214,7 +214,7 @@ Add these to your MCP configuration:
 {
   "mcpServers": {
     "linkedin": {
-      "command": "linkedin-cli",
+      "command": "linkedin-lyr",
       "args": [],
       "env": {
         "LINKEDIN_LOG_LEVEL": "DEBUG",
@@ -231,12 +231,12 @@ After configuration, verify the MCP connection:
 
 1. **Check CLI functionality:**
    ```bash
-   linkedin-cli --status
+   linkedin-lyr --status
    ```
 
 2. **Test MCP server startup:**
    ```bash
-   linkedin-cli
+   linkedin-lyr
    ```
 
 3. **Verify in Claude Desktop:**
@@ -253,7 +253,7 @@ For HTTP transport instead of stdio:
 {
   "mcpServers": {
     "linkedin": {
-      "command": "linkedin-cli",
+      "command": "linkedin-lyr",
       "args": ["--transport", "streamable-http", "--host", "127.0.0.1", "--port", "8080"]
     }
   }
@@ -267,7 +267,7 @@ Enable debug logging for troubleshooting:
 {
   "mcpServers": {
     "linkedin": {
-      "command": "linkedin-cli",
+      "command": "linkedin-lyr",
       "args": ["--log-level", "DEBUG"]
     }
   }
@@ -280,22 +280,22 @@ The MCP server supports multiple browsers for cookie import:
 
 ```bash
 # Auto-detect
-linkedin-cli --import-from-browser auto
+linkedin-lyr --import-from-browser auto
 
 # Specific browsers
-linkedin-cli --import-from-browser chrome
-linkedin-cli --import-from-browser brave
-linkedin-cli --import-from-browser brave-origin
-linkedin-cli --import-from-browser edge
-linkedin-cli --import-from-browser firefox
-linkedin-cli --import-from-browser chromium
-linkedin-cli --import-from-browser opera
-linkedin-cli --import-from-browser vivaldi
-linkedin-cli --import-from-browser zen
+linkedin-lyr --import-from-browser chrome
+linkedin-lyr --import-from-browser brave
+linkedin-lyr --import-from-browser brave-origin
+linkedin-lyr --import-from-browser edge
+linkedin-lyr --import-from-browser firefox
+linkedin-lyr --import-from-browser chromium
+linkedin-lyr --import-from-browser opera
+linkedin-lyr --import-from-browser vivaldi
+linkedin-lyr --import-from-browser zen
 ```
 
 ## Support
 
 For issues or questions:
-- GitHub Issues: https://github.com/ishan-parihar/linkedin-cli/issues
-- Documentation: https://github.com/ishan-parihar/linkedin-cli#readme
+- GitHub Issues: https://github.com/ishan-parihar/linkedin-lyr/issues
+- Documentation: https://github.com/ishan-parihar/linkedin-lyr#readme

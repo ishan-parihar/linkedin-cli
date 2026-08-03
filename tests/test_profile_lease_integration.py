@@ -42,8 +42,7 @@ def _await_line(process: subprocess.Popen[str], expected: str) -> None:
             break
     stderr = process.stderr.read() if process.stderr else ""
     raise AssertionError(
-        f"worker exited (status {process.poll()}) without reporting "
-        f"{expected!r}: {stderr}"
+        f"worker exited (status {process.poll()}) without reporting {expected!r}: {stderr}"
     )
 
 
@@ -151,9 +150,7 @@ class TestDestructiveOperationsRefuse:
             holder.kill()
             holder.wait(timeout=10)
 
-    def test_clear_refuses_while_another_process_owns_the_profile(
-        self, tmp_path: Path
-    ) -> None:
+    def test_clear_refuses_while_another_process_owns_the_profile(self, tmp_path: Path) -> None:
         profile = tmp_path / "profile"
         profile.mkdir(parents=True)
         (profile / "Default").mkdir()
@@ -170,9 +167,7 @@ class TestDestructiveOperationsRefuse:
             holder.kill()
             holder.wait(timeout=10)
 
-    def test_rotate_refuses_while_this_process_has_a_browser_open(
-        self, tmp_path: Path
-    ) -> None:
+    def test_rotate_refuses_while_this_process_has_a_browser_open(self, tmp_path: Path) -> None:
         """The reference count alone cannot answer "is our own Chromium live?".
 
         A destructive helper asking our own lease for a reference simply gets
@@ -199,9 +194,7 @@ class TestDestructiveOperationsRefuse:
             lease.mark_browser_closed()
             lease.release()
 
-    def test_rotate_proceeds_once_our_browser_is_confirmed_closed(
-        self, tmp_path: Path
-    ) -> None:
+    def test_rotate_proceeds_once_our_browser_is_confirmed_closed(self, tmp_path: Path) -> None:
         profile = tmp_path / "profile"
         profile.mkdir(parents=True)
         (profile / "Default").mkdir()
@@ -328,9 +321,7 @@ class TestIdleOwnerHandsOver:
                 while time.monotonic() < deadline and lease.held:
                     await asyncio.sleep(0.05)
 
-                assert not lease.held, (
-                    "an idle owner never handed the profile to a waiting process"
-                )
+                assert not lease.held, "an idle owner never handed the profile to a waiting process"
                 fake_browser.close.assert_awaited()
             finally:
                 watcher.cancel()

@@ -76,7 +76,7 @@ def create_mcp_server(
     existing caller keeps what it had.
     """
     mcp = FastMCP(
-        "mcp-server-linkedin",
+        "linkedin-lyr",
         version=__version__,
         lifespan=browser_lifespan,
         mask_error_details=True,
