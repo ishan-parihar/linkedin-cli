@@ -7,16 +7,14 @@ for LinkedIn authentication. It bypasses the need for Playwright entirely.
 
 import json
 import logging
-import tempfile
 from pathlib import Path
 from typing import Any
 
-import httpx
+from curl_cffi import requests as cffi_req
 
 from linkedin_mcp_server.cookie_import import (
     extract_cookies_from_browser,
     auto_extract_cookies,
-    BROWSER_REGISTRY,
 )
 from linkedin_mcp_server.session_state import auth_root_dir
 
@@ -128,13 +126,16 @@ class ObscuraCookieManager:
             
             cookies = self._format_cookies_for_http()
             
-            with httpx.Client() as client:
+            # curl_cffi impersonates a real Chrome TLS fingerprint; raw httpx
+            # (Python TLS) replaying a browser-minted li_at is a bot-detection tell.
+            # Reusing the same bundle the session was minted under keeps the probe
+            # fingerprint-coherent with the rest of the stack.
+            with cffi_req.Client(impersonate="chrome", timeout=10.0) as client:
                 response = client.get(
                     _TEST_URL,
                     headers=headers,
                     cookies=cookies,
-                    follow_redirects=True,
-                    timeout=10.0
+                    follow_redirects=True
                 )
             
             # Check if response indicates successful authentication
@@ -157,7 +158,7 @@ class ObscuraCookieManager:
             return False
 
     def _format_cookies_for_http(self) -> dict[str, str]:
-        """Format cookies for httpx."""
+        """Format cookies for the HTTP client."""
         return self._cookies
 
     def get_obscura_cookie_args(self) -> list[str]:
