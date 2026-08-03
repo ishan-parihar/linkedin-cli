@@ -29,7 +29,7 @@ from linkedin_mcp_server.session_state import (
     runtime_storage_state_path,
 )
 
-ISSUE_URL = "https://github.com/stickerdaniel/linkedin-mcp-server/issues/new/choose"
+ISSUE_URL = "https://github.com/ishan-parihar/linkedin-lyr/issues/new/choose"
 ISSUE_TITLE_PREFIX = "[BUG]"
 ISSUE_SEARCH_API = "https://api.github.com/search/issues"
 
@@ -354,7 +354,7 @@ def _installation_method_lines(runtime: dict[str, Any]) -> list[str]:
     docker_checked = "x" if "container" in current_runtime_id else " "
     managed_checked = " " if "container" in current_runtime_id else "x"
     return [
-        f"- [{docker_checked}] Docker (specify docker image version/tag): `stickerdaniel/linkedin-mcp-server:<version-or-latest>` with `~/.linkedin` mounted into `/home/pwuser/.linkedin`",
+        f"- [{docker_checked}] Docker (specify docker image version/tag): `ishan-parihar/linkedin-lyr:<version-or-latest>` with `~/.linkedin` mounted into `/home/pwuser/.linkedin`",
         f"- [{managed_checked}] Managed runtime (Claude Desktop MCP Bundle, `uvx`, or local `uv run` setup)",
     ]
 
@@ -363,7 +363,7 @@ def _installation_method_summary(runtime: dict[str, Any]) -> str:
     current_runtime_id = str(runtime.get("current_runtime_id") or "")
     if "container" in current_runtime_id:
         return (
-            "Docker using `stickerdaniel/linkedin-mcp-server:<version-or-latest>` with "
+            "Docker using `ishan-parihar/linkedin-lyr:<version-or-latest>` with "
             "`~/.linkedin` mounted into `/home/pwuser/.linkedin`"
         )
     return "Managed runtime (Claude Desktop MCP Bundle, `uvx`, or local `uv run` setup)"
@@ -406,4 +406,4 @@ def _issue_search_query(payload: dict[str, Any]) -> str:
     else:
         section = payload.get("section_name") or "scrape"
         summary = f'"{section}"'
-    return f"repo:stickerdaniel/linkedin-mcp-server is:issue is:open {summary}"
+    return f"repo:ishan-parihar/linkedin-lyr is:issue is:open {summary}"

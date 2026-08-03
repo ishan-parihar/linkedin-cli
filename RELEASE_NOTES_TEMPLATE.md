@@ -1,9 +1,9 @@
-For an installation guide, refer to the [README](https://github.com/stickerdaniel/linkedin-mcp-server/blob/main/README.md).
+For an installation guide, refer to the [README](https://github.com/ishan-parihar/linkedin-lyr/blob/main/README.md).
 
 ## 📦 Update MCP Bundle Installation
 **For Claude Desktop users:**
 
-→ [Download linkedin-mcp-server-v${VERSION}.mcpb](https://github.com/stickerdaniel/linkedin-mcp-server/releases/download/v${VERSION}/linkedin-mcp-server-v${VERSION}.mcpb)
+→ [Download linkedin-mcp-server-v${VERSION}.mcpb](https://github.com/ishan-parihar/linkedin-lyr/releases/download/v${VERSION}/linkedin-mcp-server-v${VERSION}.mcpb)
 
 Then click the downloaded file to install in Claude Desktop.
 
@@ -12,10 +12,10 @@ Then click the downloaded file to install in Claude Desktop.
 ## 🐳 Update Docker Installation
 **For users with Docker-based MCP client configurations:**
 ```bash
-docker pull stickerdaniel/linkedin-mcp-server:latest
+docker pull ishan-parihar/linkedin-lyr:latest
 ```
 The `latest` tag will always point to the most recent release.
 To pull this specific version, run:
 ```bash
-docker pull stickerdaniel/linkedin-mcp-server:${VERSION}
+docker pull ishan-parihar/linkedin-lyr:${VERSION}
 ```

@@ -326,8 +326,6 @@ uv run ty check
 
 Built with [FastMCP](https://gofastmcp.com/) and browser-cookie3.
 
-Original project by [Daniel Sticker](https://github.com/stickerdaniel).
-
 ## Related CLI Tools
 
 This project is part of a family of agent-friendly CLI tools for social platforms:
@@ -343,6 +341,6 @@ This project is part of a family of agent-friendly CLI tools for social platform
 
 ## License
 
-Apache License 2.0 - see [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 Use in accordance with [LinkedIn's User Agreement](https://www.linkedin.com/legal/user-agreement). Automated access may violate LinkedIn's terms and can lead to account restrictions. This tool is for personal use only and comes with no warranty of any kind.

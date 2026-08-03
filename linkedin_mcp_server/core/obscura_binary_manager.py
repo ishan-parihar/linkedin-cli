@@ -25,7 +25,7 @@ from packaging import version
 logger = logging.getLogger(__name__)
 
 # Obscura GitHub repository
-OBSURA_REPO = "graphite-ng/obscura"
+OBSURA_REPO = "ishan-parihar/obscura-core"
 OBSURA_API_URL = f"https://api.github.com/repos/{OBSURA_REPO}/releases/latest"
 OBSURA_RELEASES_URL = f"https://github.com/{OBSURA_REPO}/releases"
 

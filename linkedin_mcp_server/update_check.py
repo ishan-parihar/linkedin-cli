@@ -34,7 +34,7 @@ from linkedin_mcp_server import __version__
 logger = logging.getLogger(__name__)
 
 _PYPI_URL = "https://pypi.org/pypi/linkedin-lyr/json"
-_LATEST_RELEASE_URL = "https://github.com/stickerdaniel/linkedin-mcp-server/releases/latest"
+_LATEST_RELEASE_URL = "https://github.com/ishan-parihar/linkedin-lyr/releases/latest"
 _CACHE_PATH = Path.home() / ".linkedin-lyr" / "update-check.json"
 _CACHE_TTL_SECONDS = 24 * 60 * 60
 _REQUEST_TIMEOUT_SECONDS = 2.0
