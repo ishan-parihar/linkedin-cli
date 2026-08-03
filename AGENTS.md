@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-- Use `uv` for dependency management: `uv sync` (dev: `uv sync --group dev`)
+- Use `uv` for dependency management: `uv sync` (dev: `uv sync --extra dev`)
 - Lint: `uv run ruff check .` (auto-fix with `--fix`)
 - Format: `uv run ruff format .`
 - Type check: `uv run ty check` (using ty, not mypy)
