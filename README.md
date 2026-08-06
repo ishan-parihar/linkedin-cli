@@ -199,6 +199,24 @@ linkedin-lyr --transport streamable-http --host 127.0.0.1 --port 8080
 
 ---
 
+## Limitations
+
+### No posting
+`linkedin-lyr` has **no post tool** — it reads profiles/companies/jobs/feed/posts and sends DMs, but does not create posts or edit the profile.
+
+### `send_message` (DM) is blocked on headless/automated hosts
+The DM pipeline itself works — browser boots via obscura, cookies inject, the composer resolves against a real 1st-degree connection in a `confirm_send=False` dry run. But live sends are not reliably verifiable:
+
+- **Session rotation:** LinkedIn rotates any `li_at` that appears in an automated browser within ~30 min (server issues `li_at=delete me` + 302). After rotation the same cookie redirect-loops on `/feed/`, `/mynetwork/`, and even `/in/<profile>/`.
+- **Anti-bot wall:** the Playwright/patchright browser fingerprint is flagged, so even valid cookies get re-rejected on browser-touching tools (the `validation_interval` revalidation loop).
+- **Escape hatches:** `LINKEDIN_SKIP_BROWSER_VALIDATION=1` bypasses browser re-validation; direct-drive the extractor (`get_or_create_browser()` + cookies from `get_valid_linkedin_cookies_from_daemon()`) to bypass the bootstrap login gate.
+- **Self-DM is blocked at the platform level** (no Message button on your own profile).
+
+### Cookie shape mismatch
+`--status` reads a **flat** cookie dict from `~/.linkedin-lyr/cookies.json`; the extractor reads a **Playwright-format list** from `~/.linkedin-lyr/profile/cookies.json`. The two must be maintained in their own formats — writing one shape to the wrong file makes the auth gate misreport.
+
+---
+
 ## Configuration
 
 ### Environment Variables
